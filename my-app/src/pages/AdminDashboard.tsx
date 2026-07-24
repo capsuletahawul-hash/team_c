@@ -8,50 +8,31 @@ import {
   toggleUserStatusInMock,
   getCourses,
   getAdminComplaints,
-  getAdminGrowthStats
+  getAdminGrowthStats,
+  getAdminNotifications
 } from '../mocks/mockApi';
 
-// استيراد الـ Hook المشترك والأصلح لويك 2
-import { useApi } from '../Hooks/useApi'; // Capital 'H'
-// Reusable Components
+import { useApi } from '../Hooks/useApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingIndicator from '../components/LoadingIndicator';
-
 import { useLanguage } from '../context/LanguageContext';
 
 type ActiveTabType = 'overview' | 'users' | 'courses' | 'complaints';
 
 export interface UserPermission {
-  id: string;
-  name: string;
-  email: string;
+  id: string; name: string; email: string;
   role: 'Student' | 'Trainer' | 'Company' | 'Admin' | string;
-  status: 'active' | 'suspended' | string;
-  joinedAt?: string;
+  status: 'active' | 'suspended' | string; joinedAt?: string;
 }
 
 export interface CourseItem {
-  id: number;
-  title: string;
-  instructor: string;
-  duration: string;
-  students: number;
+  id: number; title: string; instructor: string; duration: string; students: number; category?: string;
   status: 'available' | 'coming_soon' | 'pending_deletion' | 'completed' | string;
 }
 
-export interface ComplaintItem {
-  id: string;
-  name: string;
-  email: string;
-  message: string;
-  date: string;
-}
-export interface GrowthMetric {
-  monthAr: string;
-  monthEn: string;
-  count: number;
-}
+export interface ComplaintItem { id: string; name: string; email: string; message: string; date: string; }
+export interface GrowthMetric { monthAr: string; monthEn: string; count: number; }
 
 const AdminDashboard: React.FC = () => {
   const { t, lang } = useLanguage();
@@ -59,157 +40,246 @@ const AdminDashboard: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<ActiveTabType>('overview');
   const [message, setMessage] = useState<string>('');
-// 🌟 1️⃣ جلب البيانات بالـ Hooks بما فيها الأشهر والنمو
+  const [showNotifications, setShowNotifications] = useState<boolean>(false);
+
+  const adminNotifications = getAdminNotifications(lang);
+
   const { data: statsData, loading: statsLoading } = useApi(async () => {
     const res = await getAdminDashboardMetrics();
-    if (res.success) return { success: true, data: res.data };
-    const errorMsg = res && 'error' in res && typeof res.error === 'string' ? res.error : "Error loading metrics";
-    return { success: false, error: errorMsg };
+    return res.success ? { success: true, data: res.data } : { success: false, error: "Error loading metrics" };
   });
 
   const { data: initialUsers, loading: usersLoading } = useApi(async () => {
     const res = await getAllUsersForAdmin();
-    if (res.success) return { success: true, data: res.data };
-    const errorMsg = res && 'error' in res && typeof res.error === 'string' ? res.error : "Error loading users";
-    return { success: false, error: errorMsg };
+    return res.success ? { success: true, data: res.data } : { success: false, error: "Error loading users" };
   });
 
   const { data: initialCourses, loading: coursesLoading } = useApi(async () => {
     const res = await getCourses();
-    if (res.success) return { success: true, data: res.data };
-    const errorMsg = res && 'error' in res && typeof res.error === 'string' ? res.error : "Error loading courses";
-    return { success: false, error: errorMsg };
+    return res.success ? { success: true, data: res.data } : { success: false, error: "Error loading courses" };
   });
 
   const { data: initialComplaints, loading: complaintsLoading } = useApi(async () => {
     const res = await getAdminComplaints();
-    if (res.success) return { success: true, data: res.data };
-    const errorMsg = res && 'error' in res && typeof res.error === 'string' ? res.error : "Error loading complaints";
-    return { success: false, error: errorMsg };
+    return res.success ? { success: true, data: res.data } : { success: false, error: "Error loading complaints" };
   });
 
-  // الـ Hook الخاص بأشهر النمو والغراف
   const { data: initialGrowth, loading: growthLoading } = useApi(async () => {
     const res = await getAdminGrowthStats();
-    if (res.success) return { success: true, data: res.data };
-    const errorMsg = res && 'error' in res && typeof res.error === 'string' ? res.error : "Error loading growth stats";
-    return { success: false, error: errorMsg };
+    return res.success ? { success: true, data: res.data } : { success: false, error: "Error loading growth stats" };
   });
 
-  // 🌟 2️⃣ الحالات المحلية لإدارة القوائم
   const [usersList, setUsersList] = useState<UserPermission[]>([]);
   const [coursesList, setCoursesList] = useState<CourseItem[]>([]);
   const [complaintsList, setComplaintsList] = useState<ComplaintItem[]>([]);
-  const [growthList, setGrowthList] = useState<GrowthMetric[]>([]); // حالة الأشهر المحلية
+  const [growthList, setGrowthList] = useState<GrowthMetric[]>([]);
 
-  // 🌟 3️⃣ المزامنة فور انتهاء التحميل
-  useEffect(() => {
-    if (initialUsers) setUsersList(initialUsers as UserPermission[]);
-  }, [initialUsers]);
+  useEffect(() => { if (initialUsers) setUsersList(initialUsers as UserPermission[]); }, [initialUsers]);
 
   useEffect(() => {
-    if (initialCourses?.courses) setCoursesList(initialCourses.courses as CourseItem[]);
-  }, [initialCourses]);
+    if (initialCourses?.courses) {
+      setCoursesList((initialCourses.courses as CourseItem[]).map((c, i) => ({
+        ...c,
+        category: i % 2 === 0 ? (lang === 'ar' ? 'الأمن السيبراني' : 'Cybersecurity') : (lang === 'ar' ? 'هندسة البرمجيات' : 'Software Engineering')
+      })));
+    }
+  }, [initialCourses, lang]);
 
   useEffect(() => {
     if (initialComplaints) {
-      const translatedComplaints = (initialComplaints as ComplaintItem[]).map(c => ({
+      setComplaintsList((initialComplaints as ComplaintItem[]).map(c => ({
         ...c,
         message: lang === 'ar' 
           ? (c.id === 'TKT-991' ? 'تواجهني مشكلة أثناء تحميل ملفات موديول خطافات ريأكت المتقدمة.' : 'طلب تفعيل واجهة الشركة B2B لم يتم الرد عليه بعرض السعر حتى الآن.')
           : (c.id === 'TKT-991' ? 'I face an issue downloading advanced React hooks modules.' : 'B2B corporate onboarding request has not been answered yet.')
-      }));
-      setComplaintsList(translatedComplaints);
+      })));
     }
   }, [initialComplaints, lang]);
 
-  useEffect(() => {
-    if (initialGrowth) setGrowthList(initialGrowth as GrowthMetric[]);
-  }, [initialGrowth]);
+  useEffect(() => { if (initialGrowth) setGrowthList(initialGrowth as GrowthMetric[]); }, [initialGrowth]);
+
+  const categoryCounts = coursesList.reduce<Record<string, number>>((acc, course) => {
+    const cat = course.category || (lang === 'ar' ? 'تخصصات أخرى' : 'Other');
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {});
 
   const handleUpdateCourseStatus = (courseId: number, newStatus: CourseItem['status']) => {
     setCoursesList((prev: CourseItem[]) => prev.map((c: CourseItem) => c.id === courseId ? { ...c, status: newStatus } : c));
-    setMessage(lang === 'ar' ? '📝 تم تحديث حالة الدورة بنجاح في النظام.' : '📝 Course operational status updated.');
+    setMessage(lang === 'ar' ? 'تم تحديث حالة الدورة بنجاح في النظام.' : 'Course operational status updated.');
   };
 
   const handleRoleChange = (userId: string, newRole: UserPermission['role']) => {
     updateUserRoleInMock(userId, newRole).then(() => {
       setUsersList((prev: UserPermission[]) => prev.map((u: UserPermission) => u.id === userId ? { ...u, role: newRole } : u));
-      setMessage(lang === 'ar' ? '⚙️ تم تعديل رتبة وصلاحية حساب المستخدم.' : '⚙️ User system permissions updated.');
+      setMessage(lang === 'ar' ? 'تم تعديل رتبة وصلاحية حساب المستخدم.' : 'User system permissions updated.');
     });
   };
 
   const toggleUserStatus = (userId: string) => {
     toggleUserStatusInMock(userId).then(() => {
       setUsersList((prev: UserPermission[]) => prev.map((u: UserPermission) => u.id === userId ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
-      setMessage(lang === 'ar' ? '🔒 تم تحديث وضع قفل الحساب الأمني بنجاح.' : '🔒 Security account state toggled.');
+      setMessage(lang === 'ar' ? 'تم تحديث وضع قفل الحساب الأمني بنجاح.' : 'Security account state toggled.');
     });
   };
 
-  // حارس التحميل الشامل لويك 2
- if (statsLoading || usersLoading || coursesLoading || complaintsLoading || growthLoading) {
-    return <div className="min-h-screen bg-capsule-bg flex items-center justify-center"><LoadingIndicator message={l.loading} /></div>;
+  if (statsLoading || usersLoading || coursesLoading || complaintsLoading || growthLoading) {
+    return <div className="min-h-screen bg-[#C9D6DF] flex items-center justify-center"><LoadingIndicator message={l.loading} /></div>;
   }
 
   const borderSide = t.dir === 'rtl' ? 'border-r-4' : 'border-l-4';
 
   return (
     <div className="min-h-screen bg-[#C9D6DF] text-capsule-navy font-sans antialiased flex flex-col relative overflow-hidden" dir={t.dir}>
-      <div className={`absolute top-24 ${t.dir === 'rtl' ? 'right-12' : 'left-12'} w-80 h-80 bg-capsule-gold/20 rounded-full blur-3xl pointer-events-none z-0 animate-pulse`}></div>
-      <Navbar activePage="home" />
+      {/* خلفية جمالية مريحة للعين */}
+      <div className={`absolute top-10 ${t.dir === 'rtl' ? 'right-12' : 'left-12'} w-[450px] h-[450px] bg-capsule-teal/15 rounded-full blur-[120px] pointer-events-none z-0`}></div>
+      <div className={`absolute top-[40%] ${t.dir === 'rtl' ? 'left-12' : 'right-12'} w-[400px] h-[400px] bg-capsule-gold/15 rounded-full blur-[120px] pointer-events-none z-0`}></div>
+
+      {/* الهيدر العلوي */}
+      <div className="relative z-40 bg-white/70 backdrop-blur-md border-b border-white/80 shadow-xs">
+        <Navbar activePage="home" />
+        <div className="max-w-7xl mx-auto px-6 py-2.5 flex items-center justify-between">
+          <span className="text-[10px] font-black tracking-widest text-capsule-teal uppercase bg-capsule-teal/10 px-3 py-1 rounded-full border border-capsule-teal/20">
+            {lang === 'ar' ? 'لوحة تحكم المشرف الرئيسي' : 'SUPER ADMIN PANEL'}
+          </span>
+          <div className="relative">
+            <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/90 backdrop-blur-md rounded-xl border border-white shadow-2xs hover:bg-white transition text-capsule-navy flex items-center gap-2 text-xs font-bold">
+              <svg className="h-4 w-4 text-capsule-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              <span>{lang === 'ar' ? 'الإشعارات' : 'Notifications'}</span>
+              <span className="bg-rose-500 text-white text-[10px] font-black font-mono px-1.5 py-0.2 rounded-full">{adminNotifications.length}</span>
+            </button>
+            {showNotifications && (
+              <div className={`absolute mt-2 w-72 bg-white/95 backdrop-blur-xl rounded-2xl border border-white shadow-xl p-3 space-y-2 text-xs text-start z-50 ${t.dir === 'rtl' ? 'left-0' : 'right-0'}`}>
+                <p className="font-black text-capsule-navy border-b pb-1.5">{lang === 'ar' ? 'التنبيهات الواردة' : 'Inbound Tickets'}</p>
+                {adminNotifications.map(n => (
+                  <div key={n.id} className="p-2.5 bg-slate-50 rounded-xl text-gray-700 border border-slate-200/60 flex gap-2 text-[11px] font-bold">
+                    <svg className="w-4 h-4 text-capsule-teal shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>{lang === 'ar' ? n.textAr : n.textEn}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       <main className="flex-grow max-w-7xl mx-auto px-6 py-8 w-full grid grid-cols-1 lg:grid-cols-4 gap-6 relative z-10">
-        <div className="lg:col-span-1 bg-white/30 backdrop-blur-xl border border-white/50 p-4 rounded-3xl shadow-xs space-y-1.5 h-fit sticky top-6">
-          <div className="p-3 border-b border-gray-200/40 mb-2">
-            <p className="text-[10px] font-black tracking-widest text-capsule-teal uppercase">{lang === 'ar' ? 'لوحة تحكم المشرف' : 'SUPER ADMIN TERMINAL'}</p>
-            <h4 className="text-xs font-bold text-capsule-navy mt-0.5">{lang === 'ar' ? 'إدارة الكورسات والمستخدمين' : 'Core Command Board'}</h4>
+        
+        {/* القائمة الجانبية مع أزرار التحويل المباشرة بأسلوب UX أنيق */}
+        <div className="lg:col-span-1 bg-white/90 backdrop-blur-xl border border-white p-4 rounded-3xl shadow-md space-y-1.5 h-fit sticky top-6">
+          <div className="p-3 border-b border-slate-200/80 mb-2">
+            <p className="text-[10px] font-black text-capsule-teal uppercase tracking-widest">{lang === 'ar' ? 'لوحة تحكم المشرف' : 'CONTROL CENTER'}</p>
+            <h4 className="text-xs font-black text-capsule-navy mt-0.5">{lang === 'ar' ? 'إدارة المنظومة' : 'Management Hub'}</h4>
           </div>
-          <button onClick={() => setActiveTab('overview')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'overview' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>📊 {lang === 'ar' ? 'نظرة عامة ومؤشرات النظام' : 'System Overview'}</button>
-          <button onClick={() => setActiveTab('users')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'users' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>👥 {lang === 'ar' ? 'إدارة الهويات والصلاحيات' : 'Identity & IAM Control'}</button>
-          <button onClick={() => setActiveTab('courses')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'courses' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>⚙️ {lang === 'ar' ? 'إدارة واعتماد الكورسات' : 'Course Pipeline Control'}</button>
-          <button onClick={() => setActiveTab('complaints')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'complaints' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>📥 {lang === 'ar' ? 'صندوق الشكاوى والتواصل' : 'Complaints Box'}</button>
-          <Link to="/courses-approval" className="block w-full text-start p-2.5 rounded-xl text-xs font-bold transition text-gray-500 hover:bg-white/60">✅ {lang === 'ar' ? 'اعتماد الدورات الفعلية' : 'Live Course Approval'}</Link>
+          
+          <button onClick={() => setActiveTab('overview')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 ${activeTab === 'overview' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-600 hover:bg-slate-100/80'}`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            <span>{lang === 'ar' ? 'نظرة عامة ومؤشرات النظام' : 'System Overview'}</span>
+          </button>
 
-          <Link to="/contracts-approval" className="block w-full text-start p-2.5 rounded-xl text-xs font-bold transition text-gray-500 hover:bg-white/60">📄 {lang === 'ar' ? 'اعتماد طلبات الشركات' : 'Contract Requests Approval'}</Link>
+          <button onClick={() => setActiveTab('users')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 ${activeTab === 'users' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-600 hover:bg-slate-100/80'}`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            <span>{lang === 'ar' ? 'إدارة الهويات والصلاحيات' : 'Identity & IAM Control'}</span>
+          </button>
+
+          <button onClick={() => setActiveTab('courses')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 ${activeTab === 'courses' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-600 hover:bg-slate-100/80'}`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <span>{lang === 'ar' ? 'إدارة واعتماد الكورسات' : 'Course Pipeline Control'}</span>
+          </button>
+
+          <button onClick={() => setActiveTab('complaints')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 ${activeTab === 'complaints' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-600 hover:bg-slate-100/80'}`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+            <span>{lang === 'ar' ? 'صندوق الشكاوى والتواصل' : 'Complaints Box'}</span>
+          </button>
+
+          {/* 🌟 أزرار الانتقال المباشر لصفحات الاعتماد المنفصلة (B2B / Contracts Approval) */}
+          <div className="pt-2 border-t border-slate-200/80 space-y-1 mt-2">
+            <Link to="/contracts-approval" className="w-full text-start p-2.5 rounded-xl text-xs font-bold transition text-gray-600 hover:bg-slate-100/80 flex items-center gap-2.5">
+              <svg className="w-4 h-4 text-capsule-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0a2 2 0 100 4m0-4a2 2 0 100-4" /></svg>
+              <span>{lang === 'ar' ? 'اعتماد عقود الشركات (B2B)' : 'Corporate Approvals'}</span>
+            </Link>
+
+            <Link to="/courses-approval" className="w-full text-start p-2.5 rounded-xl text-xs font-bold transition text-gray-600 hover:bg-slate-100/80 flex items-center gap-2.5">
+              <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>{lang === 'ar' ? 'اعتماد الدورات الفعلية' : 'Live Course Approval'}</span>
+            </Link>
+          </div>
         </div>
 
+        {/* قسم محتوى التبويبات بدون أي خطوط علوية على الكروت */}
         <div className="lg:col-span-3 space-y-6">
           {message && <div className={`p-3.5 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold ${borderSide} border-emerald-500 shadow-2xs`}>{message}</div>}
 
+          {/* 🌟 1. تبويب النظرة العامة والمؤشرات البيانية كاملة */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-                  <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.activeUsers}</p>
+                <div className="bg-white/90 backdrop-blur-md border border-white p-5 rounded-3xl shadow-sm">
+                  <p className="text-xs font-black text-gray-500 mb-1">{l.stats.activeUsers}</p>
                   <p className="text-xl font-black text-capsule-navy font-mono">{statsData?.activeUserLoginsToday || 0}</p>
                 </div>
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-                  <p className="text-xs font-bold text-gray-400 mb-1">{lang === 'ar' ? 'الكورسات الحالية' : 'Total Platform Courses'}</p>
+                <div className="bg-white/90 backdrop-blur-md border border-white p-5 rounded-3xl shadow-sm">
+                  <p className="text-xs font-black text-gray-500 mb-1">{lang === 'ar' ? 'الكورسات الحالية' : 'Total Platform Courses'}</p>
                   <p className="text-xl font-black text-capsule-teal font-mono">{coursesList.length}</p>
                 </div>
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-                  <p className="text-xs font-bold text-gray-400 mb-1">{lang === 'ar' ? 'المستخدمين النشطين' : 'Total Registered Users'}</p>
+                <div className="bg-white/90 backdrop-blur-md border border-white p-5 rounded-3xl shadow-sm">
+                  <p className="text-xs font-black text-gray-500 mb-1">{lang === 'ar' ? 'المستخدمين النشطين' : 'Total Registered Users'}</p>
                   <p className="text-xl font-black text-capsule-navy font-mono">{usersList.length + 42} {lang === 'ar' ? 'حساب' : 'Users'}</p>
                 </div>
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-                  <p className="text-xs font-bold text-gray-400 mb-1">{lang === 'ar' ? 'تذاكر شكاوى معلقة' : 'Open Complaints'}</p>
+                <div className="bg-white/90 backdrop-blur-md border border-white p-5 rounded-3xl shadow-sm">
+                  <p className="text-xs font-black text-gray-500 mb-1">{lang === 'ar' ? 'تذاكر شكاوى معلقة' : 'Open Complaints'}</p>
                   <p className="text-xl font-black text-rose-600 font-mono">{complaintsList.length}</p>
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs">
-                <h3 className="text-xs font-bold text-capsule-navy mb-4 uppercase tracking-wider">{lang === 'ar' ? '📈 المؤشر التزايدي الإجمالي لتفاعل ونمو مستخدمي المنصة' : '📈 Incremental Monthly User Registration Trajectory'}</h3>
-                <div className="space-y-3.5">
+              {/* غراف توزيع الكورسات الدائري */}
+              <div className="bg-white/90 backdrop-blur-md border border-white rounded-3xl p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-6">
+                  <svg className="w-5 h-5 text-capsule-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.001 0 0120.488 9z" /></svg>
+                  <h3 className="text-xs font-black text-capsule-navy uppercase tracking-wider">{lang === 'ar' ? 'توزيع الدورات التدريبية حسب التخصص' : 'Course Distribution by Specialization'}</h3>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-center justify-around gap-8 py-2">
+                  <div className="relative w-40 h-40 rounded-full flex items-center justify-center p-3 shadow-md" style={{ background: 'conic-gradient(#0f172a 0% 50%, #0d9488 50% 100%)' }}>
+                    <div className="w-28 h-28 bg-white/95 rounded-full flex flex-col items-center justify-center shadow-inner">
+                      <span className="text-2xl font-black font-mono text-capsule-navy">{coursesList.length}</span>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">{lang === 'ar' ? 'إجمالي الكورسات' : 'Total Courses'}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 w-full sm:w-auto">
+                    {Object.entries(categoryCounts).map(([cat, count], idx) => (
+                      <div key={cat} className="flex items-center justify-between sm:justify-start gap-4 p-3 bg-slate-100/80 rounded-2xl border border-slate-200/80 min-w-[220px]">
+                        <div className="flex items-center gap-2.5">
+                          <span className={`w-3.5 h-3.5 rounded-full shadow-2xs ${idx === 0 ? 'bg-capsule-navy' : 'bg-capsule-teal'}`}></span>
+                          <span className="text-xs font-black text-capsule-navy">{cat}</span>
+                        </div>
+                        <span className="text-xs font-black font-mono text-capsule-teal bg-white px-2.5 py-1 rounded-xl border border-slate-200/80 shadow-2xs">
+                          {count} {lang === 'ar' ? 'دورة' : 'Courses'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* غراف النمو التراكمي للمستخدمين */}
+              <div className="bg-white/90 backdrop-blur-md border border-white rounded-3xl p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <svg className="w-5 h-5 text-capsule-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                  <h3 className="text-xs font-black text-capsule-navy uppercase tracking-wider">{lang === 'ar' ? 'المؤشر التزايدي الإجمالي لتفاعل ونمو مستخدمي المنصة' : 'Incremental Monthly User Registration Trajectory'}</h3>
+                </div>
+                
+                <div className="space-y-3.5 pt-1">
                  {growthList.map((tItem: GrowthMetric, idx: number) => {
-                    const maxScale = 1600;
-                    const growthRatio = Math.min((tItem.count / maxScale) * 100, 100);
+                    const growthRatio = Math.min((tItem.count / 1600) * 100, 100);
                     return (
-                      <div key={idx} className="bg-gray-50/70 p-3 rounded-xl border border-gray-100/50 flex items-center justify-between gap-4">
-                        <span className="text-xs font-bold text-capsule-navy w-24">
+                      <div key={idx} className="bg-slate-100/80 p-3 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-4">
+                        <span className="text-xs font-black text-capsule-navy w-24">
                           {lang === 'ar' ? tItem.monthAr : tItem.monthEn}
                         </span>
-                        <div className="flex-grow bg-gray-200 h-3 rounded-full overflow-hidden">
-                          <div className="bg-gradient-to-r from-capsule-teal to-capsule-navy h-full rounded-full" style={{ width: `${growthRatio}%` }}></div>
+                        <div className="flex-grow bg-slate-200 h-3 rounded-full overflow-hidden p-0.5 border border-slate-300/50">
+                          <div className="bg-gradient-to-r from-capsule-teal to-capsule-navy h-full rounded-full transition-all duration-700" style={{ width: `${growthRatio}%` }}></div>
                         </div>
                         <span className="text-xs font-black font-mono text-capsule-teal w-24 text-end">{tItem.count} {lang === 'ar' ? 'حساب' : 'Accounts'}</span>
                       </div>
@@ -220,33 +290,35 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
+          {/* تبويب الهويات والصلاحيات */}
           {activeTab === 'users' && (
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
+            <div className="bg-white/90 backdrop-blur-md border border-white rounded-3xl shadow-sm overflow-hidden p-6">
+              <h3 className="text-sm font-black text-capsule-navy border-b pb-3 mb-4">{lang === 'ar' ? 'إدارة الهويات وحسابات النظام' : 'User Identity Control'}</h3>
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-xs text-center">
+                <table className="w-full text-xs text-center border-collapse">
                   <thead>
-                    <tr className="bg-gray-100/40 text-gray-500 font-bold border-b border-gray-100">
+                    <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
                       <th className="p-3 text-start">ID</th>
-                      <th className="p-3">{lang === 'ar' ? 'الاسم الكامل' : 'Name'}</th>
-                      <th className="p-3">{lang === 'ar' ? 'الصلاحية (Permission Role)' : 'Role'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الاسم' : 'Name'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الصلاحية' : 'Role'}</th>
                       <th className="p-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
-                      <th className="p-3">{lang === 'ar' ? 'إجراء الإدارة' : 'Action'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الإجراء' : 'Action'}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 font-medium text-gray-600">
-                    {usersList.map((user: UserPermission) => (
-                      <tr key={user.id} className="hover:bg-slate-50/40 transition">
-                        <td className="p-3 font-mono font-bold text-blue-600 text-start">{user.id}</td>
-                        <td className="p-3 text-capsule-navy font-bold">{user.name}</td>
+                  <tbody className="divide-y divide-slate-200/60 font-bold">
+                    {usersList.map((user) => (
+                      <tr key={user.id} className="hover:bg-slate-100/50">
+                        <td className="p-3 font-mono text-blue-600 text-start">{user.id}</td>
+                        <td className="p-3 text-capsule-navy font-black">{user.name}</td>
                         <td className="p-3">
-                          <select value={user.role} onChange={(e) => handleRoleChange(user.id, e.target.value)} className="p-1.5 bg-gray-50 border rounded-lg text-[10px] font text-capsule-navy">
+                          <select value={user.role} onChange={(e) => handleRoleChange(user.id, e.target.value)} className="p-1 bg-slate-100 border rounded-lg text-[10px] font-bold outline-none">
                             <option value="Student">Student</option>
                             <option value="Trainer">Trainer</option>
                             <option value="Company">Company</option>
                           </select>
                         </td>
-                        <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold ${user.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>{user.status}</span></td>
-                        <td className="p-3"><button onClick={() => toggleUserStatus(user.id)} className={`px-2.5 py-1 rounded-md text-[10px] font-black text-white transition ${user.status === 'active' ? 'bg-rose-600' : 'bg-emerald-600'}`}>{user.status === 'active' ? (lang === 'ar' ? 'حظر الحساب' : 'Block') : (lang === 'ar' ? 'تنشيط الحساب' : 'Activate')}</button></td>
+                        <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${user.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>{user.status}</span></td>
+                        <td className="p-3"><button onClick={() => toggleUserStatus(user.id)} className={`px-2.5 py-1 rounded-lg text-[10px] font-black text-white ${user.status === 'active' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}>{user.status === 'active' ? (lang === 'ar' ? 'حظر' : 'Block') : (lang === 'ar' ? 'تنشيط' : 'Activate')}</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -255,29 +327,27 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
+          {/* تبويب الكورسات */}
           {activeTab === 'courses' && (
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
+            <div className="bg-white/90 backdrop-blur-md border border-white rounded-3xl shadow-sm overflow-hidden p-6">
+              <h3 className="text-sm font-black text-capsule-navy border-b pb-3 mb-4">{lang === 'ar' ? 'إدارة واعتماد الدورات التدريبية' : 'Course Approval Terminal'}</h3>
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-xs text-center">
+                <table className="w-full text-xs text-center border-collapse">
                   <thead>
-                    <tr className="bg-gray-100/40 text-gray-500 font-bold border-b border-gray-100">
+                    <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
                       <th className="p-3 text-start">{lang === 'ar' ? 'عنوان الدورة' : 'Course Title'}</th>
-                      <th className="p-3">{lang === 'ar' ? 'الموجّه / المدرب' : 'Instructor'}</th>
-                      <th className="p-3">{lang === 'ar' ? 'الحالة الحالية' : 'Current Status'}</th>
-                      <th className="p-3">{lang === 'ar' ? 'العمليات الفيدرالية' : 'Operational Actions'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'المدرب' : 'Instructor'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'العمليات' : 'Actions'}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 font-medium text-gray-600">
-                    {coursesList.map((course: CourseItem) => (
-                      <tr key={course.id} className="hover:bg-slate-50/40 transition">
-                        <td className="p-3 text-start font-bold text-capsule-navy truncate max-w-[160px]">{course.title}</td>
-                        <td className="p-3 text-gray-500 font-semibold">{course.instructor}</td>
-                        <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${course.status === 'available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{course.status}</span></td>
-                        <td className="p-3">
-                          <button onClick={() => handleUpdateCourseStatus(course.id, course.status === 'available' ? 'coming_soon' : 'available')} className={`px-2.5 py-1 text-[10px] font-black text-white rounded-md transition ${course.status === 'available' ? 'bg-amber-600' : 'bg-emerald-600'}`}>
-                            {course.status === 'available' ? (lang === 'ar' ? 'إيقاف مؤقت' : 'Suspend') : (lang === 'ar' ? 'اعتماد ونشر' : 'Approve')}
-                          </button>
-                        </td>
+                  <tbody className="divide-y divide-slate-200/60 font-bold">
+                    {coursesList.map((course) => (
+                      <tr key={course.id} className="hover:bg-slate-100/50">
+                        <td className="p-3 text-start font-black text-capsule-navy truncate max-w-[160px]">{course.title}</td>
+                        <td className="p-3 text-gray-600">{course.instructor}</td>
+                        <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${course.status === 'available' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{course.status}</span></td>
+                        <td className="p-3"><button onClick={() => handleUpdateCourseStatus(course.id, course.status === 'available' ? 'coming_soon' : 'available')} className={`px-2.5 py-1 text-[10px] font-black text-white rounded-lg ${course.status === 'available' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}>{course.status === 'available' ? (lang === 'ar' ? 'إيقاف' : 'Suspend') : (lang === 'ar' ? 'اعتماد' : 'Approve')}</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -286,23 +356,25 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
+          {/* تبويب الشكاوى */}
           {activeTab === 'complaints' && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-xs space-y-4">
-              <h3 className="text-sm font-bold text-capsule-navy border-b pb-2">📥 {lang === 'ar' ? 'صندوق الشكاوى والطلبات الواردة' : 'Complaints Box & Inbound Tickets'}</h3>
+            <div className="bg-white/90 backdrop-blur-md border border-white rounded-3xl p-6 shadow-sm space-y-4">
+              <h3 className="text-sm font-black text-capsule-navy border-b pb-3">{lang === 'ar' ? 'صندوق الشكاوى والطلبات الواردة' : 'Complaints Box & Inbound Tickets'}</h3>
               <div className="grid grid-cols-1 gap-4">
                 {complaintsList.map((ticket) => (
-                  <div key={ticket.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div key={ticket.id} className="p-4 bg-slate-100/80 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row justify-between gap-4">
                     <div>
-                      <span className="font-mono text-[10px] font-black bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md">{ticket.id}</span>
-                      <h4 className="text-xs font-bold text-capsule-navy mt-1.5">{ticket.name} <span className="text-gray-400 font-normal">({ticket.email})</span></h4>
-                      <p className="text-xs text-gray-500 mt-1">{ticket.message}</p>
+                      <span className="font-mono text-[10px] font-black bg-slate-200 text-slate-800 px-2 py-0.5 rounded-md">{ticket.id}</span>
+                      <h4 className="text-xs font-black text-capsule-navy mt-1.5">{ticket.name} <span className="text-gray-500 font-normal">({ticket.email})</span></h4>
+                      <p className="text-xs text-gray-600 font-bold mt-1">{ticket.message}</p>
                     </div>
-                    <span className="text-[10px] font-mono font-bold text-gray-400 self-end sm:self-center">{ticket.date}</span>
+                    <span className="text-[10px] font-mono font-bold text-gray-500 self-end sm:self-center">{ticket.date}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
         </div>
       </main>
       <Footer />

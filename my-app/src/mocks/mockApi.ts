@@ -1351,3 +1351,7 @@ export const getTrainerMockProgress = (lang: string) => [
   { id: 101, name: lang === 'ar' ? 'علي المحسن' : 'Ali Al-Mohsen', courseAr: 'معسكر الأمن السيبراني', courseEn: 'Cybersecurity Bootcamp', progress: 85 },
   { id: 102, name: lang === 'ar' ? 'فاطمة أحمد' : 'Fatima Ahmed', courseAr: 'هندسة البرمجيات', courseEn: 'Software Engineering', progress: 60 }
 ];
+export const getAdminNotifications = (lang: string) => [
+  { id: 1, textAr: 'طلب جديد لاعتماد كورس الأمن السيبراني', textEn: 'New course pending approval: Cybersecurity' },
+  { id: 2, textAr: 'تذكرة شكوى جديدة واردة من طالب', textEn: 'New support ticket received from a student' }
+];

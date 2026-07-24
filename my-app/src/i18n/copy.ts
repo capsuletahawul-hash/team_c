@@ -517,7 +517,7 @@ export const COPY = {
         submitBtn: "إنشاء الدورة"
       },
       messages: {
-        valErrorLength: "يجب أن يكون الوصف 20 حرفًا على الأقل.",
+        valErrorLength: "يجب أن تكون المتطلبات 20 حرفًا على الأقل.",
         successPrefix: "تم إنشاء الطلب بنجاح. رقم التذكرة: ",
         genericError: "حدث خطأ، حاول مرة أخرى."
       }

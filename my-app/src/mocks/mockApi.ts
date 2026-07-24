@@ -1337,3 +1337,17 @@ export const getTrainerStudentProgressMock = async (): Promise<{ success: boolea
     ]
   };
 };
+
+export const calculateCourseEarnings = (students: number, price: number): number => {
+  return Math.round((students || 0) * (price || 0) * 0.8);
+};
+
+export const getTrainerMockReviews = (lang: string) => [
+  { id: 1, name: lang === 'ar' ? 'سارة العتيبي' : 'Sarah Al-Otaibi', rating: 5, comment: lang === 'ar' ? 'محتوى ممتاز وشرح واضح جداً' : 'Excellent content and clear explanation' },
+  { id: 2, name: lang === 'ar' ? 'خالد الدوسري' : 'Khaled Al-Dawsari', rating: 4, comment: lang === 'ar' ? 'دورة تطبيقية ممتازة وأنصح بها' : 'Great practical course, highly recommended' }
+];
+
+export const getTrainerMockProgress = (lang: string) => [
+  { id: 101, name: lang === 'ar' ? 'علي المحسن' : 'Ali Al-Mohsen', courseAr: 'معسكر الأمن السيبراني', courseEn: 'Cybersecurity Bootcamp', progress: 85 },
+  { id: 102, name: lang === 'ar' ? 'فاطمة أحمد' : 'Fatima Ahmed', courseAr: 'هندسة البرمجيات', courseEn: 'Software Engineering', progress: 60 }
+];

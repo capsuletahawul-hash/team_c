@@ -154,7 +154,7 @@ const AdminDashboard: React.FC = () => {
   const borderSide = t.dir === 'rtl' ? 'border-r-4' : 'border-l-4';
 
   return (
-    <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col relative overflow-hidden" dir={t.dir}>
+    <div className="min-h-screen bg-[#C9D6DF] text-capsule-navy font-sans antialiased flex flex-col relative overflow-hidden" dir={t.dir}>
       <div className={`absolute top-24 ${t.dir === 'rtl' ? 'right-12' : 'left-12'} w-80 h-80 bg-capsule-gold/20 rounded-full blur-3xl pointer-events-none z-0 animate-pulse`}></div>
       <Navbar activePage="home" />
 

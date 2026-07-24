@@ -271,7 +271,11 @@ export default function CompanyDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
+    <div className="min-h-screen bg-[#C9D6DF] font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
+       {/* إضاءات بلور خلفية ناعمة للهوية البصرية */}
+      <div className={`absolute top-30 ${t.dir === 'rtl' ? 'right-12' : 'left-12'} w-[450px] h-[450px] bg-capsule-teal/15 rounded-full blur-[110px] pointer-events-none z-0`}></div>
+      <div className={`absolute top-[90%] ${t.dir === 'rtl' ? 'left-12' : 'right-12'} w-[400px] h-[400px] bg-capsule-gold/15 rounded-full blur-[110px] pointer-events-none z-0`}></div>
+
       <Navbar activePage="dashboard" />
 
       {showToast && (

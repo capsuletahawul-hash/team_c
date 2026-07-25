@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import StudentNavbar from '../components/StudentNavbar.jsx'; 
+import { useAuth } from '../context/AuthContext';
+import StudentNavbar from '../components/StudentNavbar.jsx';
+import TrainerNavbar from '../components/TrainerNavbar';
 import Footer from '../components/Footer.jsx';
 import { 
   ShoppingBagIcon, 
@@ -50,6 +52,7 @@ export default function Cart() {
   // CHANGE: Extracted type constraints from the custom Language Context hook
   const { t, lang } = useLanguage() as { t: { shoppingCart?: ShoppingCartTranslations; dir: "ltr" | "rtl" }; lang: string };
   const navigate = useNavigate();
+  const { role } = useAuth();
 
   const l: ShoppingCartTranslations = t.shoppingCart || {
     title: lang === 'ar' ? 'سلة التسوق' : 'Shopping Cart',
@@ -72,11 +75,7 @@ export default function Cart() {
   // CHANGE: Type-hinted useState to explicitly track an array of CartItem objects
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem('cartItems');
-    return savedCart ? JSON.parse(savedCart) : [
-      { id: 101, title: 'Advanced React Architecture 2026', category: 'Web Development', duration: '6 Weeks', price: 1200 },
-      { id: 102, title: 'AI & Large Language Models for Enterprise', category: 'Artificial Intelligence', duration: '8 Weeks', price: 3500 },
-      { id: 103, title: 'Offensive Security & Ethical Hacking Core', category: 'Cybersecurity', duration: '10 Weeks', price: 2900 }
-    ];
+    return savedCart ? JSON.parse(savedCart) : [];
   });
 
   // CHANGE: Explicitly typed standard string state for the raw input element string value
@@ -121,20 +120,25 @@ export default function Cart() {
     setCheckoutStatus(true);
     alert(l.checkoutSuccess);
     
-    navigate('/payment', { 
-      state: { 
+    navigate('/payment', {
+      state: {
         courseName: cartItems.map((item: CartItem) => item.title).join(' + '),
         trainer: lang === 'ar' ? 'نخبة من المدربين' : 'Expert Instructors',
         price: subtotalAmount,
         discount: discountAmount,
-        totalAmount: finalTotalAmount 
-      } 
+        totalAmount: finalTotalAmount,
+        courseIds: cartItems.map((item: CartItem) => item.id)
+      }
     });
   };
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
-      <StudentNavbar activePage="shopping-cart" />
+      {role === 'trainer' ? (
+        <TrainerNavbar activePage="shopping-cart" />
+      ) : (
+        <StudentNavbar activePage="shopping-cart" />
+      )}
 
       <div className="relative overflow-hidden bg-gradient-to-br from-[#0D4C54] via-[#0A3A40] to-[#021E22] text-white pt-24 pb-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,164,153,0.12),transparent_50%)]"></div>

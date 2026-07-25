@@ -108,6 +108,7 @@ const DevIndex: React.FC = () => {
     ['/trainer-details', 'Trainer Details'],
     ['/trainer-profile', 'Trainer Profile (standalone)'],
     ['/trainer-dashboard', 'Trainer Dashboard'],
+    ['/trainer-courses-catalog', 'Trainer Courses Catalog (learn)'],
     ['/admin-dashboard', 'Admin Dashboard'],
     ['/courses-approval', 'Courses Approval'],
     ['/contracts-approval', 'Contracts Approval 📄'],
@@ -153,8 +154,8 @@ const App: React.FC = () => {
       <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={['student']} element={<StudentDashboardRoute />} />} />
       <Route path="/student-profile" element={<ProtectedRoute allowedRoles={['student']} element={<StudentProfileRoute />} />} />
       <Route path="/student-courses-overview" element={<ProtectedRoute allowedRoles={['student']} element={<StudentCoursesOverview />} />} />
-      <Route path="/cart" element={<ProtectedRoute allowedRoles={['student']} element={<Cart />} />} />
-      <Route path="/payment" element={<ProtectedRoute allowedRoles={['student']} element={<PaymentPage />} />} />
+      <Route path="/cart" element={<ProtectedRoute allowedRoles={['student', 'trainer']} element={<Cart />} />} />
+      <Route path="/payment" element={<ProtectedRoute allowedRoles={['student', 'trainer']} element={<PaymentPage />} />} />
 
       {/* مسارات الشركات المحمية */}
       <Route path="/company-dashboard" element={<ProtectedRoute allowedRoles={['company']} element={<CompanyDashboard />} />} /> 
@@ -163,6 +164,7 @@ const App: React.FC = () => {
       <Route path="/trainer-dashboard" element={<ProtectedRoute allowedRoles={['trainer']} element={<TrainerDashboard />} />} />
       <Route path="/trainer-profile" element={<ProtectedRoute allowedRoles={['trainer']} element={<TrainerProfile />} />} />
       <Route path="/trainer-courses" element={<ProtectedRoute allowedRoles={['trainer']} element={<TrainerCourses />} />} />
+      <Route path="/trainer-courses-catalog" element={<ProtectedRoute allowedRoles={['trainer']} element={<StudentCoursesOverview />} />} />
 
       {/* مسارات المسؤول (Admin) المحمية */}
       <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['admin']} element={<AdminDashboard />} />} />

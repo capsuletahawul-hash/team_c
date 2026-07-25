@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useLanguage } from '../context/LanguageContext'; // 🔄 سياق اللغة للتحويل الفوري وتجنب الشاشة البيضاء
+import { useAuth } from '../context/AuthContext';
 import StudentNavbar from "../components/StudentNavbar";
+import TrainerNavbar from "../components/TrainerNavbar";
 import Footer from '../components/Footer';
 import {
   ChevronDownIcon, PlayIcon, DocumentTextIcon, CodeBracketSquareIcon,
@@ -61,6 +63,7 @@ const uiText: Record<'ar' | 'en', UIStrings> = {
 export default function CourseDetails() {
   const { id } = useParams<{ id: string }>();
   const { lang } = useLanguage() as { lang: 'ar' | 'en' };
+  const { role } = useAuth();
   const ui = uiText[lang] || uiText['ar'];
   
   // 💾 إدارة حالة البيانات وحالة الاتصال بالسيرفر
@@ -74,6 +77,21 @@ export default function CourseDetails() {
     async function loadCourse() {
       if (!id) return;
       setStatus('loading');
+      try {
+        // 🛰️ نحاول أول شي نجيب الكورس من الباك اند الحقيقي (كورسات التراينر المعتمدة)
+        const backendResponse = await fetch(`http://localhost:5000/api/courses/public/${id}`);
+        if (backendResponse.ok) {
+          const backendData = await backendResponse.json();
+          if (isMounted && backendData?.success) {
+            setRawData(backendData.course as CourseRawData);
+            setStatus('success');
+            return;
+          }
+        }
+      } catch {
+        // تجاهل الخطأ وكمل على بيانات الموك بالأسفل
+      }
+
       try {
         const response = await getCourseDetails(id) as { success: boolean; data: CourseRawData };
         if (!isMounted) return;
@@ -128,7 +146,11 @@ export default function CourseDetails() {
   if (status === 'not_found') {
     return (
       <div className="min-h-screen bg-capsule-bg flex flex-col font-sans">
-        <StudentNavbar activePage="courses" />
+        {role === 'trainer' ? (
+          <TrainerNavbar activePage="learn" />
+        ) : (
+          <StudentNavbar activePage="courses" />
+        )}
         <main className="flex-grow flex flex-col items-center justify-center gap-4 p-10 text-center" dir={isRTL ? 'rtl' : 'ltr'}>
           <p className="text-lg font-bold text-capsule-navy">{ui.notFound}</p>
           <Link to="/courses-overview" className="text-capsule-teal font-semibold underline">{ui.backToCourses}</Link>
@@ -141,7 +163,11 @@ export default function CourseDetails() {
   // ✨ بناء هيكل الصفحة الرئيسي وتقسيمها لجزئين (المحتوى + بطاقة الدفع الجانبية)
   return (
     <div className="min-h-screen bg-capsule-bg flex flex-col font-sans transition-colors duration-300" dir={isRTL ? 'rtl' : 'ltr'}>
-      <StudentNavbar activePage="courses" />
+      {role === 'trainer' ? (
+        <TrainerNavbar activePage="learn" />
+      ) : (
+        <StudentNavbar activePage="courses" />
+      )}
       <main className="flex-grow">
         <CourseHero lang={lang} ui={ui} course={course} />
         {course && (

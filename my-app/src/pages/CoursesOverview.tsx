@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import TrainerNavbar from "../components/TrainerNavbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
-import { getCourses } from "../mocks/mockApi";
 import { useLanguage } from "../context/LanguageContext";
+import { useAuth } from "../context/AuthContext";
 
 interface Filters {
   category: string[];
@@ -82,6 +83,7 @@ export default function CoursesOverview() {
   // Type assertion for translations
   const typedLang = lang as keyof typeof CATEGORY_LABELS["programming"];
   const navigate = useNavigate();
+  const { role } = useAuth();
   const l = t.coursesOverview;
   const isRTL = t.dir === "rtl";
 
@@ -90,24 +92,25 @@ export default function CoursesOverview() {
   const [sortIndex, setSortIndex] = useState<number>(0);
   const [draftFilters, setDraftFilters] = useState<typeof EMPTY_FILTERS>(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<typeof EMPTY_FILTERS>(EMPTY_FILTERS);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [backendCourses, setBackendCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // جلب بيانات الدورات من الـ Mock API عند تحميل الصفحة لأول مرة.
+  // جلب الكورسات الحقيقية المعتمدة من الباك اند فقط (بدون أي بيانات وهمية)
   useEffect(() => {
-    let isMounted = true;
-    getCourses().then(res => {
-      if (isMounted && res.success && res.data) {
-  setCourses(res.data.courses);
-}
-      setLoading(false);
-    });
-    return () => { isMounted = false; };
+    fetch("http://localhost:5000/api/courses/public")
+      .then((res) => res.json())
+      .then((data) => {
+        setBackendCourses(data.success ? (data.courses ?? []) : []);
+      })
+      .catch(() => {
+        setBackendCourses([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   // تجهيز بيانات الدورات وإضافة خصائص تستخدم فقط في واجهة المستخدم.
   const dynamicCourses = useMemo(() => {
-    return courses.map((c, i) => {
+    return backendCourses.map((c, i) => {
       const normCat = String(c.category || "").toLowerCase();
       let tagKey = "programming";
       if (/cyber|سيبراني|سايبر/.test(normCat)) tagKey = "cybersecurity";
@@ -122,7 +125,7 @@ export default function CoursesOverview() {
         durationLabel: (parseInt(c.duration) || 0) < 20 ? "under20" : "over20"
       };
     });
-  }, [courses]);
+  }, [backendCourses]);
 
   const filterGroups = useMemo(() => [
     { 
@@ -188,13 +191,17 @@ export default function CoursesOverview() {
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir} lang={lang}>
       {/* التعديل هنا فقط: تم إرجاع المكون الاصلي مع الخاصية لضبط تسجيل الخروج */}
-      <Navbar
-  activePage="courses"
-  showAuthButtons={true}
-  onSignIn={() => navigate("/sign-in")}
-  onSignUp={() => navigate("/sign-up")}
-/>
-      
+      {role === 'trainer' ? (
+        <TrainerNavbar activePage="learn" />
+      ) : (
+        <Navbar
+          activePage="courses"
+          showAuthButtons={true}
+          onSignIn={() => navigate("/sign-in")}
+          onSignUp={() => navigate("/sign-up")}
+        />
+      )}
+
       <main className="flex-grow">
         
         {/* قسم الترحيب الرئيسي */}

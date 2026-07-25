@@ -25,6 +25,9 @@ export default function TrainerDashboard() {
   const [error, setError] = useState<string>('');
   const [message, setMessage] = useState<string>('');
 
+  interface LearningCourse { id: number; title: string; category: string; duration: string; progress: number; status: string; }
+  const [learningCourses, setLearningCourses] = useState<LearningCourse[]>([]);
+
   const [formData, setFormData] = useState({
     title: '', price: '', durationWeeks: '', maxStudents: '', videoDurationMinutes: '', level: 'beginner', category: 'Cybersecurity', description: '', requirementsNotes: ''
   });
@@ -49,6 +52,14 @@ export default function TrainerDashboard() {
   };
 
   useEffect(() => { refetchCourses(); }, [lang]);
+
+  // 🎓 الكورسات اللي المدرب اشتراها لنفسه ليتعلم
+  useEffect(() => {
+    fetch(`${BASE_URL}/student/courses/purchased`, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => setLearningCourses(Array.isArray(data) ? data : []))
+      .catch(() => setLearningCourses([]));
+  }, []);
 
   const reviewsList = getTrainerMockReviews(lang);
   const progressList = getTrainerMockProgress(lang);
@@ -247,6 +258,29 @@ export default function TrainerDashboard() {
 
         {/* كروت النموذج والتقييمات بالستروك والبلور المودرن */}
         <div className="space-y-6">
+          {learningCourses.length > 0 && (
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
+              <div className="p-6 border-b border-gray-100 bg-gray-50">
+                <h2 className="text-base font-bold text-capsule-navy">{lang === 'ar' ? 'دوراتي التعليمية' : 'My Learning'}</h2>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {learningCourses.map((c) => (
+                  <div key={c.id} className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="flex-1">
+                      <p className="font-bold text-capsule-navy text-sm">{c.title}</p>
+                      <p className="text-xs text-gray-400 mt-1">{c.category} · {c.duration}</p>
+                      <div className="w-full bg-gray-100 rounded-full h-2 mt-3 overflow-hidden">
+                        <div className="bg-capsule-teal h-2 rounded-full transition-all" style={{ width: `${c.progress}%` }}></div>
+                      </div>
+                      <p className="text-xs font-bold text-gray-400 mt-1">{c.progress}% {lang === 'ar' ? 'مكتمل' : 'Completed'}</p>
+                    </div>
+                    <Button variant="primary">{lang === 'ar' ? 'إكمال' : 'Continue'}</Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="bg-white/85 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-lg shadow-capsule-navy/5 border-t-4 border-t-capsule-navy h-fit">
             <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3 mb-4">
               <svg className="w-5 h-5 text-capsule-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

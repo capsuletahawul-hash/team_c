@@ -37,6 +37,13 @@ let nextCourseId = 1;
 
 const profileExtras = new Map<string, TrainerProfileExtra>();
 
+// تسجيلات الطلاب بالكورسات (مصفوفة في الذاكرة أيضاً)
+interface Enrollment {
+  studentId: string;
+  courseId: number;
+}
+const enrollments: Enrollment[] = [];
+
 export const trainerRepository = {
   async listCoursesByTrainer(trainerId: string): Promise<TrainerCourse[]> {
     return courses.filter((course) => course.trainerId === trainerId);
@@ -87,6 +94,31 @@ export const trainerRepository = {
     const course = courses.find((c) => c.id === id);
     if (course) course.status = 'pending_deletion';
     return course;
+  },
+
+  // تسجيل طالب بكورس (بعد إتمام الدفع) — يزيد عدد الطلاب مرة وحدة فقط لكل طالب/كورس
+  async enrollStudent(courseId: number, studentId: string): Promise<TrainerCourse | undefined> {
+    const course = courses.find((c) => c.id === courseId);
+    if (!course) return undefined;
+
+    const alreadyEnrolled = enrollments.some(
+      (e) => e.courseId === courseId && e.studentId === studentId
+    );
+
+    if (!alreadyEnrolled) {
+      enrollments.push({ courseId, studentId });
+      course.students += 1;
+    }
+
+    return course;
+  },
+
+  async listEnrollmentsByStudent(studentId: string): Promise<TrainerCourse[]> {
+    const courseIds = enrollments
+      .filter((e) => e.studentId === studentId)
+      .map((e) => e.courseId);
+
+    return courses.filter((c) => courseIds.includes(c.id));
   },
 
   // يُنشئ سجل ملف تعريفي افتراضي لأول مرة (تسمية عامة ثنائية اللغة، لا بيانات وهمية)، ويعيده لاحقاً

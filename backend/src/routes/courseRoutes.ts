@@ -8,5 +8,6 @@ const router = Router();
  * Accessible by everyone (Students, Guests, etc.)
  */
 router.get("/public", trainerController.getPublicCourses);
+router.get("/public/:id", trainerController.getPublicCourseById);
 
 export default router;

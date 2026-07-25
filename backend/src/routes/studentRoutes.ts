@@ -9,9 +9,12 @@ import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
-router.use(requireAuth, requireRole("Student"));
+router.use(requireAuth);
 
-router.get("/courses/purchased", studentController.getPurchasedCourses);
-router.put("/profile/update", studentController.updateProfile);
+// مسموح للمدرب كمان يستخدم نفس مسارَي الشراء والكورسات المسجّلة، عشان يقدر يتعلم هو بعد
+router.get("/courses/purchased", requireRole("Student", "Trainer"), studentController.getPurchasedCourses);
+router.post("/courses/:id/purchase", requireRole("Student", "Trainer"), studentController.purchaseCourse);
+
+router.put("/profile/update", requireRole("Student"), studentController.updateProfile);
 
 export default router;

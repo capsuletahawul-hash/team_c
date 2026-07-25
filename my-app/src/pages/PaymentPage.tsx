@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import StudentNavbar from '../components/StudentNavbar';
+import TrainerNavbar from '../components/TrainerNavbar';
 import Footer from '../components/Footer';
 import { BanknotesIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon, SparklesIcon } from '@heroicons/react/24/solid';
@@ -23,6 +25,7 @@ interface OrderDetails {
   price: number;
   discount: number;
   totalAmount: number;
+  courseIds?: number[];
 }
 
 // واجهة تحدد شكل الأخطاء المحتملة لحقول إدخال بيانات البطاقة الائتمانية
@@ -55,6 +58,7 @@ export default function Payment() {
   const { lang } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
+  const { role } = useAuth();
   const isRTL = lang === 'ar';
 
   // استقبال تفاصيل الطلب من الـ Router مع وضع قيم افتراضية آمنة لمنع توقف الصفحة عند الدخول المباشر
@@ -157,18 +161,61 @@ export default function Payment() {
   };
 
   // دالة زر الدفع النهائي: تمسح محتويات سلة المشتريات من الذاكرة المحلية وتوجّه الطالب لصفحة الكورسات بعد نجاح الدفع
-  const handlePaymentSubmit = (): void => {
+  const handlePaymentSubmit = async (): Promise<void> => {
     if (paymentMethod !== 'card' || validateForm()) {
+      // 🎟️ تسجيل الطالب فعلياً بكل كورس بالسلة بعد نجاح الدفع
+      const token = localStorage.getItem('user_token');
+      if (order.courseIds?.length && token) {
+        await Promise.allSettled(
+          order.courseIds.map((courseId) =>
+            fetch(`http://localhost:5000/api/student/courses/${courseId}/purchase`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+            })
+          )
+        );
+      }
+
+      // 📚 نحفظ نسخة محلية من كل كورس بالسلة (وهمي أو حقيقي) عشان يبين بـ"دوراتي"
+      // حتى لو الكورس وهمي وما يعرفه الباك اند أصلاً
+      try {
+        const cartItems: { id: number; title: string; category: string; duration: string }[] =
+          JSON.parse(localStorage.getItem('cartItems') || '[]');
+        const purchasedCourses: { id: number; title: string; category: string; duration: string; progress: number; status: string }[] =
+          JSON.parse(localStorage.getItem('purchasedCourses') || '[]');
+
+        cartItems.forEach((item) => {
+          if (!purchasedCourses.some((p) => p.id === item.id)) {
+            purchasedCourses.push({
+              id: item.id,
+              title: item.title,
+              category: item.category,
+              duration: item.duration,
+              progress: 0,
+              status: 'Active',
+            });
+          }
+        });
+
+        localStorage.setItem('purchasedCourses', JSON.stringify(purchasedCourses));
+      } catch {
+        // تجاهل أي خطأ بقراءة/كتابة التخزين المحلي — ما يوقف عملية الدفع
+      }
+
       alert(t.successMsg);
       localStorage.removeItem('cartItems'); // تفريغ السلة لضمان عدم تكرار الفاتورة
-      navigate('/courses-overview');
+      navigate(role === 'trainer' ? '/trainer-dashboard' : '/student-dashboard');
     }
   };
 
   return (
     <div className="min-h-screen bg-capsule-bg flex flex-col font-sans" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* شريط الملاحة العلوي للمتعلم */}
-      <StudentNavbar activePage="courses" />
+      {role === 'trainer' ? (
+        <TrainerNavbar activePage="learn" />
+      ) : (
+        <StudentNavbar activePage="courses" />
+      )}
       
       <main className="flex-grow">
         {/* هيدر الصفحة بتصميم مموج وتدرج لوني يعكس الاحترافية */}

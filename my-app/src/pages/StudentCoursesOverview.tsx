@@ -1,10 +1,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import StudentNavbar from "../components/StudentNavbar";
+import TrainerNavbar from "../components/TrainerNavbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
 import { getCourses } from "../mocks/mockApi";
 import { useLanguage } from "../context/LanguageContext";
+import { useAuth } from "../context/AuthContext";
  
 // ---------- Types ----------
  
@@ -99,6 +101,7 @@ const Star = ({ filled }: { filled: boolean }) => (
 export default function CoursesOverview() {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
+  const { role } = useAuth();
   const l = t.coursesOverview;
   const isRTL = t.dir === "rtl";
  
@@ -195,7 +198,11 @@ export default function CoursesOverview() {
  
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir} lang={lang}>
-      <StudentNavbar activePage="courses" />
+      {role === 'trainer' ? (
+        <TrainerNavbar activePage="learn" />
+      ) : (
+        <StudentNavbar activePage="courses" />
+      )}
       <main className="flex-grow">
  
         {/* قسم الترحيب الرئيسي */}
@@ -274,7 +281,15 @@ export default function CoursesOverview() {
                     
                     <button
   type="button"
-  onClick={() => alert("تمت إضافة الدورة إلى السلة")}
+  onClick={() => {
+    const currentCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    const newCourse = { id: c.id, title: c.title, category: c.category, duration: String(c.duration ?? '—'), price: c.price || 0 };
+    if (!currentCart.some((item: { id: string | number }) => item.id === newCourse.id)) {
+      currentCart.push(newCourse);
+      localStorage.setItem('cartItems', JSON.stringify(currentCart));
+    }
+    alert("تمت إضافة الدورة إلى السلة");
+  }}
   className="absolute top-2.5 left-2.5 bg-white/85 border-none rounded-full w-7 h-7 cursor-pointer flex items-center justify-center shadow-sm hover:bg-white transition"
   aria-label="cart"
 >

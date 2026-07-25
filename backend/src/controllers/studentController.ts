@@ -2,15 +2,53 @@ import { Request, Response } from "express";
 
 import { updateStudentProfileSchema } from "../validation/studentValidation.js";
 import { userRepository } from "../repositories/userRepository.js";
+import { trainerRepository } from "../repositories/trainerRepository.js";
 import { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 
 export const studentController = {
   /**
-   * Purchased Courses (no enrollment system yet — returns an empty list,
-   * same pattern used by trainerController.getStudentsProgress)
+   * Purchased Courses
    */
-  async getPurchasedCourses(_req: Request, res: Response) {
-    return res.status(200).json([]);
+  async getPurchasedCourses(req: Request, res: Response) {
+    try {
+      const authUser = (req as AuthenticatedRequest).user!;
+      const courses = await trainerRepository.listEnrollmentsByStudent(authUser.userId);
+
+      return res.status(200).json(
+        courses.map((c) => ({
+          id: c.id,
+          title: c.title,
+          category: c.category,
+          duration: `${c.durationWeeks} ${c.durationWeeks === 1 ? "Week" : "Weeks"}`,
+          progress: 0,
+          status: "Active" as const,
+        }))
+      );
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Purchase Course (called after successful checkout — records enrollment
+   * and increments the course's student count)
+   */
+  async purchaseCourse(req: Request, res: Response) {
+    try {
+      const authUser = (req as AuthenticatedRequest).user!;
+      const courseId = Number(req.params.id);
+      const course = await trainerRepository.enrollStudent(courseId, authUser.userId);
+
+      if (!course) {
+        return res.status(404).json({ success: false, error: "course_not_found" });
+      }
+
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
   },
 
   /**

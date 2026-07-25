@@ -247,9 +247,22 @@ async getPublicCourses(_req: Request, res: Response) {
         course.status === "available"
     );
 
+    // نجيب اسم كل مدرب مرة وحدة بس (كاش بسيط) بدل ما نكرر البحث لكل كورس
+    const trainerNames = new Map<string, string>();
+    for (const course of publicCourses) {
+      if (!trainerNames.has(course.trainerId)) {
+        const trainer = await userRepository.findById(course.trainerId);
+        trainerNames.set(course.trainerId, trainer?.name || "");
+      }
+    }
+
     return res.status(200).json({
       success: true,
-      courses: publicCourses,
+      courses: publicCourses.map((course) => ({
+        ...course,
+        instructor: trainerNames.get(course.trainerId) || "",
+        duration: Math.round(course.videoDurationMinutes / 60),
+      })),
     });
   } catch (err) {
     console.error(err);
@@ -260,5 +273,28 @@ async getPublicCourses(_req: Request, res: Response) {
   }
 },
 
+  /**
+   * Public Course Details
+   * Returns a single published & visible course, enriched with the trainer's name
+   */
+  async getPublicCourseById(req: Request, res: Response) {
+    try {
+      const courseId = Number(req.params.id);
+      const course = await trainerRepository.findCourseById(courseId);
 
+      if (!course || course.isVisible !== true || course.status !== "available") {
+        return res.status(404).json({ success: false, error: "course_not_found" });
+      }
+
+      const trainer = await userRepository.findById(course.trainerId);
+
+      return res.status(200).json({
+        success: true,
+        course: toCourseItem(course, trainer?.name || ""),
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
 };

@@ -63,6 +63,11 @@ function TrainerNavbar({
       to: "/trainer-courses",
     },
     {
+      id: "learn",
+      label: lang === "ar" ? "الدورات" : "Courses",
+      to: "/trainer-courses-catalog",
+    },
+    {
       id: "profile",
       label: lang === "ar" ? "ملفي الشخصي" : "My Profile",
       to: "/trainer-profile",
@@ -117,7 +122,18 @@ function TrainerNavbar({
 
         {/* Desktop Actions Layout Panel */}
         <div className="hidden md:flex items-center gap-4 px-4">
-          
+
+          {/* 🛒 رابط السلة */}
+          <Link
+            to="/cart"
+            className={`w-10 h-10 flex items-center justify-center rounded-full transition ${
+              activePage === 'shopping-cart' ? 'bg-capsule-teal/10 text-capsule-teal' : 'hover:bg-gray-100 text-gray-700'
+            }`}
+            title={lang === "ar" ? "السلة" : "Cart"}
+          >
+            🛒
+          </Link>
+
           {/* Desktop Language Toggle Button */}
           <button 
             onClick={toggleLanguage}
@@ -159,9 +175,11 @@ function TrainerNavbar({
         </div>
 
         {/* Mobile View Toggle Triggers */}
-        <div className="md:hidden">
-          <button 
-            onClick={() => setIsOpen(!isOpen)} 
+        <div className="md:hidden flex items-center gap-2">
+          {/* Mobile Shortcut to Cart */}
+          <Link to="/cart" className="p-2 text-lg">🛒</Link>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
             className="text-capsule-navy focus:outline-none text-xl p-1 cursor-pointer"
           >
             {isOpen ? '✕' : '☰'}

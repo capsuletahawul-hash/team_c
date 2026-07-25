@@ -53,16 +53,11 @@ export default function TrainerDashboard() {
 
   useEffect(() => { refetchCourses(); }, [lang]);
 
-  // 🎓 الكورسات اللي المدرب اشتراها لنفسه ليتعلم (حقيقية من الباك اند + وهمية محفوظة محلياً)
+  // 🎓 الكورسات اللي المدرب اشتراها لنفسه ليتعلم
   useEffect(() => {
     fetch(`${BASE_URL}/student/courses/purchased`, { headers: { 'Authorization': `Bearer ${token}` } })
       .then((res) => res.json())
-      .then((data) => {
-        const backendCourses: LearningCourse[] = Array.isArray(data) ? data : [];
-        const localPurchased: LearningCourse[] = JSON.parse(localStorage.getItem('purchasedCourses') || '[]');
-        const backendIds = new Set(backendCourses.map((c) => c.id));
-        setLearningCourses([...backendCourses, ...localPurchased.filter((c) => !backendIds.has(c.id))]);
-      })
+      .then((data) => setLearningCourses(Array.isArray(data) ? data : []))
       .catch(() => setLearningCourses([]));
   }, []);
 

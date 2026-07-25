@@ -4,7 +4,6 @@ import Navbar from "../components/Navbar";
 import TrainerNavbar from "../components/TrainerNavbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
-import { getCourses } from "../mocks/mockApi";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuth } from "../context/AuthContext";
 
@@ -93,51 +92,25 @@ export default function CoursesOverview() {
   const [sortIndex, setSortIndex] = useState<number>(0);
   const [draftFilters, setDraftFilters] = useState<typeof EMPTY_FILTERS>(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<typeof EMPTY_FILTERS>(EMPTY_FILTERS);
-  const [courses, setCourses] = useState<Course[]>([]);
   const [backendCourses, setBackendCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // جلب بيانات الدورات من الـ Mock API عند تحميل الصفحة لأول مرة.
-  useEffect(() => {
-    let isMounted = true;
-    getCourses().then(res => {
-      if (isMounted && res.success && res.data) {
-  setCourses(res.data.courses);
-}
-      setLoading(false);
-    });
-    return () => { isMounted = false; };
-  }, []);
-
-  // جلب الكورسات الحقيقية المعتمدة من الباك اند
+  // جلب الكورسات الحقيقية المعتمدة من الباك اند فقط (بدون أي بيانات وهمية)
   useEffect(() => {
     fetch("http://localhost:5000/api/courses/public")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) {
-          setBackendCourses(data.courses ?? []);
-        }
+        setBackendCourses(data.success ? (data.courses ?? []) : []);
       })
       .catch(() => {
         setBackendCourses([]);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
-
-  // دمج الكورسات الوهمية مع الحقيقية (بدون تكرار نفس العنوان)
-  const mergedCourses = useMemo(() => {
-    const map = new Map<string, Course>();
-    [...courses, ...backendCourses].forEach((course) => {
-      const key = course.title.trim().toLowerCase();
-      if (!map.has(key)) {
-        map.set(key, course);
-      }
-    });
-    return Array.from(map.values());
-  }, [courses, backendCourses]);
 
   // تجهيز بيانات الدورات وإضافة خصائص تستخدم فقط في واجهة المستخدم.
   const dynamicCourses = useMemo(() => {
-    return mergedCourses.map((c, i) => {
+    return backendCourses.map((c, i) => {
       const normCat = String(c.category || "").toLowerCase();
       let tagKey = "programming";
       if (/cyber|سيبراني|سايبر/.test(normCat)) tagKey = "cybersecurity";
@@ -152,7 +125,7 @@ export default function CoursesOverview() {
         durationLabel: (parseInt(c.duration) || 0) < 20 ? "under20" : "over20"
       };
     });
-  }, [mergedCourses]);
+  }, [backendCourses]);
 
   const filterGroups = useMemo(() => [
     { 

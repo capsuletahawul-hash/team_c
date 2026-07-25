@@ -176,32 +176,6 @@ export default function Payment() {
         );
       }
 
-      // 📚 نحفظ نسخة محلية من كل كورس بالسلة (وهمي أو حقيقي) عشان يبين بـ"دوراتي"
-      // حتى لو الكورس وهمي وما يعرفه الباك اند أصلاً
-      try {
-        const cartItems: { id: number; title: string; category: string; duration: string }[] =
-          JSON.parse(localStorage.getItem('cartItems') || '[]');
-        const purchasedCourses: { id: number; title: string; category: string; duration: string; progress: number; status: string }[] =
-          JSON.parse(localStorage.getItem('purchasedCourses') || '[]');
-
-        cartItems.forEach((item) => {
-          if (!purchasedCourses.some((p) => p.id === item.id)) {
-            purchasedCourses.push({
-              id: item.id,
-              title: item.title,
-              category: item.category,
-              duration: item.duration,
-              progress: 0,
-              status: 'Active',
-            });
-          }
-        });
-
-        localStorage.setItem('purchasedCourses', JSON.stringify(purchasedCourses));
-      } catch {
-        // تجاهل أي خطأ بقراءة/كتابة التخزين المحلي — ما يوقف عملية الدفع
-      }
-
       alert(t.successMsg);
       localStorage.removeItem('cartItems'); // تفريغ السلة لضمان عدم تكرار الفاتورة
       navigate(role === 'trainer' ? '/trainer-dashboard' : '/student-dashboard');

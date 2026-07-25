@@ -96,11 +96,9 @@ function StudentProfile({ onBack }: StudentProfileProps) {
           setProfile(profileData);
           setFormValues({ fullName: profileData.fullName || '', avatar: profileData.avatar || '' });
         }
-        // 📚 دمج الكورسات المحفوظة محلياً (تشمل الكورسات الوهمية) مع كورسات الباك اند الحقيقية
-        const backendCourses: Course[] = Array.isArray(coursesData) ? coursesData : [];
-        const localPurchased: Course[] = JSON.parse(localStorage.getItem('purchasedCourses') || '[]');
-        const backendIds = new Set(backendCourses.map((c) => c.id));
-        setCourses([...backendCourses, ...localPurchased.filter((c) => !backendIds.has(c.id))]);
+        if (Array.isArray(coursesData)) {
+          setCourses(coursesData);
+        }
       } catch (err) {
         if (isMounted) {
           setFieldErrors({ global: 'حدث خطأ أثناء تحميل البيانات من السيرفر' });

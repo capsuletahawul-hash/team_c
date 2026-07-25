@@ -4,7 +4,6 @@ import StudentNavbar from "../components/StudentNavbar";
 import TrainerNavbar from "../components/TrainerNavbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
-import { getCourses } from "../mocks/mockApi";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuth } from "../context/AuthContext";
  
@@ -110,53 +109,23 @@ export default function CoursesOverview() {
   const [sortIndex, setSortIndex] = useState<number>(0);
   const [draftFilters, setDraftFilters] = useState<FiltersState>(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<FiltersState>(EMPTY_FILTERS);
-  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
   const [backendCourses, setBackendCourses] = useState<Course[]>([]);
- 
-  // جلب بيانات الدورات عند فتح الصفحة لأول مرة.
-  useEffect(() => {
-    let isMounted = true;
-    getCourses().then((res) => {
-  if (isMounted && res.success && res.data) {
-    setCourses(res.data.courses);
-  }
-  setLoading(false);
-});
-    return () => { isMounted = false; };
-  }, []);
 
-
+  // جلب الكورسات الحقيقية المعتمدة من الباك اند فقط (بدون أي بيانات وهمية)
   useEffect(() => {
     fetch("http://localhost:5000/api/courses/public")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) {
-          setBackendCourses(data.courses ?? []);
-        }
+        setBackendCourses(data.success ? (data.courses ?? []) : []);
       })
       .catch(() => {
         setBackendCourses([]);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
- 
-  // تجهيز بيانات الدورات وإضافة خصائص تساعد في العرض والفلترة.
-  const mergedCourses = useMemo(() => {
-    const map = new Map<string, Course>();
-
-    [...courses, ...backendCourses].forEach((course) => {
-      const key = course.title.trim().toLowerCase();
-      if (!map.has(key)) {
-        map.set(key, course);
-      }
-    });
-
-    return Array.from(map.values());
-  }, [courses, backendCourses]);
-
-  const dynamicCourses: DynamicCourse[] = useMemo(() => mergedCourses.map((c, i) => {
+  const dynamicCourses: DynamicCourse[] = useMemo(() => backendCourses.map((c, i) => {
     const norm = String(c.category || "").toLowerCase();
     const tagKey: TagKey = /cyber|سيبراني|سايبر/.test(norm) ? "cybersecurity" : /cloud|كلاود/.test(norm) ? "cloud" : "programming";
     return {
@@ -164,7 +133,7 @@ export default function CoursesOverview() {
       priceLabel: (c.price === 0 ? "free" : "paid") as PriceLabel,
       durationLabel: ((parseInt(String(c.duration)) || 0) < 20 ? "under20" : "over20") as DurationLabel
     };
-  }), [mergedCourses]);
+  }), [backendCourses]);
  
   // إنشاء مجموعات الفلاتر المعروضة للمستخدم.
   const filterGroups: FilterGroup[] = useMemo(() => [

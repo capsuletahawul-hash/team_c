@@ -87,13 +87,6 @@ const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
 });
 
 const coursesData = await coursesRes.json().catch(() => []);
-const backendCourses: Course[] = Array.isArray(coursesData) ? coursesData : [];
-
-// 📚 دمج الكورسات المحفوظة محلياً (تشمل الكورسات الوهمية اللي ما يعرفها الباك اند)
-// مع كورسات الباك اند الحقيقية، بدون تكرار لنفس الـ id
-const localPurchased: Course[] = JSON.parse(localStorage.getItem('purchasedCourses') || '[]');
-const backendIds = new Set(backendCourses.map((c) => c.id));
-const mergedCourses = [...backendCourses, ...localPurchased.filter((c) => !backendIds.has(c.id))];
 
 // لا يوجد API للإشعارات حالياً
 const notifsData: Notification[] = [];
@@ -103,7 +96,7 @@ const notifsData: Notification[] = [];
 
         // تعيين البيانات القادمة من السيرفر في الـ State لقراءتها ديناميكياً
         setProfile(userResponse.user || userResponse);
-        setCourses(mergedCourses);
+        setCourses(Array.isArray(coursesData) ? coursesData : []);
         setNotifications(notifsData);
 
       } catch (err: any) {

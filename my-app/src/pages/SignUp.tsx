@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { COPY } from "../i18n/copy";
 
 import { EyeIcon } from "../components/Icons";
-import logo from "../assets/logo.png";
+import logo from "../assets/light_trans_logo.png";
 import { useAuth } from "../context/AuthContext";
 // import { CapsuleMark, EyeIcon } from "../components/Icons";
 // import { useAuth } from "../context/AuthContext";

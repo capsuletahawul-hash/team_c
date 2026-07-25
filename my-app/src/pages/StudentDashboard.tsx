@@ -139,8 +139,8 @@ const notifsData: Notification[] = [];
         )}
 
         {/* Hero Section[cite: 10] */}
-        <div className="relative bg-capsule-gradient text-white py-10 px-8 overflow-hidden shadow-inner">
-          <div className="max-w-7xl mx-auto relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+<div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-10 px-8"  >
+        <div className="max-w-7xl mx-auto relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <p className="text-capsule-gold text-xs font-bold uppercase tracking-wider mb-1">
                 {l.hero.badge}

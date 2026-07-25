@@ -8,8 +8,7 @@ function Footer(): React.JSX.Element {
   return (
     <footer
       dir={t.dir}
-      className="bg-capsule-footer text-white pt-12 pb-6 px-8 mt-24 border-t border-capsule-teal/20 font-sans"
-    >
+className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white pt-12 pb-6 px-8 mt-24 border-t border-capsule-teal/20 font-sans"    >
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-sm pb-8 border-b border-white/10">
 
         <div>

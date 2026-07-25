@@ -140,7 +140,7 @@ export default function Cart() {
         <StudentNavbar activePage="shopping-cart" />
       )}
 
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#0D4C54] via-[#0A3A40] to-[#021E22] text-white pt-24 pb-16">
+      <div className="relative overflow-hidden bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white pt-24 pb-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,164,153,0.12),transparent_50%)]"></div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="inline-flex items-center gap-1.5 bg-[#00A499]/20 text-[#26FFE6] text-xs font-black px-3 py-1 rounded-full border border-[#00A499]/30 mb-4 uppercase tracking-wide">
@@ -182,8 +182,7 @@ export default function Cart() {
 
             <div className="lg:col-span-1 space-y-6">
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm relative overflow-hidden space-y-5">
-                <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#00A499] to-[#0D4C54]"></div>
-                <h3 className="text-sm font-black text-slate-900 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#00A499]"></span>{l.summaryTitle}</h3>
+<div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-capsule-footer to-capsule-navy"></div>                <h3 className="text-sm font-black text-slate-900 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#00A499]"></span>{l.summaryTitle}</h3>
                 
                 <div className="divide-y divide-slate-50 font-semibold text-xs md:text-sm space-y-3.5 pt-1">
                   <div className="flex justify-between items-center text-slate-500 pt-2"><span>{l.subtotal}</span><span className="font-mono font-bold text-slate-900">{subtotalAmount.toLocaleString()} {lang === 'ar' ? 'ر.س' : 'SAR'}</span></div>

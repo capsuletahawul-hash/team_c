@@ -193,7 +193,7 @@ function StudentProfile({ onBack }: StudentProfileProps) {
 
           {/* Main Header Card[cite: 11] */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
-            <div className="bg-capsule-gradient h-28"></div>
+            <div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-10 px-8"></div>
 
             <div className="px-8 pb-8">
               <div className="flex flex-col sm:flex-row sm:items-end gap-6 -mt-12">

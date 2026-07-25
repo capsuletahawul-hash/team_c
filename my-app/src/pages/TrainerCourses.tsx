@@ -307,7 +307,7 @@ function TrainerCourses(): React.JSX.Element {
 
       <main className="flex-grow">
         {/* Hero */}
-        <section className="relative bg-gradient-to-tr from-[#7FB1BC] via-capsule-navy to-[#537E84] overflow-hidden py-14 lg:py-16">
+        <section className="relative bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal overflow-hidden py-14 lg:py-16">
           <div className="max-w-7xl mx-auto px-6 text-white relative z-10">
             <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">
               {isRTL ? 'دوراتي التدريبية' : 'My Courses'}

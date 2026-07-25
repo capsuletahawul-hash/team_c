@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import Button from "../components/Button";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuth } from "../context/AuthContext";
+import logo from "../assets/light_trans_logo.png";
  
 // ---------- Types ----------
  
@@ -78,16 +79,7 @@ const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   cloud: { ar: "كلاود", en: "Cloud Computing" }
 };
  
-// مكونات صغيرة مدمجة في سطر واحد
-// أيقونة الكبسولة المستخدمة في واجهة الصفحة.
-const CapsuleMark = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" aria-hidden="true">
-    <linearGradient id="capsuleGrad"><stop offset={0} stopColor="#7FB1BC" /><stop offset={0.5} stopColor="#164961" /><stop offset={1} stopColor="#537E84" /></linearGradient>
-    <rect x="6" y="24" width="30" height="14" rx="7" transform="rotate(-18 21 31)" fill="url(#capsuleGrad)" />
-    <rect x="28" y="26" width="30" height="14" rx="7" transform="rotate(-18 43 33)" fill="#FFD369" opacity="0.9" />
-    <path d="M11 15 L13 20 L18 21 L13 22 L11 27 L9 22 L4 21 L9 20 Z" fill="#FFD369" />
-  </svg>
-);
+
  
 // مكون لعرض نجمة التقييم.
 const Star = ({ filled }: { filled: boolean }) => (
@@ -175,10 +167,11 @@ export default function CoursesOverview() {
       <main className="flex-grow">
  
         {/* قسم الترحيب الرئيسي */}
-        <section className="relative bg-gradient-to-tr from-[#7FB1BC] via-capsule-navy to-[#537E84] overflow-hidden py-14 lg:py-20 min-h-[320px]">
-          <div className="max-w-7xl mx-auto flex items-center px-6 text-white relative z-10">
+<section className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-10 px-8">          <div className="max-w-7xl mx-auto flex items-center px-6 text-white relative z-10">
             <div className="flex-1">
-              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/30 px-3.5 py-1.5 rounded-full text-[13px] font-bold mb-4.5"><CapsuleMark /> {l.hero.eyebrow}</span>
+              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/30 px-3.5 py-1.5 rounded-full text-[13px] font-bold mb-4.5">
+  {l.hero.eyebrow}
+</span>
               <h1 className="text-4xl font-extrabold mb-3.5">{l.hero.title}</h1>
               <p className="text-[15.5px] opacity-90 max-w-lg mb-6.5">{l.hero.desc}</p>
               <div className="flex gap-3.5">
@@ -187,8 +180,11 @@ export default function CoursesOverview() {
               </div>
             </div>
             <div className="hidden lg:block flex-1 relative h-[220px]">
-              <div className={`absolute w-[260px] h-[90px] bg-white/15 border-2 border-white/30 rounded-full top-8 ${isRTL ? 'rotate-[18deg] right-5' : 'rotate-[-18deg] left-5'}`} />
-              <div className={`absolute w-[200px] h-[70px] bg-capsule-gold opacity-85 rounded-full top-[100px] ${isRTL ? 'rotate-[18deg] right-[130px]' : 'rotate-[-18deg] left-[130px]'}`} />
+            <img
+    src={logo}
+    alt="Capsule Tahawul Logo"
+    className="absolute top-6 right-10 w-100 object-contain"
+  />
             </div>
           </div>
         </section>

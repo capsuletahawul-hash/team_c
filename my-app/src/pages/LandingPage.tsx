@@ -163,7 +163,7 @@ function LandingPage({
       )}
 
       {/* Hero Section */}
-      <div className="relative bg-capsule-gradient text-white overflow-hidden">
+      <div className="relative bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 py-16 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center relative z-10">
           <div>
             <span className="inline-block bg-white/10 border border-white/20 text-capsule-gold text-xs font-bold px-4 py-1.5 rounded-full mb-5">

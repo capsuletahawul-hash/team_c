@@ -28,7 +28,12 @@
 
 .auth-visual {
   position: relative;
-  background: linear-gradient(135deg, #164961, #387B84);
+  background: linear-gradient(
+    to top right,
+    #7FB1BC,
+    #164961,
+    #387B84
+  );
   color: #fff;
   display: flex;
   align-items: center;

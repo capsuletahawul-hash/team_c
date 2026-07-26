@@ -227,8 +227,7 @@ const TrainerProfile: React.FC = () => {
       
       <main className="flex-grow">
         {/* Banner Title */}
-        <div className="relative bg-capsule-gradient text-white py-14 px-8 overflow-hidden shadow-inner">
-          <div className="max-w-7xl mx-auto relative z-10">
+<div className="relative bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-14 px-8 overflow-hidden shadow-inner">          <div className="max-w-7xl mx-auto relative z-10">
             <h1 className="text-3xl font-extrabold text-white">{l.hero.title}</h1>
             <p className="text-sm text-gray-200 mt-2">{l.hero.subtitle}</p>
           </div>

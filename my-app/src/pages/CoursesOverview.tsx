@@ -52,6 +52,7 @@ const Star = ({ filled }: StarProps) => (
 
 interface Course {
   id: number;
+  trainerId: string | number;
   title: string;
   description: string;
   instructor: string;
@@ -281,7 +282,17 @@ export default function CoursesOverview() {
                     <span className="text-[11px] font-bold uppercase text-capsule-teal tracking-wide">{c.category}</span>
                     <h3 className="text-base font-bold text-capsule-navy leading-snug m-0">{c.title}</h3>
                     <p className="text-[13px] text-gray-500 m-0 leading-relaxed line-clamp-2">{c.description}</p>
-                    <div className="flex items-center gap-1.5 text-[12.5px] text-capsule-navy mt-1"><span className="w-4 h-4 rounded-full bg-capsule-teal/60 inline-block" /><span className="font-medium">{c.instructor}</span></div>
+<div className="flex items-center gap-1.5 text-[12.5px] text-capsule-navy mt-1">
+  <span className="w-4 h-4 rounded-full bg-capsule-teal/60 inline-block" />
+
+  <button
+    type="button"
+    onClick={() => navigate(`/trainer-details/${c.trainerId}`)}
+    className="font-medium hover:text-capsule-teal hover:underline transition"
+  >
+    {c.instructor}
+  </button>
+</div>
                     <div className="flex items-center gap-1 text-[12.5px] text-gray-500">
                       {[1, 2, 3, 4, 5].map(n => <Star key={n} filled={n <= Math.round(c.rating)} />)}
                       <span className={`font-medium ${isRTL ? 'mr-1' : 'ml-1'}`}>{c.rating || '—'}</span>

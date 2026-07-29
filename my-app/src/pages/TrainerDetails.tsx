@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext'; // 🔄 استيراد سياق اللغة بدون ملحقات الملفات لضمان توافق TS
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { getTrainerProfile } from '../mocks/mockApi';
+
+const API_URL = "http://localhost:5000";
 import { 
   PaperAirplaneIcon, UserIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon, 
   PhoneIcon, BriefcaseIcon, StarIcon as OutlineStar, ChatBubbleLeftRightIcon 
@@ -125,7 +126,9 @@ export default function TrainerDetails() {
       if (!trainerId) return;
       try {
         setLoading(true);
-        const response = await getTrainerProfile(trainerId) as ApiResponse;
+        const res = await fetch(`${API_URL}/api/trainer/public/${trainerId}`);
+
+const response: ApiResponse = await res.json();
         if (!isMounted) return;
 
         if (response.success && response.data) {
@@ -195,7 +198,7 @@ export default function TrainerDetails() {
       <Navbar />
 
       {/* 🎨 مكون الـ Hero (رأس الصفحة والبيانات الأساسية للمدرب) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#0D4C54] via-[#0A3A40] to-[#021E22] text-white pt-24 pb-20">
+      <div className="relative overflow-hidden bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white pt-24 pb-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,164,153,0.15),transparent_50%)]"></div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">
           <div className="inline-flex items-center gap-1.5 bg-[#00A499]/20 text-[#26FFE6] text-xs font-black px-3 py-1 rounded-full border border-[#00A499]/30 mb-4 tracking-wide uppercase">

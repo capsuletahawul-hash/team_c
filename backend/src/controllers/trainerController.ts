@@ -87,6 +87,82 @@ export const trainerController = {
     }
   },
 
+
+async getTrainerById(req: Request, res: Response) {
+  try {
+    const trainerId = String(req.params.trainerId);
+
+    const user = await userRepository.findById(trainerId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "trainer_not_found",
+      });
+    }
+
+    const [courses, extra] = await Promise.all([
+      trainerRepository.listCoursesByTrainer(trainerId),
+      trainerRepository.getProfileExtra(trainerId),
+    ]);
+
+    const totalStudents = courses.reduce(
+      (sum, course) => sum + course.students,
+      0
+    );
+
+    const ratedCourses = courses.filter((course) => course.rating > 0);
+
+    const avgRating =
+      ratedCourses.length > 0
+        ? Number(
+            (
+              ratedCourses.reduce((sum, course) => sum + course.rating, 0) /
+              ratedCourses.length
+            ).toFixed(1)
+          )
+        : 0;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        trainerId: user.id,
+        name: user.name,
+        specialty: extra.specialty,
+        specialtyAr: extra.specialtyAr,
+        bio: extra.bio,
+        bioAr: extra.bioAr,
+        email: user.email,
+        phone: extra.phone,
+
+        stats: {
+          coursesCount: courses.length,
+          studentsCount: totalStudents,
+          rating: avgRating,
+        },
+
+        courses: courses.map((course) => ({
+          id: course.id,
+          name: course.title,
+          students: course.students,
+          status:
+            course.status === "available"
+              ? "published"
+              : "review",
+        })),
+      },
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      success: false,
+      error: "internal_server_error",
+    });
+  }
+},
+
+
   /**
    * Update Profile
    */

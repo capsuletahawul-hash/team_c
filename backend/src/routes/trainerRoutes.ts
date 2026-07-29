@@ -9,6 +9,7 @@ import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
+router.get("/public/:trainerId", trainerController.getTrainerById);
 router.use(requireAuth, requireRole("Trainer"));
 
 router.get("/profile", trainerController.getProfile);

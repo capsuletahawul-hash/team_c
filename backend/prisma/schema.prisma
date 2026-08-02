@@ -12,7 +12,7 @@ model User {
   name        String
   email       String       @unique
   password    String
-  role        String       @default("Student") // "Student", "Trainer", "Admin"
+  role        String       @default("Student")
   enrollments Enrollment[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -37,5 +37,5 @@ model Enrollment {
   courseId  String
   createdAt DateTime @default(now())
 
-  @@unique([userId, courseId]) // يمنع تسجيل الطالب في نفس الكورس مرتين في قاعدة البيانات
+  @@unique([userId, courseId])
 }

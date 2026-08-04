@@ -1,11 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model User {
@@ -13,7 +12,20 @@ model User {
   name        String
   email       String       @unique
   password    String
+  role        String       @default("STUDENT")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   enrollments Enrollment[]
+}
+
+model Trainer {
+  id             String   @id @default(uuid())
+  name           String
+  email          String   @unique
+  bio            String?
+  specialization String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Course {
@@ -21,6 +33,9 @@ model Course {
   title       String
   description String
   price       Int
+  seatsLeft   Int          @default(30)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   enrollments Enrollment[]
 }
 
@@ -30,8 +45,8 @@ model Enrollment {
   courseId  String
   createdAt DateTime @default(now())
 
-  user   User   @relation(fields: [userId], references: [id])
-  course Course @relation(fields: [courseId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
 }

@@ -1,12 +1,9 @@
+//Ensures only one instance of PrismaClient is active across app, 
+// preventing database connection leaks during development hot-reloads.
 import { PrismaClient } from '@prisma/client';
 
-// Declare global type for the PrismaClient singleton
-declare global {
-  var prisma: PrismaClient | undefined;
-}
-
-export const prisma = globalThis.prisma ?? new PrismaClient();
+export const prisma = (globalThis as any).prisma ?? new PrismaClient();
 
 if (process.env.NODE_ENV !== 'production') {
-  globalThis.prisma = prisma;
+  (globalThis as any).prisma = prisma;
 }

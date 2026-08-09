@@ -1,3 +1,5 @@
+import { prisma } from '../lib/prisma.js';
+
 export interface TrainerCourse {
   id: number;
   trainerId: string;
@@ -45,6 +47,26 @@ interface Enrollment {
 const enrollments: Enrollment[] = [];
 
 export const trainerRepository = {
+  // جدول Trainer بقاعدة البيانات (منفصل عن User) — انظر backend/prisma/schema.prisma
+  async findAll() {
+    return prisma.trainer.findMany();
+  },
+
+  async findById(id: string) {
+    return prisma.trainer.findUnique({ where: { id } });
+  },
+
+  async create(data: { name: string; email: string; bio?: string; specialization?: string }) {
+    return prisma.trainer.create({ data });
+  },
+
+  async update(
+    id: string,
+    data: Partial<{ name: string; email: string; bio: string; specialization: string }>
+  ) {
+    return prisma.trainer.update({ where: { id }, data });
+  },
+
   async listCoursesByTrainer(trainerId: string): Promise<TrainerCourse[]> {
     return courses.filter((course) => course.trainerId === trainerId);
   },

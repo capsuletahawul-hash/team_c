@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { createCourseSchema, updateProfileSchema } from "../validation/trainerValidation.js";
 import { trainerRepository, TrainerCourse, TrainerProfileExtra } from "../repositories/trainerRepository.js";
 import { userRepository } from "../repositories/userRepository.js";
+import { courseRepository } from "../repositories/courseRepository.js";
 import { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 
 // يحول سجل الدورة الداخلي إلى الشكل اللي تتوقعه لوحة تحكم المدرب بالواجهة
@@ -313,35 +314,32 @@ async getTrainerById(req: Request, res: Response) {
  * Public Courses
  * Returns all published & visible courses for students
  */
-async getPublicCourses(_req: Request, res: Response) {
+async getPublicCourses(req: Request, res: Response) {
   try {
-    const courses = await trainerRepository.listAllCourses();
-
-    const publicCourses = courses.filter(
-      (course) =>
-        course.isVisible === true &&
-        course.status === "available"
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(
+      Math.max(Number(req.query.limit) || 10, 1),
+      50
     );
 
-    // نجيب اسم كل مدرب مرة وحدة بس (كاش بسيط) بدل ما نكرر البحث لكل كورس
-    const trainerNames = new Map<string, string>();
-    for (const course of publicCourses) {
-      if (!trainerNames.has(course.trainerId)) {
-        const trainer = await userRepository.findById(course.trainerId);
-        trainerNames.set(course.trainerId, trainer?.name || "");
-      }
-    }
+    const { courses, total } = await courseRepository.findAll(
+      page,
+      limit
+    );
 
     return res.status(200).json({
       success: true,
-      courses: publicCourses.map((course) => ({
-        ...course,
-        instructor: trainerNames.get(course.trainerId) || "",
-        duration: Math.round(course.videoDurationMinutes / 60),
-      })),
+      courses,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (err) {
     console.error(err);
+
     return res.status(500).json({
       success: false,
       error: "internal_server_error",

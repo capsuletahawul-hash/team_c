@@ -1,4 +1,5 @@
-import { prisma } from '../lib/prisma';
+import { prisma } from '../lib/prisma.js';
+import type { Prisma } from '@prisma/client';
 
 export const enrollmentRepository = {
   /**
@@ -6,7 +7,7 @@ export const enrollmentRepository = {
    */
   async create(userId: string, courseId: string) {
     // نستخدم $transaction لضمان تنفيذ الشغلتين مع بعض أو إلغاء العمليتين لو حدث خطأ
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. التأكد من وجود مقاعد شاغرة أولاً
       const course = await tx.course.findUnique({
         where: { id: courseId },
@@ -50,7 +51,7 @@ export const enrollmentRepository = {
    * إلغاء التسجيل وإرجاع المقعد للكورس
    */
   async delete(userId: string, courseId: string) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. إيجاد التسجيل
       const enrollment = await tx.enrollment.findFirst({
         where: { userId, courseId },
@@ -65,7 +66,7 @@ export const enrollmentRepository = {
         where: { id: enrollment.id },
       });
 
-      // 3. زيادة مقعد للمستودع المتاح (Increment)
+      // 3. زيادة مقعد للكورس المتاح (Increment)
       await tx.course.update({
         where: { id: courseId },
         data: {

@@ -9,15 +9,17 @@ export const enrollmentRepository = {
     // نستخدم $transaction لضمان تنفيذ الشغلتين مع بعض أو إلغاء العمليتين لو حدث خطأ
     return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. التأكد من وجود مقاعد شاغرة أولاً
-      const course = await tx.course.findUnique({
+      const course = (await tx.course.findUnique({
         where: { id: courseId },
-      });
+      })) as { seatsLeft?: number } | null;
 
       if (!course) {
         throw new Error('Course not found');
       }
 
-      if (course.seatsLeft <= 0) {
+      const seatsLeft = course.seatsLeft ?? 0;
+
+      if (seatsLeft <= 0) {
         throw new Error('No available seats left in this course');
       }
 

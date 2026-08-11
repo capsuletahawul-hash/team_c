@@ -31,39 +31,74 @@ async function main() {
   });
 
   console.log('Seeding Trainers...');
-  await prisma.trainer.createMany({
-    data: [
-      {
-        name: 'Dr. Tariq Al-Otaibi',
-        email: 'tariq@bootcamp.com',
-        bio: 'Senior Full Stack Lead with 10+ years in distributed web systems.',
-        specialization: 'Full Stack Engineering',
-      },
-      {
-        name: 'Eng. Mona Al-Harbi',
-        email: 'mona@bootcamp.com',
-        bio: 'Database Administrator and Cloud Architecture Specialist.',
-        specialization: 'Database Systems & DevOps',
-      },
-    ],
+  const tariqUser = await prisma.user.create({
+    data: {
+      name: 'Dr. Tariq Al-Otaibi',
+      email: 'tariq@bootcamp.com',
+      password: 'hashed_password_123',
+      role: 'TRAINER',
+    },
+  });
+
+  const monaUser = await prisma.user.create({
+    data: {
+      name: 'Eng. Mona Al-Harbi',
+      email: 'mona@bootcamp.com',
+      password: 'hashed_password_123',
+      role: 'TRAINER',
+    },
+  });
+
+  await prisma.trainer.create({
+    data: {
+      userId: tariqUser.id,
+      name: 'Dr. Tariq Al-Otaibi',
+      email: 'tariq@bootcamp.com',
+      bio: 'Senior Full Stack Lead with 10+ years in distributed web systems.',
+      specialization: 'Full Stack Engineering',
+    },
+  });
+
+  await prisma.trainer.create({
+    data: {
+      userId: monaUser.id,
+      name: 'Eng. Mona Al-Harbi',
+      email: 'mona@bootcamp.com',
+      bio: 'Database Administrator and Cloud Architecture Specialist.',
+      specialization: 'Database Systems & DevOps',
+    },
   });
 
   console.log('Seeding Courses...');
   const course1 = await prisma.course.create({
     data: {
+      trainerId: tariqUser.id,
       title: 'Full-Stack Web Systems & APIs',
       description: 'Master Express, Prisma, and React integration.',
+      category: 'Software Engineering',
+      level: 'intermediate',
       price: 1500,
       seatsLeft: 25,
+      durationWeeks: 8,
+      maxStudents: 30,
+      status: 'available',
+      isVisible: true,
     },
   });
 
   const course2 = await prisma.course.create({
     data: {
+      trainerId: monaUser.id,
       title: 'Database Architecture & Security',
       description: 'Relational database design, indexes, and access control.',
+      category: 'Cloud Computing',
+      level: 'advanced',
       price: 1800,
       seatsLeft: 20,
+      durationWeeks: 6,
+      maxStudents: 25,
+      status: 'available',
+      isVisible: true,
     },
   });
 

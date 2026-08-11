@@ -1,7 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 
 export interface TrainerCourse {
-  id: number;
+  id: string;
   trainerId: string;
   title: string;
   category: string;
@@ -33,21 +33,51 @@ export interface TrainerProfileExtra {
   experience: number;
 }
 
-// مصفوفة في الذاكرة تلعب دور قاعدة البيانات مؤقتاً
-const courses: TrainerCourse[] = [];
-let nextCourseId = 1;
-
-const profileExtras = new Map<string, TrainerProfileExtra>();
-
-// تسجيلات الطلاب بالكورسات (مصفوفة في الذاكرة أيضاً)
-interface Enrollment {
-  studentId: string;
-  courseId: number;
+interface CourseRow {
+  id: string;
+  trainerId: string;
+  title: string;
+  category: string;
+  description: string;
+  level: string;
+  price: number;
+  durationWeeks: number;
+  maxStudents: number;
+  videoDurationMinutes: number;
+  requirementsNotes: string;
+  status: string;
+  isVisible: boolean;
+  rating: number;
+  createdAt: Date;
+  _count?: { enrollments: number };
 }
-const enrollments: Enrollment[] = [];
+
+// يحول سجل الكورس من شكل Prisma (Date, _count) إلى الشكل اللي تتوقعه الكنترولرز
+function toTrainerCourse(course: CourseRow): TrainerCourse {
+  return {
+    id: course.id,
+    trainerId: course.trainerId,
+    title: course.title,
+    category: course.category,
+    description: course.description,
+    level: course.level as TrainerCourse['level'],
+    price: course.price,
+    durationWeeks: course.durationWeeks,
+    maxStudents: course.maxStudents,
+    videoDurationMinutes: course.videoDurationMinutes,
+    requirementsNotes: course.requirementsNotes,
+    students: course._count?.enrollments ?? 0,
+    rating: course.rating,
+    status: course.status as TrainerCourse['status'],
+    isVisible: course.isVisible,
+    createdAt: course.createdAt.toISOString(),
+  };
+}
+
+const withStudentsCount = { _count: { select: { enrollments: true } } } as const;
 
 export const trainerRepository = {
-  // جدول Trainer بقاعدة البيانات (منفصل عن User) — انظر backend/prisma/schema.prisma
+  // جدول Trainer بقاعدة البيانات (منفصل عن User، مربوط بـ userId) — انظر backend/prisma/schema.prisma
   async findAll() {
     return prisma.trainer.findMany();
   },
@@ -56,7 +86,13 @@ export const trainerRepository = {
     return prisma.trainer.findUnique({ where: { id } });
   },
 
-  async create(data: { name: string; email: string; bio?: string; specialization?: string }) {
+  async create(data: {
+    userId: string;
+    name: string;
+    email: string;
+    bio?: string;
+    specialization?: string;
+  }) {
     return prisma.trainer.create({ data });
   },
 
@@ -68,98 +104,141 @@ export const trainerRepository = {
   },
 
   async listCoursesByTrainer(trainerId: string): Promise<TrainerCourse[]> {
-    return courses.filter((course) => course.trainerId === trainerId);
+    const courses = await prisma.course.findMany({
+      where: { trainerId },
+      include: withStudentsCount,
+    });
+    return courses.map(toTrainerCourse);
   },
 
   async createCourse(trainerId: string, data: CreateCourseInput): Promise<TrainerCourse> {
-    const course: TrainerCourse = {
-      id: nextCourseId++,
-      trainerId,
-      students: 0,
-      rating: 0,
-      status: 'coming_soon',
-      isVisible: true,
-      createdAt: new Date().toISOString(),
-      ...data,
-    };
-    courses.push(course);
-    return course;
+    const course = await prisma.course.create({
+      data: { ...data, trainerId, status: 'coming_soon', isVisible: true, rating: 0 },
+      include: withStudentsCount,
+    });
+    return toTrainerCourse(course);
   },
 
-  async findCourseById(id: number): Promise<TrainerCourse | undefined> {
-    return courses.find((course) => course.id === id);
+  async findCourseById(id: string): Promise<TrainerCourse | undefined> {
+    const course = await prisma.course.findUnique({
+      where: { id },
+      include: withStudentsCount,
+    });
+    return course ? toTrainerCourse(course) : undefined;
   },
 
   async listAllCourses(): Promise<TrainerCourse[]> {
-    return courses;
+    const courses = await prisma.course.findMany({ include: withStudentsCount });
+    return courses.map(toTrainerCourse);
   },
 
-  async approveCourse(id: number): Promise<TrainerCourse | undefined> {
-    const course = courses.find((c) => c.id === id);
-    if (course) course.status = 'available';
-    return course;
-  },
-
-  async rejectCourse(id: number): Promise<TrainerCourse | undefined> {
-    const course = courses.find((c) => c.id === id);
-    if (course) course.status = 'rejected';
-    return course;
-  },
-
-  async setCourseVisibility(id: number, isVisible: boolean): Promise<TrainerCourse | undefined> {
-    const course = courses.find((c) => c.id === id);
-    if (course) course.isVisible = isVisible;
-    return course;
-  },
-
-  async requestCourseDeletion(id: number): Promise<TrainerCourse | undefined> {
-    const course = courses.find((c) => c.id === id);
-    if (course) course.status = 'pending_deletion';
-    return course;
-  },
-
-  // تسجيل طالب بكورس (بعد إتمام الدفع) — يزيد عدد الطلاب مرة وحدة فقط لكل طالب/كورس
-  async enrollStudent(courseId: number, studentId: string): Promise<TrainerCourse | undefined> {
-    const course = courses.find((c) => c.id === courseId);
-    if (!course) return undefined;
-
-    const alreadyEnrolled = enrollments.some(
-      (e) => e.courseId === courseId && e.studentId === studentId
-    );
-
-    if (!alreadyEnrolled) {
-      enrollments.push({ courseId, studentId });
-      course.students += 1;
+  async approveCourse(id: string): Promise<TrainerCourse | undefined> {
+    try {
+      const course = await prisma.course.update({
+        where: { id },
+        data: { status: 'available' },
+        include: withStudentsCount,
+      });
+      return toTrainerCourse(course);
+    } catch {
+      return undefined;
     }
-
-    return course;
   },
 
-  async listEnrollmentsByStudent(studentId: string): Promise<TrainerCourse[]> {
-    const courseIds = enrollments
-      .filter((e) => e.studentId === studentId)
-      .map((e) => e.courseId);
+  async rejectCourse(id: string): Promise<TrainerCourse | undefined> {
+    try {
+      const course = await prisma.course.update({
+        where: { id },
+        data: { status: 'rejected' },
+        include: withStudentsCount,
+      });
+      return toTrainerCourse(course);
+    } catch {
+      return undefined;
+    }
+  },
 
-    return courses.filter((c) => courseIds.includes(c.id));
+  async setCourseVisibility(id: string, isVisible: boolean): Promise<TrainerCourse | undefined> {
+    try {
+      const course = await prisma.course.update({
+        where: { id },
+        data: { isVisible },
+        include: withStudentsCount,
+      });
+      return toTrainerCourse(course);
+    } catch {
+      return undefined;
+    }
+  },
+
+  async requestCourseDeletion(id: string): Promise<TrainerCourse | undefined> {
+    try {
+      const course = await prisma.course.update({
+        where: { id },
+        data: { status: 'pending_deletion' },
+        include: withStudentsCount,
+      });
+      return toTrainerCourse(course);
+    } catch {
+      return undefined;
+    }
   },
 
   // يُنشئ سجل ملف تعريفي افتراضي لأول مرة (تسمية عامة ثنائية اللغة، لا بيانات وهمية)، ويعيده لاحقاً
-  async getProfileExtra(trainerId: string): Promise<TrainerProfileExtra> {
-    let extra = profileExtras.get(trainerId);
-    if (!extra) {
-      extra = { phone: '', bio: '', specialty: 'Trainer', specialtyAr: 'مدرب', experience: 0 };
-      profileExtras.set(trainerId, extra);
+  async getProfileExtra(userId: string): Promise<TrainerProfileExtra> {
+    const trainer = await prisma.trainer.findUnique({ where: { userId } });
+    if (!trainer) {
+      return { phone: '', bio: '', specialty: 'Trainer', specialtyAr: 'مدرب', experience: 0 };
     }
-    return extra;
+    return {
+      phone: trainer.phone ?? '',
+      bio: trainer.bio ?? '',
+      bioAr: trainer.bioAr ?? '',
+      specialty: trainer.specialization ?? 'Trainer',
+      specialtyAr: trainer.specializationAr ?? 'مدرب',
+      experience: trainer.experience,
+    };
   },
 
   async updateProfileExtra(
-    trainerId: string,
+    userId: string,
     updates: Partial<TrainerProfileExtra>
   ): Promise<TrainerProfileExtra> {
-    const current = await this.getProfileExtra(trainerId);
-    const updated = { ...current, ...updates };
-    profileExtras.set(trainerId, updated);
-    return updated;
+    const data: {
+      phone?: string;
+      bio?: string;
+      bioAr?: string;
+      specialization?: string;
+      specializationAr?: string;
+      experience?: number;
+    } = {};
+    if (updates.phone !== undefined) data.phone = updates.phone;
+    if (updates.bio !== undefined) data.bio = updates.bio;
+    if (updates.bioAr !== undefined) data.bioAr = updates.bioAr;
+    if (updates.specialty !== undefined) data.specialization = updates.specialty;
+    if (updates.specialtyAr !== undefined) data.specializationAr = updates.specialtyAr;
+    if (updates.experience !== undefined) data.experience = updates.experience;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    const trainer = await prisma.trainer.upsert({
+      where: { userId },
+      update: data,
+      create: {
+        userId,
+        name: user?.name ?? '',
+        email: user?.email ?? '',
+        ...data,
+      },
+    });
+
+    return {
+      phone: trainer.phone ?? '',
+      bio: trainer.bio ?? '',
+      bioAr: trainer.bioAr ?? '',
+      specialty: trainer.specialization ?? 'Trainer',
+      specialtyAr: trainer.specializationAr ?? 'مدرب',
+      experience: trainer.experience,
+    };
   },
 };

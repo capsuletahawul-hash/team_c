@@ -19,4 +19,4 @@ export interface IUserRepository {
 }
 
 // تعديل: إضافة حساب الأدمن الثابت ضمن مستودع الذاكرة أو السماح بالتعامل معه إن وُجد في الذاكرة
-export { memoryUserRepository as userRepository } from './memoryUserRepository.js';
+export { userRepository } from './prismaUserRepository.js';

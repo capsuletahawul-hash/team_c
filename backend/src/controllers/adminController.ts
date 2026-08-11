@@ -46,7 +46,7 @@ export const adminController = {
    */
   async approveCourse(req: Request, res: Response) {
     try {
-      const courseId = Number(req.params.id);
+      const courseId = String(req.params.id);
       const course = await trainerRepository.approveCourse(courseId);
 
       if (!course) {
@@ -65,7 +65,7 @@ export const adminController = {
    */
   async rejectCourse(req: Request, res: Response) {
     try {
-      const courseId = Number(req.params.id);
+      const courseId = String(req.params.id);
       const course = await trainerRepository.rejectCourse(courseId);
 
       if (!course) {

@@ -261,7 +261,7 @@ async getTrainerById(req: Request, res: Response) {
   async updateVisibility(req: Request, res: Response) {
     try {
       const authUser = (req as AuthenticatedRequest).user!;
-      const courseId = Number(req.params.id);
+      const courseId = String(req.params.id);
       const course = await trainerRepository.findCourseById(courseId);
 
       if (!course || course.trainerId !== authUser.userId) {
@@ -286,7 +286,7 @@ async getTrainerById(req: Request, res: Response) {
   async requestDeletion(req: Request, res: Response) {
     try {
       const authUser = (req as AuthenticatedRequest).user!;
-      const courseId = Number(req.params.id);
+      const courseId = String(req.params.id);
       const course = await trainerRepository.findCourseById(courseId);
 
       if (!course || course.trainerId !== authUser.userId) {
@@ -353,7 +353,7 @@ async getPublicCourses(req: Request, res: Response) {
    */
   async getPublicCourseById(req: Request, res: Response) {
     try {
-      const courseId = Number(req.params.id);
+      const courseId = String(req.params.id);
       const course = await trainerRepository.findCourseById(courseId);
 
       if (!course || course.isVisible !== true || course.status !== "available") {

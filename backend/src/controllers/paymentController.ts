@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express';
 import { paymentService } from '../services/paymentService.js';
-import { orderRepository } from '../repositories/orderRepository.js'; // افترض وجوده مع الشخص المسؤول عن الـ Orders
-import { enrollmentRepository } from '../repositories/enrollmentRepository.js';
+import { orderRepository } from '../repositories/orderRepository.js';
+import { accessService } from '../services/accessService.js';
+// NOTE: enrollmentRepository is no longer imported/used directly here.
+// Access must always be granted through accessService.grantAccess(), which
+// is the only place that computes accessStartsAt / accessEndsAt.
 
 export const paymentController = {
   /**
@@ -28,8 +31,11 @@ export const paymentController = {
       // تحديث حالة الطلب إلى PAID
       await orderRepository.updateStatus(order.id, 'PAID', paymentId);
 
-      // منح الطالب صلاحية الوصول (Enrollment)
-      await enrollmentRepository.create(order.userId, order.courseId);
+      // FIX: previously called enrollmentRepository.create(order.userId, order.courseId)
+      // directly — that repo method requires 4 args (userId, courseId, accessStartsAt,
+      // accessEndsAt), so accessStartsAt/accessEndsAt were undefined on every real
+      // payment. Always go through accessService, which owns the 120-day window logic.
+      await accessService.grantAccess(order.userId, order.courseId);
 
       return res.json({
         success: true,
@@ -40,7 +46,7 @@ export const paymentController = {
         },
       });
     } else {
-      // تحديث حالة الطلب إلى FAILED
+      // تحديث حالة الطلب إلى FAILED — never grant access on a failed/unverified payment
       await orderRepository.updateStatus(order.id, 'FAILED', paymentId);
 
       return res.status(400).json({

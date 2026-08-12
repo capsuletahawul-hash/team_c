@@ -107,6 +107,9 @@ async function main() {
     data: {
       userId: student1.id,
       courseId: course1.id,
+      accessStartsAt: new Date(),
+    // Standard JS way to add 120 days:
+    accessEndsAt: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000),
     },
   });
 
@@ -114,6 +117,9 @@ async function main() {
     data: {
       userId: student2.id,
       courseId: course1.id,
+      accessStartsAt: new Date(),
+    // Standard JS way to add 120 days:
+    accessEndsAt: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000),
     },
   });
 
@@ -121,6 +127,9 @@ async function main() {
     data: {
       userId: student1.id,
       courseId: course2.id,
+      accessStartsAt: new Date(),
+    // Standard JS way to add 120 days:
+    accessEndsAt: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000),
     },
   });
 

@@ -5,7 +5,7 @@ export const enrollmentRepository = {
   /**
    * إنشاء تسجيل جديد مع تحديث المقاعد المتاحة في الكورس داخل Transaction
    */
-  async create(userId: string, courseId: string) {
+  async create(userId: string, courseId: string, accessStartsAt: Date, accessEndsAt: Date) {
     // نستخدم $transaction لضمان تنفيذ الشغلتين مع بعض أو إلغاء العمليتين لو حدث خطأ
     return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. التأكد من وجود مقاعد شاغرة أولاً
@@ -38,6 +38,8 @@ export const enrollmentRepository = {
         data: {
           userId,
           courseId,
+          accessStartsAt, // Add the start date[cite: 1]
+          accessEndsAt,   // Add the end date[cite: 1]
         },
         include: {
           course: true,

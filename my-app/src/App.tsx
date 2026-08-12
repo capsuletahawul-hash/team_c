@@ -1,9 +1,9 @@
 // src/App.tsx
 import React, { useState } from 'react';
 import { Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
-import { useAuth, Role } from './context/AuthContext'; // استيراد سياق التحقق والأدوار[cite: 10]
+import { useAuth, Role } from './context/AuthContext';
 
-// استيراد الصفحات مع حذف امتدادات .jsx تماماً ليتعرف عليها الـ Compiler تلقائياً
+// استيراد الصفحات
 import LandingPage from './pages/LandingPage';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentProfile from './pages/StudentProfile';
@@ -35,12 +35,12 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element, allowedRoles }) => {
   const { isAuthenticated, role } = useAuth();
 
-  // إذا لم يكن المستخدم مسجلاً، يتم توجيهه لصفحة تسجيل الدخول[cite: 10]
+  // إذا لم يكن المستخدم مسجلاً، يتم توجيهه لصفحة تسجيل الدخول
   if (!isAuthenticated) {
     return <Navigate to="/sign-in" replace />;
   }
 
-  // إذا كان مسجلاً ولكن رتبته لا تطابق الرتب المسموح لها بدخول الصفحة[cite: 10]
+  // إذا كان مسجلاً ولكن رتبته لا تطابق الرتب المسموح لها بدخول الصفحة
   if (allowedRoles && !allowedRoles.includes(role)) {
     return <Navigate to="/" replace />;
   }
@@ -96,7 +96,7 @@ const SignUpRoute: React.FC = () => {
   );
 };
 
-// Quick dev-only index so every page in the repo is reachable
+// Dev-only index for local navigation
 const DevIndex: React.FC = () => {
   const links: Array<[string, string]> = [
     ['/', 'Landing Page'],
@@ -155,7 +155,10 @@ const App: React.FC = () => {
       <Route path="/student-profile" element={<ProtectedRoute allowedRoles={['student']} element={<StudentProfileRoute />} />} />
       <Route path="/student-courses-overview" element={<ProtectedRoute allowedRoles={['student']} element={<StudentCoursesOverview />} />} />
       <Route path="/cart" element={<ProtectedRoute allowedRoles={['student', 'trainer']} element={<Cart />} />} />
+      
+      {/* مسارات الدفع ومعالجة العودة من Moyasar */}
       <Route path="/payment" element={<ProtectedRoute allowedRoles={['student', 'trainer']} element={<PaymentPage />} />} />
+      <Route path="/payment/return" element={<ProtectedRoute allowedRoles={['student', 'trainer']} element={<PaymentPage />} />} />
 
       {/* مسارات الشركات المحمية */}
       <Route path="/company-dashboard" element={<ProtectedRoute allowedRoles={['company']} element={<CompanyDashboard />} />} /> 

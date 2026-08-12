@@ -6,21 +6,21 @@ export type Role = 'student' | 'company' | 'trainer' | 'admin' | null;
 interface AuthState {
   isAuthenticated: boolean;
   role: Role;
-  token: string | null; // إضافة التوكن هنا لإدارة الجلسة بالكامل
-  login: (role: Role, token?: string) => void; // جعل التوكن اختيارياً مؤقتاً لتجنب كسر الصفحات الأخرى
+  token: string | null;
+  login: (role: Role, token?: string) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // استعادة دور المستخدم من localStorage عند تحميل التطبيق لمنع تسجيل الخروج عند الـ Refresh
+  // استعادة دور المستخدم من localStorage
   const [role, setRole] = useState<Role>(() => {
     const savedRole = localStorage.getItem('user_role');
     return (savedRole as Role) || null;
   });
 
-  // استعادة التوكن من الـ localStorage عند تحميل التطبيق[cite: 8]
+  // استعادة التوكن من الـ localStorage
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('user_token');
   });
@@ -28,27 +28,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = (r: Role, t?: string) => {
     if (r) {
       localStorage.setItem('user_role', r);
+      setRole(r);
     } else {
       localStorage.removeItem('user_role');
+      setRole(null);
     }
 
     if (t) {
       localStorage.setItem('user_token', t);
       setToken(t);
     }
-
-    setRole(r);
   };
 
   const logout = () => {
     localStorage.removeItem('user_role');
-    localStorage.removeItem('user_token'); // مسح التوكن عند تسجيل الخروج[cite: 8]
+    localStorage.removeItem('user_token');
     setRole(null);
     setToken(null);
   };
 
+  // ✅ التعديل الأهم: يعتبر مسجل دخول فقط إذا وجد Role و Token معاً
+  const isAuthenticated = Boolean(role && token);
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!role, role, token, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, role, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

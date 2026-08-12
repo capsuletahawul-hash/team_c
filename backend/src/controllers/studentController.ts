@@ -31,29 +31,26 @@ export const studentController = {
   },
 
   /**
-   * Purchase Course (called after successful checkout — records enrollment
-   * and decrements the course's available seats)
+   * FIX: This endpoint used to call enrollmentRepository.create(userId, courseId)
+   * directly — granting a student unlimited, dateless access to any course with
+   * zero payment, zero order, and zero verification. That's the exact
+   * "Order created -> Enrollment" anti-pattern the Week 5 handbook calls out as
+   * WRONG (Chapter 02). Real access must always go:
+   *   POST /api/orders  ->  Moyasar checkout  ->  verify  ->  accessService.grantAccess
+   *
+   * Rather than silently delete the route (which could 404 something the
+   * frontend still calls), it now fails loudly and points callers at the real
+   * flow, so nobody accidentally ships free access again.
    */
   async purchaseCourse(req: Request, res: Response) {
-    try {
-      const authUser = (req as AuthenticatedRequest).user!;
-      const courseId = String(req.params.id);
-      await enrollmentRepository.create(authUser.userId, courseId);
-
-      return res.status(200).json({ success: true });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-
-      if (message === "Course not found") {
-        return res.status(404).json({ success: false, error: "course_not_found" });
-      }
-      if (message === "No available seats left in this course") {
-        return res.status(400).json({ success: false, error: "no_seats_left" });
-      }
-
-      console.error(err);
-      return res.status(500).json({ success: false, error: "internal_server_error" });
-    }
+    return res.status(410).json({
+      success: false,
+      error: "endpoint_removed",
+      message:
+        "Direct enrollment is no longer supported. Create an order via POST /api/orders, " +
+        "complete the Moyasar sandbox checkout, and access is granted automatically once " +
+        "the payment is verified.",
+    });
   },
 
   /**

@@ -8,17 +8,17 @@ datasource db {
 }
 
 model User {
-  id            String       @id @default(uuid())
-  name          String
-  email         String       @unique
-  password      String
-  role          String       @default("STUDENT")
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  enrollments   Enrollment[]
-  orders        Order[]
+  id             String       @id @default(uuid())
+  name           String
+  email          String       @unique
+  password       String
+  role           String       @default("STUDENT")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  enrollments    Enrollment[]
+  orders         Order[]
   trainerProfile Trainer?
-  coursesTaught Course[]     @relation("TrainerCourses")
+  coursesTaught  Course[]     @relation("TrainerCourses")
 }
 
 model Trainer {
@@ -85,4 +85,12 @@ model Enrollment {
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+}
+
+model B2BRequest {
+  id          String   @id @default(uuid())
+  companyName String
+  contact     String
+  message     String
+  createdAt   DateTime @default(now())
 }

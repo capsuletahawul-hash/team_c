@@ -149,6 +149,7 @@ const App: React.FC = () => {
       <Route path="/course-details/:id" element={<CourseDetails />} />
       <Route path="/courses-overview" element={<CoursesOverview />} />
       <Route path="/business-contract" element={<BusinessContractForm />} />
+      <Route path="/c" element={<PaymentPage />} />
 
       {/* مسارات الطلاب المحمية */}
       <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={['student']} element={<StudentDashboardRoute />} />} />

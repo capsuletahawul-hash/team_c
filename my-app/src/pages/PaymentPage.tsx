@@ -108,32 +108,32 @@ export default function Payment() {
   };
 
   // 3. دالة الاستدعاء والتحقق من السيرفر (Server-Side Verification)
-  const verifyPaymentOnBackend = async (paymentId: string) => {
-    setIsVerifying(true);
-    try {
-      const token = localStorage.getItem('user_token');
-      const response = await fetch(`http://localhost:3001/api/payment/verify?id=${paymentId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+const verifyPaymentOnBackend = async (paymentId: string) => {
+  setIsVerifying(true);
+  try {
+    const token = localStorage.getItem('user_token');
+    // نرسل الـ id والـ orderId للباك إند حسب مطابقة الـ Controller عندك
+    const response = await fetch(`http://localhost:3001/api/payment/return?id=${paymentId}&orderId=${order.orderId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.success) {
-        alert(lang === 'ar' ? 'تم الدفع وتفعيل الاشتراكات بنجاح! 🎉' : 'Payment verified and access granted successfully!');
-        localStorage.removeItem('cartItems');
-        navigate(role === 'trainer' ? '/trainer-dashboard' : '/student-dashboard');
-      } else {
-        alert((lang === 'ar' ? 'فشل التحقق من العملية: ' : 'Payment verification failed: ') + (data.error || ''));
-      }
-    } catch (err) {
-      console.error('Verification Error:', err);
-      alert(lang === 'ar' ? 'حدث خطأ في الاتصال بالخادم أثناء التحقق.' : 'Server verification error.');
-    } finally {
-      setIsVerifying(false);
+    if (data.success) {
+      alert(lang === 'ar' ? 'تم الدفع وتفعيل الاشتراكات بنجاح! 🎉' : 'Payment verified and access granted successfully!');
+      localStorage.removeItem('cartItems');
+      navigate(role === 'trainer' ? '/trainer-dashboard' : '/student-dashboard');
+    } else {
+      alert((lang === 'ar' ? 'فشل التحقق من العملية: ' : 'Payment verification failed: ') + (data.error || ''));
     }
-  };
+  } catch (err) {
+    console.error('Verification Error:', err);
+  } finally {
+    setIsVerifying(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-capsule-bg flex flex-col font-sans" dir={isRTL ? 'rtl' : 'ltr'}>

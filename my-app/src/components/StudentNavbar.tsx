@@ -45,6 +45,11 @@ function StudentNavbar({
       to: "/student-courses-overview",
     },
     {
+      id: "my-courses",
+      label: lang === "ar" ? "دوراتي" : "My Courses",
+      to: "/my-courses",
+    },
+    {
       id: "bootcamps",
       label: lang === "ar" ? "المعسكرات" : "Bootcamps",
       to: "#",

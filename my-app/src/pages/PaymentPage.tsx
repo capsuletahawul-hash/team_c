@@ -42,6 +42,7 @@ export default function Payment() {
 
   // قراءة الـ payment.id إذا كان المستخدم راجعاً من التوجيه بعد الدفع (3DS Callback)
   const paymentIdFromUrl = searchParams.get('id');
+  const orderIdFromUrl = searchParams.get('orderId');
 
   const rawOrder = location.state as Partial<OrderDetails> | null;
 
@@ -72,7 +73,7 @@ const order: OrderDetails = {
         : 250,
 
   courseIds: rawOrder?.courseIds,
-  orderId: rawOrder?.orderId,
+orderId: orderIdFromUrl || rawOrder?.orderId,
 };
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('moyasar');
@@ -126,19 +127,24 @@ if (!checkout.success || !checkout.data?.checkoutUrl) {
   console.error("Failed to create Moyasar checkout", checkout);
   return;
 }
-      window.Moyasar.init({
-        element: '.mysr-form',
-        amount: amountInHalalas,
-        currency: 'SAR',
-        description: `Purchase: ${order.courseName}`,
-publishable_api_key: import.meta.env.VITE_MOYASAR_PUBLISHABLE_KEY,
-        callback_url: `${window.location.origin}/payment`, // التوجيه لنفس الصفحة لمعالجة التوثيق
-        supported_networks: ['visa', 'mastercard', 'mada', 'unionpay'],
-        methods: ['creditcard'],
-        metadata: {
-          orderId: order.orderId || 'ord_123',
-        },
-      });
+      
+window.Moyasar.init({
+  element: '.mysr-form',
+  amount: amountInHalalas,
+  currency: 'SAR',
+  description: `Purchase: ${order.courseName}`,
+  publishable_api_key: import.meta.env.VITE_MOYASAR_PUBLISHABLE_KEY,
+  
+  // UPDATE THIS LINE:
+  callback_url: `${window.location.origin}/payment?orderId=${order.orderId}`, 
+  
+  supported_networks: ['visa', 'mastercard', 'mada', 'unionpay'],
+  methods: ['creditcard'],
+  metadata: {
+    orderId: order.orderId || 'ord_123',
+  },
+});
+
     }
   };
 

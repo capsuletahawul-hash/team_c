@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { createOrder } from '../services/api';
 import StudentNavbar from '../components/StudentNavbar.jsx';
 import TrainerNavbar from '../components/TrainerNavbar';
 import Footer from '../components/Footer.jsx';
@@ -116,21 +117,57 @@ export default function Cart() {
   const finalTotalAmount: number = taxableBasis + vatAmount;
 
   // CHANGE: Type annotated void return type for checkout gateway state transfer
-  const handleCheckoutInit = (): void => {
+  const handleCheckoutInit = async (): Promise<void> => {
+  if (cartItems.length === 0) return;
+
+  if (cartItems.length > 1) {
+    setFeedbackMessage({
+      text:
+        lang === 'ar'
+          ? 'يرجى شراء دورة واحدة في كل مرة.'
+          : 'Please purchase one course at a time.',
+      isError: true,
+    });
+    return;
+  }
+
+  try {
     setCheckoutStatus(true);
-    alert(l.checkoutSuccess);
-    
+    setFeedbackMessage({ text: '', isError: false });
+
+    const course = cartItems[0];
+
+    const response = await createOrder(String(course.id));
+
+    if (!response.success || !response.data) {
+      throw new Error(response.error || 'Failed to create order');
+    }
+
+    const order = response.data;
+
     navigate('/payment', {
       state: {
-        courseName: cartItems.map((item: CartItem) => item.title).join(' + '),
+        orderId: order.id,
+        courseId: course.id,
+        courseName: course.title,
         trainer: lang === 'ar' ? 'نخبة من المدربين' : 'Expert Instructors',
-        price: subtotalAmount,
-        discount: discountAmount,
-        totalAmount: finalTotalAmount,
-        courseIds: cartItems.map((item: CartItem) => item.id)
-      }
+        price: order.amount,
+      },
     });
-  };
+  } catch (error) {
+    setFeedbackMessage({
+      text:
+        error instanceof Error
+          ? error.message
+          : lang === 'ar'
+            ? 'حدث خطأ أثناء إنشاء الطلب.'
+            : 'Failed to create order.',
+      isError: true,
+    });
+
+    setCheckoutStatus(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>

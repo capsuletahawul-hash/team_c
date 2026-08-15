@@ -50,5 +50,47 @@ export const emailService = {
       requestId: request.id,
       companyName: request.companyName,
     });
+
   },
+
+  async sendPurchaseConfirmation(order: any): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.EMAIL_FROM;
+
+  if (!apiKey || !fromEmail) {
+    console.log("[EMAIL] Purchase confirmation skipped: email is not configured");
+    return;
+  }
+
+  const response = await fetch(RESEND_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: fromEmail,
+      to: [order.user.email],
+      subject: "Purchase Successful",
+      text: [
+        "Purchase successful",
+        "",
+        `Course: ${order.course.title}`,
+        `Order ID: ${order.id}`,
+        `Amount: ${order.amount} SAR`,
+        "Access status: ACTIVE",
+        "Access period: 120 days",
+      ].join("\n"),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Email provider returned ${response.status}: ${errorText}`);
+  }
+
+  console.log("[EMAIL] Purchase confirmation sent", {
+    orderId: order.id,
+  });
+},
 };

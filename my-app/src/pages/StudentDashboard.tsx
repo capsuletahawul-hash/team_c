@@ -24,6 +24,8 @@ interface Course {
   durKey: string;
   progress: number;
   status: 'Active' | 'Completed' | 'Expired';
+  accessStartsAt?: string;
+  accessEndsAt?: string;
 }
 
 interface Notification {
@@ -240,9 +242,19 @@ const notifsData: Notification[] = [];
                         <p className="text-xs font-bold text-gray-400 mt-1">{course.progress}% {l.resume.completedProgress}</p>
                       </div>
 
-                      <Button variant={course.status === 'Completed' ? 'secondary' : 'primary'}>
-                        {course.status === 'Completed' ? l.resume.certBtn : l.resume.continueBtn}
-                      </Button>
+                      <Button
+  variant={
+    course.status === 'Completed' || course.status === 'Expired'
+      ? 'secondary'
+      : 'primary'
+  }
+>
+  {course.status === 'Completed'
+    ? l.resume.certBtn
+    : course.status === 'Expired'
+      ? 'Locked'
+      : l.resume.continueBtn}
+</Button>
                     </div>
                   ))}
                 </div>

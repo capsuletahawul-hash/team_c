@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 // استيراد دالة جلب بيانات المستخدم الحالي من ملف الخدمات المشترك
 import { getCurrentUser, BASE_URL } from '../services/api'; 
 
@@ -22,7 +23,7 @@ interface Course {
   catKey: string;
   durKey: string;
   progress: number;
-  status: 'Active' | 'Completed';
+  status: 'Active' | 'Completed' | 'Expired';
 }
 
 interface Notification {
@@ -77,7 +78,8 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         const userResponse: any = await getCurrentUser();
         
 // 2. جلب دورات الطالب من الباك إند
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// ملاحظة: studentRoutes مرتبطة في server.ts بالمسار /api/student، و BASE_URL
+// المستورد من services/api.ts يتضمن /api بالفعل — لازم نستخدمه كما هو.
 const token = localStorage.getItem("user_token");
 
 const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
@@ -120,7 +122,7 @@ const notifsData: Notification[] = [];
     );
   }
 
-  const activeCourses = courses.filter(c => c.status !== 'Completed');
+  const activeCourses = courses.filter(c => c.status === 'Active');
   const completedCourses = courses.filter(c => c.status === 'Completed');
   const unreadNotifications = notifications.filter(n => !n.isRead);
 
@@ -201,6 +203,12 @@ const notifsData: Notification[] = [];
             <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
               <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                 <h2 className="text-base font-bold text-capsule-navy">{l.resume.title}</h2>
+                <Link
+                  to="/my-courses"
+                  className="text-xs font-bold text-capsule-teal hover:underline"
+                >
+                  {t.dir === 'rtl' ? 'عرض جميع دوراتي ←' : 'View all my courses →'}
+                </Link>
               </div>
 
               {courses.length === 0 ? (

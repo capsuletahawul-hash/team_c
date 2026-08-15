@@ -123,7 +123,9 @@ export default function Payment() {
       if (data.success) {
         alert(lang === 'ar' ? 'تم الدفع وتفعيل الاشتراكات بنجاح! 🎉' : 'Payment verified and access granted successfully!');
         localStorage.removeItem('cartItems');
-        navigate(role === 'trainer' ? '/trainer-dashboard' : '/student-dashboard');
+        // Send the student straight to their new access, instead of just the
+        // dashboard — this is the "then what?" after a verified purchase.
+        navigate(role === 'trainer' ? '/trainer-dashboard' : '/my-courses');
       } else {
         alert((lang === 'ar' ? 'فشل التحقق من العملية: ' : 'Payment verification failed: ') + (data.error || ''));
       }

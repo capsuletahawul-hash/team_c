@@ -7,6 +7,7 @@ import TrainerNavbar from '../components/TrainerNavbar';
 import Footer from '../components/Footer';
 import { BanknotesIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { startCheckout } from "../services/api";
 
 // @ts-ignore
 import applePayLogo from '../assets/ApplePay.png';
@@ -42,14 +43,37 @@ export default function Payment() {
   // قراءة الـ payment.id إذا كان المستخدم راجعاً من التوجيه بعد الدفع (3DS Callback)
   const paymentIdFromUrl = searchParams.get('id');
 
-  const order = (location.state as OrderDetails | null) || {
-    courseName: "Full-Stack Generative AI & Digital Transformation Bootcamp",
-    trainer: "Ahmed Mohammed",
-    price: 450.00,
-    discount: 200.00,
-    totalAmount: 250.00,
-    orderId: "ord_demo_123"
-  };
+  const rawOrder = location.state as Partial<OrderDetails> | null;
+
+const order: OrderDetails = {
+  courseName:
+    rawOrder?.courseName ||
+    "Full-Stack Generative AI & Digital Transformation Bootcamp",
+
+  trainer:
+    rawOrder?.trainer ||
+    "Ahmed Mohammed",
+
+  price:
+    typeof rawOrder?.price === "number"
+      ? rawOrder.price
+      : 450,
+
+  discount:
+    typeof rawOrder?.discount === "number"
+      ? rawOrder.discount
+      : 0,
+
+  totalAmount:
+    typeof rawOrder?.totalAmount === "number"
+      ? rawOrder.totalAmount
+      : typeof rawOrder?.price === "number"
+        ? rawOrder.price
+        : 250,
+
+  courseIds: rawOrder?.courseIds,
+  orderId: rawOrder?.orderId,
+};
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('moyasar');
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
@@ -86,17 +110,28 @@ export default function Payment() {
     document.body.appendChild(script);
   };
 
-  const initMoyasarForm = () => {
+  const initMoyasarForm = async () => {
     if (window.Moyasar) {
       // إرسال المبلغ بالهللات (ضرب 100) حسب توثيق Moyasar
       const amountInHalalas = Math.round(order.totalAmount * 100);
 
+if (!order.orderId) {
+  console.error("Missing orderId");
+  return;
+}
+
+const checkout = await startCheckout(order.orderId);
+
+if (!checkout.success || !checkout.data?.checkoutUrl) {
+  console.error("Failed to create Moyasar checkout", checkout);
+  return;
+}
       window.Moyasar.init({
         element: '.mysr-form',
         amount: amountInHalalas,
         currency: 'SAR',
         description: `Purchase: ${order.courseName}`,
-        publishable_api_key: import.meta.env.VITE_MOYASAR_PUBLISHABLE_KEY || 'pk_test_AQpxBV31a29qhkhUYFYUFjhwllaDVrxSq5ydVNui',
+publishable_api_key: import.meta.env.VITE_MOYASAR_PUBLISHABLE_KEY,
         callback_url: `${window.location.origin}/payment`, // التوجيه لنفس الصفحة لمعالجة التوثيق
         supported_networks: ['visa', 'mastercard', 'mada', 'unionpay'],
         methods: ['creditcard'],
@@ -109,31 +144,52 @@ export default function Payment() {
 
   // 3. دالة الاستدعاء والتحقق من السيرفر (Server-Side Verification)
   const verifyPaymentOnBackend = async (paymentId: string) => {
-    setIsVerifying(true);
-    try {
-      const token = localStorage.getItem('user_token');
-      const response = await fetch(`http://localhost:3001/api/payment/verify?id=${paymentId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  setIsVerifying(true);
 
-      const data = await response.json();
-
-      if (data.success) {
-        alert(lang === 'ar' ? 'تم الدفع وتفعيل الاشتراكات بنجاح! 🎉' : 'Payment verified and access granted successfully!');
-        localStorage.removeItem('cartItems');
-        navigate(role === 'trainer' ? '/trainer-dashboard' : '/student-dashboard');
-      } else {
-        alert((lang === 'ar' ? 'فشل التحقق من العملية: ' : 'Payment verification failed: ') + (data.error || ''));
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/payment/return?id=${paymentId}&orderId=${order.orderId}`,
+      {
+        method: 'GET',
       }
-    } catch (err) {
-      console.error('Verification Error:', err);
-      alert(lang === 'ar' ? 'حدث خطأ في الاتصال بالخادم أثناء التحقق.' : 'Server verification error.');
-    } finally {
-      setIsVerifying(false);
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert(
+        lang === 'ar'
+          ? 'تم الدفع وتفعيل الاشتراك بنجاح! 🎉'
+          : 'Payment verified and access granted successfully!'
+      );
+
+      localStorage.removeItem('cartItems');
+
+      navigate(
+        role === 'trainer'
+          ? '/trainer-dashboard'
+          : '/student-dashboard'
+      );
+    } else {
+      alert(
+        (lang === 'ar'
+          ? 'فشل التحقق من العملية: '
+          : 'Payment verification failed: ') +
+          (data.error || '')
+      );
     }
-  };
+  } catch (err) {
+    console.error('Verification Error:', err);
+
+    alert(
+      lang === 'ar'
+        ? 'حدث خطأ في الاتصال بالخادم أثناء التحقق.'
+        : 'Server verification error.'
+    );
+  } finally {
+    setIsVerifying(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-capsule-bg flex flex-col font-sans" dir={isRTL ? 'rtl' : 'ltr'}>

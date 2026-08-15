@@ -22,7 +22,9 @@ interface Course {
   catKey: string;
   durKey: string;
   progress: number;
-  status: 'Active' | 'Completed';
+  status: 'Active' | 'Completed' | 'Locked';
+accessStartsAt?: string;
+accessEndsAt?: string;
 }
 
 interface Notification {
@@ -232,9 +234,19 @@ const notifsData: Notification[] = [];
                         <p className="text-xs font-bold text-gray-400 mt-1">{course.progress}% {l.resume.completedProgress}</p>
                       </div>
 
-                      <Button variant={course.status === 'Completed' ? 'secondary' : 'primary'}>
-                        {course.status === 'Completed' ? l.resume.certBtn : l.resume.continueBtn}
-                      </Button>
+                      <Button
+  variant={
+    course.status === 'Completed' || course.status === 'Locked'
+      ? 'secondary'
+      : 'primary'
+  }
+>
+  {course.status === 'Completed'
+    ? l.resume.certBtn
+    : course.status === 'Locked'
+      ? 'Locked'
+      : l.resume.continueBtn}
+</Button>
                     </div>
                   ))}
                 </div>

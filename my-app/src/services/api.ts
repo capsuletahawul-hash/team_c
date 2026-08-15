@@ -78,6 +78,55 @@ export async function getCurrentUser() {
 }
 
 // =======================
+// Orders
+// =======================
+
+export async function createOrder(courseId: string) {
+  return apiFetch<{
+    success: boolean;
+    data?: {
+      id: string;
+      userId: string;
+      courseId: string;
+      amount: number;
+      status: string;
+      paymentId?: string | null;
+      createdAt?: string;
+    };
+    error?: string;
+  }>("/orders", {
+    method: "POST",
+    body: JSON.stringify({
+      courseId,
+    }),
+  });
+}
+
+export async function getOrder(orderId: string) {
+  return apiFetch<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }>(`/orders/${orderId}`, {
+    method: "GET",
+  });
+}
+
+export async function startCheckout(orderId: string) {
+  return apiFetch<{
+    success: boolean;
+    data?: {
+      orderId: string;
+      checkoutUrl: string;
+    };
+    error?: string;
+  }>("/payment/checkout", {
+    method: "POST",
+    body: JSON.stringify({ orderId }),
+  });
+}
+
+// =======================
 // Contact
 // =======================
 

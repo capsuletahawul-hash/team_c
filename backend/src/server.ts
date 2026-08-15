@@ -19,6 +19,7 @@ import courseRoutes from "./routes/courseRoutes.js";
 import contractRoutes from "./routes/contractRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import b2bRoutes from "./routes/b2bRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
@@ -58,6 +59,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/contracts", contractRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/b2b", b2bRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // ---------------------------------------------------------------------
 // Health check — required by the Postman test table (Handbook Section 11)

@@ -29,4 +29,30 @@ export const orderController = {
       return res.status(500).json({ success: false, error: 'internal_server_error' });
     }
   },
+
+async getOrder(req: Request, res: Response) {
+  try {
+    const authUser = (req as AuthenticatedRequest).user!;
+    const order = await orderService.getOrder(
+      authUser.userId,
+      String(req.params.id)
+    );
+
+    return res.status(200).json({ success: true, data: order });
+  } catch (err) {
+    if (err instanceof AppError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        error: err.message,
+      });
+    }
+
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      error: 'internal_server_error',
+    });
+  }
+},
+
 };

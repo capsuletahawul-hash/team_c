@@ -30,4 +30,19 @@ export const orderService = {
       amount: course.price, // السعر الرسمي يُنسخ الآن، لا يُقرأ لاحقاً وقت التحقق
     });
   },
+
+async getOrder(userId: string, orderId: string) {
+  const order = await orderRepository.findById(orderId);
+
+  if (!order) {
+    throw new AppError('order_not_found', 404);
+  }
+
+  if (order.userId !== userId) {
+    throw new AppError('forbidden', 403);
+  }
+
+  return order;
+},
+
 };

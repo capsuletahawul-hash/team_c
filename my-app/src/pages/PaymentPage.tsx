@@ -146,15 +146,33 @@ publishable_api_key: import.meta.env.VITE_MOYASAR_PUBLISHABLE_KEY,
   const verifyPaymentOnBackend = async (paymentId: string) => {
   setIsVerifying(true);
 
-  try {
-    const response = await fetch(
-      `http://localhost:5000/api/payment/return?id=${paymentId}&orderId=${order.orderId}`,
-      {
-        method: 'GET',
-      }
-    );
+try {
+  const response = await fetch(
+    `http://localhost:5000/api/payment/return?id=${paymentId}&orderId=${order.orderId}`,
+    {
+      method: 'GET',
+    }
+  );
 
-    const data = await response.json();
+  const data = await response.json();
+
+  if (data.success) {
+    alert(
+      lang === 'ar'
+        ? 'تم الدفع وتفعيل الاشتراك بنجاح! 🎉'
+        : 'Payment verified and access granted successfully!'
+    );
+    
+    localStorage.removeItem('cartItems');
+
+    navigate(role === 'trainer' ? '/trainer-dashboard' : '/my-courses');
+  } else {
+    alert(
+      (lang === 'ar' ? 'فشل التحقق من العملية: ' : 'Payment verification failed: ') +
+        (data.error || '')
+    );
+  }
+
 
     if (data.success) {
       alert(

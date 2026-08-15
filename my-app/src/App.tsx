@@ -19,6 +19,7 @@ import ContractsApproval from './pages/ContractsApproval';
 import CourseDetails from './pages/CourseDetails';
 import CoursesOverview from "./pages/CoursesOverview";
 import StudentCoursesOverview from './pages/StudentCoursesOverview';
+import MyCourses from './pages/MyCourses';
 import Contact from './pages/Contact';
 import Cart from './pages/Cart';
 import ForgotPassword from "./pages/ForgotPassword";
@@ -104,6 +105,7 @@ const DevIndex: React.FC = () => {
     ['/sign-up', 'Sign Up'],
     ['/student-dashboard', 'Student Dashboard'],
     ['/student-profile', 'Student Profile'],
+    ['/my-courses', 'My Courses 🎓'],
     ['/company-dashboard', 'Company Dashboard 🏢'],
     ['/trainer-details', 'Trainer Details'],
     ['/trainer-profile', 'Trainer Profile (standalone)'],
@@ -155,6 +157,7 @@ const App: React.FC = () => {
       <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={['student']} element={<StudentDashboardRoute />} />} />
       <Route path="/student-profile" element={<ProtectedRoute allowedRoles={['student']} element={<StudentProfileRoute />} />} />
       <Route path="/student-courses-overview" element={<ProtectedRoute allowedRoles={['student']} element={<StudentCoursesOverview />} />} />
+      <Route path="/my-courses" element={<ProtectedRoute allowedRoles={['student']} element={<MyCourses />} />} />
       <Route path="/cart" element={<ProtectedRoute allowedRoles={['student', 'trainer']} element={<Cart />} />} />
       
       {/* مسارات الدفع ومعالجة العودة من Moyasar */}

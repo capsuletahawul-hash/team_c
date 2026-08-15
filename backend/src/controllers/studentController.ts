@@ -13,27 +13,25 @@ export const studentController = {
     try {
       const authUser = (req as AuthenticatedRequest).user!;
       const enrollments = await enrollmentRepository.findByUserId(authUser.userId);
-
       const now = new Date();
 
-return res.status(200).json(
-  enrollments.map((e: (typeof enrollments)[number]) => ({
-    id: e.course.id,
-    title: e.course.title,
-    category: e.course.category,
-    duration: `${e.course.durationWeeks} ${
-      e.course.durationWeeks === 1 ? "Week" : "Weeks"
-    }`,
-    progress: 0,
-    accessStartsAt: e.accessStartsAt,
-    accessEndsAt: e.accessEndsAt,
-    status:
-      e.accessStartsAt <= now && now <= e.accessEndsAt
-        ? "Active"
-        : "Locked",
-  }))
-);
-
+      return res.status(200).json(
+        enrollments.map((e: (typeof enrollments)[number]) => {
+          const isActive = e.accessStartsAt <= now && now <= e.accessEndsAt;
+          return {
+            id: e.course.id,
+            title: e.course.title,
+            category: e.course.category,
+            duration: `${e.course.durationWeeks} ${e.course.durationWeeks === 1 ? "Week" : "Weeks"}`,
+            price: e.course.price,
+            progress: 0,
+            // Reflects the Week 5 access window (Chapter 07), not just "always Active"
+            status: isActive ? ("Active" as const) : ("Expired" as const),
+            accessStartsAt: e.accessStartsAt,
+            accessEndsAt: e.accessEndsAt,
+          };
+        })
+      );
     } catch (err) {
       console.error(err);
       return res.status(500).json({ success: false, error: "internal_server_error" });

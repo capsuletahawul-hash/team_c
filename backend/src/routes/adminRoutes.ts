@@ -1,14 +1,12 @@
 import { Router } from 'express';
 import { adminService } from '../services/adminService.js';
-import { requireAuth } from '../middleware/authMiddleware.js';
-import { requireRole } from '../middleware/requireRole.js';
+import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
 import { prisma } from '../lib/prisma.js';
 
 const router = Router();
 
 // قفل جميع مسارات الأدمن
-router.use(requireAuth, requireRole('ADMIN'));
-
+router.use(requireAuth, requireRole('ADMIN', 'Admin', 'admin'));
 // 1. مسار الإحصائيات
 router.get('/stats', async (_req, res) => {
   try {

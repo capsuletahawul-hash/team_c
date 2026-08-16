@@ -13,10 +13,11 @@ const router = Router();
 router.use(requireAuth, requireRole("Admin", "admin"));
 // نهاية تعديل صلاّحية الأدمن
 
+router.get("/stats", adminController.getStats);
+
 router.get("/courses", adminController.getCourses);
 router.put("/courses/:id/approve", adminController.approveCourse);
 router.put("/courses/:id/reject", adminController.rejectCourse);
-
 
 router.get("/contracts", adminController.getContracts);
 router.put("/contracts/:id/approve", adminController.approveContract);

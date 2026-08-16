@@ -15,6 +15,11 @@ router.use(requireAuth, requireRole("Admin", "admin"));
 
 router.get("/stats", adminController.getStats);
 
+// Read-only admin views: current state of the platform.
+router.get("/users", adminController.getUsers);
+router.get("/orders", adminController.getOrders);
+router.get("/enrollments", adminController.getEnrollments);
+
 router.get("/courses", adminController.getCourses);
 router.put("/courses/:id/approve", adminController.approveCourse);
 router.put("/courses/:id/reject", adminController.rejectCourse);

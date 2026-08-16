@@ -79,7 +79,7 @@ export default function CourseDetails() {
       setStatus('loading');
       try {
         // 🛰️ نحاول أول شي نجيب الكورس من الباك اند الحقيقي (كورسات التراينر المعتمدة)
-        const backendResponse = await fetch(`http://localhost:5000/api/courses/public/${id}`);
+        const backendResponse = await fetch(`http://localhost:3001/api/courses/public/${id}`);
         if (backendResponse.ok) {
           const backendData = await backendResponse.json();
           if (isMounted && backendData?.success) {

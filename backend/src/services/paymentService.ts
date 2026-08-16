@@ -18,7 +18,7 @@ export const paymentService = {
       amount: amountInHalalas,
       currency: 'SAR',
       description: `Order ${order.id}`,
-      callback_url: `${process.env.APP_URL || 'http://localhost:3001'}/api/payment/return`,
+      callback_url: `${process.env.APP_URL || 'http://localhost:5000'}/api/payment/return`,
       metadata: {
         orderId: order.id,
       },

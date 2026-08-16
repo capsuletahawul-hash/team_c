@@ -1,25 +1,14 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
-import {
-  RegisterInput,
-  LoginInput,
-} from "../validation/authValidation.js";
-
+import { RegisterInput, LoginInput } from "../validation/authValidation.js";
 import { userRepository } from "../repositories/userRepository.js";
 
 export const authService = {
-  /**
-   * Register with Auto-Login Token Generation
-   */
   async register(input: RegisterInput) {
     const existingUser = await userRepository.findByEmail(input.email);
 
     if (existingUser) {
-      return {
-        success: false,
-        error: "Email already registered",
-      };
+      return { success: false, error: "Email already registered" };
     }
 
     const hashedPassword = await bcrypt.hash(input.password, 10);
@@ -28,10 +17,9 @@ export const authService = {
       name: input.name,
       email: input.email,
       password: hashedPassword,
-      role: input.role,
+      role: input.role || "STUDENT",
     });
 
-    // 🌟 إصدار توكن فوري وصالح لمدة ساعتين للتسجيل التلقائي الشامل
     const token = jwt.sign(
       {
         userId: newUser.id,
@@ -39,9 +27,7 @@ export const authService = {
         role: newUser.role,
       },
       process.env.JWT_SECRET || "fallback-secret-key",
-      {
-        expiresIn: "2h",
-      }
+      { expiresIn: "7d" }
     );
 
     return {
@@ -56,60 +42,18 @@ export const authService = {
     };
   },
 
-  /**
-   * Login
-   */
   async login(input: LoginInput) {
-    // 🌟 1. التحقق من حساب الأدمن الثابت لتأمين الدخول الفوري
-    if (
-      input.email === "capsuletahawul@gmail.com" &&
-      input.password === "Admin@5011"
-    ) {
-      const adminToken = jwt.sign(
-        {
-          userId: "admin-static-id",
-          email: "capsuletahawul@gmail.com",
-          role: "Admin",
-        },
-        process.env.JWT_SECRET || "fallback-secret-key",
-        {
-          expiresIn: "2h",
-        }
-      );
-
-      return {
-        success: true,
-        token: adminToken,
-        user: {
-          id: "admin-static-id",
-          name: "Administrator",
-          email: "capsuletahawul@gmail.com",
-          role: "Admin",
-        },
-      };
-    }
-
-    // 🌟 2. التحقق من الحسابات العادية في قاعدة البيانات
+    // 🌟 البحث دائماً من قاعدة البيانات عبر Prisma
     const user = await userRepository.findByEmail(input.email);
 
     if (!user) {
-      return {
-        success: false,
-        error: "Invalid email or password",
-      };
+      return { success: false, error: "Invalid email or password" };
     }
 
-    // مقارنة الهاش بـ bcrypt.compare لحماية النظام السيبراني
-    const passwordMatch = await bcrypt.compare(
-      input.password,
-      user.password
-    );
+    const passwordMatch = await bcrypt.compare(input.password, user.password);
 
     if (!passwordMatch) {
-      return {
-        success: false,
-        error: "Invalid email or password",
-      };
+      return { success: false, error: "Invalid email or password" };
     }
 
     const token = jwt.sign(
@@ -119,9 +63,7 @@ export const authService = {
         role: user.role,
       },
       process.env.JWT_SECRET || "fallback-secret-key",
-      {
-        expiresIn: "2h",
-      }
+      { expiresIn: "7d" }
     );
 
     return {

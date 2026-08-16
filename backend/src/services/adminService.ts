@@ -1,16 +1,20 @@
 import { prisma } from '../lib/prisma.js';
 
 export const adminService = {
-  // 1. حساب الإحصائيات من الداتابيس
+  // حساب الإحصائيات من الداتابيس عبر Prisma Aggregates
   async getStats() {
     const totalUsers = await prisma.user.count();
     
-    // حساب الاشتراكات النشطة التي لم تنتهِ بعد
+    // عدد الاشتراكات النشطة التي لم تنتهِ صلاحيتها
     const activeEnrollments = await prisma.enrollment.count({
-      where: { accessEndsAt: { gte: new Date() } },
+      where: {
+        accessEndsAt: {
+          gte: new Date(),
+        },
+      },
     });
 
-    // جمع إجمالي المبيعات للطلبات المدفوعة
+    // إجمالي المبيعات للطلبات المسددة
     const revenueAgg = await prisma.order.aggregate({
       where: { status: 'PAID' },
       _sum: { amount: true },
@@ -23,7 +27,7 @@ export const adminService = {
     };
   },
 
-  // 2. جلب جميع المستخدمين بأمان بدون الباسورد
+  // جلب المستخدمين بدون إرجاع الباسورد
   async getAllUsers() {
     return await prisma.user.findMany({
       select: {
@@ -31,8 +35,12 @@ export const adminService = {
         name: true,
         email: true,
         role: true,
-        _count: { select: { enrollments: true } },
+        createdAt: true,
+        _count: {
+          select: { enrollments: true },
+        },
       },
+      orderBy: { createdAt: 'desc' },
     });
   },
 };

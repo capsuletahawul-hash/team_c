@@ -1,29 +1,43 @@
-// src/routes/adminRoutes.ts
-//
-// Maps URL + method -> controller function. All routes here require a
-// valid JWT belonging to an Admin account (requireAuth + requireRole).
-
-import { Router } from "express";
-import { adminController } from "../controllers/adminController.js";
-import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
+import { Router } from 'express';
+import { adminService } from '../services/adminService.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
+import { requireRole } from '../middleware/requireRole.js';
+import { prisma } from '../lib/prisma.js';
 
 const router = Router();
 
-// تعديل: ضمان توافق فحص الدور (Role) مع الحرف الكبير والصغير (مثل Admin و admin) لتفادي أي رفض غير مقصود للصلاحيات
-router.use(requireAuth, requireRole("Admin", "admin"));
-// نهاية تعديل صلاّحية الأدمن
+// قفل جميع مسارات الأدمن
+router.use(requireAuth, requireRole('ADMIN'));
 
-router.get("/stats", adminController.getStats);
+// 1. مسار الإحصائيات
+router.get('/stats', async (_req, res) => {
+  try {
+    const stats = await adminService.getStats();
+    res.json({ success: true, data: stats });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
-router.get("/courses", adminController.getCourses);
-router.put("/courses/:id/approve", adminController.approveCourse);
-router.put("/courses/:id/reject", adminController.rejectCourse);
+// 2. مسار جلب المستخدمين
+router.get('/users', async (_req, res) => {
+  try {
+    const users = await adminService.getAllUsers();
+    res.json({ success: true, data: users });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
-router.get("/contracts", adminController.getContracts);
-router.put("/contracts/:id/approve", adminController.approveContract);
-router.put("/contracts/:id/reject", adminController.rejectContract);
-
-router.get("/tickets", adminController.getTickets);
-router.put("/tickets/:id/status", adminController.updateTicketStatus);
+// 3. مسار حذف كورس
+router.delete('/courses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.course.delete({ where: { id } });
+    res.json({ success: true, message: 'Course deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 export default router;

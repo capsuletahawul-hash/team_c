@@ -1,4 +1,3 @@
-// src/pages/AdminDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -8,8 +7,8 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 type ActiveTabType = 'overview' | 'users' | 'courses' | 'complaints';
-export interface UserPermission { id: string; name: string; email: string; role: 'STUDENT' | 'ADMIN' | string; status: 'active' | 'suspended' | string; }
-export interface CourseItem { id: string; title: string; instructor?: string; duration?: string; price: number; category?: string; status: 'available' | 'coming_soon' | string; }
+export interface UserPermission { id: string; name: string; email: string; role: 'STUDENT' | 'ADMIN' | string; status: string; _count?: { enrollments: number }; }
+export interface CourseItem { id: string; title: string; instructor?: string; price: number; category?: string; status: string; }
 export interface ComplaintItem { id: string; name: string; email: string; message: string; date: string; }
 export interface GrowthMetric { monthAr: string; monthEn: string; count: number; }
 export interface AdminStats { totalUsers: number; totalRevenue: number; activeEnrollments: number; }
@@ -29,39 +28,55 @@ const AdminDashboard: React.FC = () => {
 
   const adminNotifications = [
     { id: '1', textAr: 'طلب انضمام مدرب جديد قيد المراجعة', textEn: 'New trainer application under review' },
-    { id: '2', textAr: 'تم تسجيل 15 اشتراك جديد في دورة الذكاء الاصطناعي', textEn: '15 new enrollments in AI course' }
+    { id: '2', textAr: 'تم تسجيل اشتراكات جديدة في دورة الذكاء الاصطناعي', textEn: 'New enrollments in AI course' }
   ];
 
-  const API_BASE = 'http://localhost:3001/api';
+  const API_BASE = 'http://localhost:5000/api';
 
   const fetchAdminData = async () => {
     setLoading(true);
-    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token || localStorage.getItem('user_token')}` };
-    try {
-      const statsRes = await fetch(`${API_BASE}/admin/stats`, { headers });
-      if (statsRes.ok) setStatsData((await statsRes.json()).data || await statsRes.json());
+    const authToken = token || localStorage.getItem('user_token') || '';
+    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` };
 
-      const usersRes = await fetch(`${API_BASE}/admin/users`, { headers });
-      if (usersRes.ok) {
-        const uData = (await usersRes.json()).data || await usersRes.json();
-        setUsersList((uData || []).map((u: any) => ({ ...u, status: u.status || 'active' })));
+    try {
+      // 1. جلب الإحصائيات من الداتابيس
+      const statsRes = await fetch(`${API_BASE}/admin/stats`, { headers });
+      if (statsRes.ok) {
+        const resJson = await statsRes.json();
+        setStatsData(resJson.data || resJson);
       }
 
+      // 2. جلب المستخدمين من الداتابيس
+      const usersRes = await fetch(`${API_BASE}/admin/users`, { headers });
+      if (usersRes.ok) {
+        const resJson = await usersRes.json();
+        const uData = Array.isArray(resJson) ? resJson : resJson.data || [];
+        setUsersList(uData.map((u: any) => ({ ...u, status: u.status || 'active' })));
+      }
+
+      // 3. جلب الكورسات من الداتابيس
       const coursesRes = await fetch(`${API_BASE}/courses`, { headers });
       if (coursesRes.ok) {
-        const cData = (await coursesRes.json()).data || await coursesRes.json();
-        setCoursesList((cData || []).map((c: any, i: number) => ({
-          ...c, instructor: c.instructor || 'Ahmed Mohammed', status: c.status || 'available',
+        const resJson = await coursesRes.json();
+        const cData = Array.isArray(resJson) ? resJson : resJson.data || resJson.courses || [];
+        setCoursesList(cData.map((c: any, i: number) => ({
+          ...c,
+          instructor: c.instructor || 'Ahmed Mohammed',
+          status: c.status || 'available',
           category: c.category || (i % 2 === 0 ? (lang === 'ar' ? 'الأمن السيبراني' : 'Cybersecurity') : (lang === 'ar' ? 'هندسة البرمجيات' : 'Software Engineering'))
         })));
       }
 
       setComplaintsList([
-        { id: 'TKT-991', name: 'سارة العبدالله', email: 'sara@example.com', message: lang === 'ar' ? 'تواجهني مشكلة أثناء تحميل ملفات موديول خطافات ريأكت المتقدمة.' : 'I face an issue downloading advanced React hooks modules.', date: '2026-08-14' },
-        { id: 'TKT-992', name: 'خالد المنصور', email: 'khalid@example.com', message: lang === 'ar' ? 'طلب تفعيل واجهة الشركة B2B لم يتم الرد عليه بعرض السعر حتى الآن.' : 'B2B corporate onboarding request has not been answered yet.', date: '2026-08-15' }
+        { id: 'TKT-991', name: 'سارة العبدالله', email: 'sara@example.com', message: lang === 'ar' ? 'تواجهني مشكلة أثناء تحميل الملفات.' : 'I face an issue downloading files.', date: '2026-08-14' },
+        { id: 'TKT-992', name: 'خالد المنصور', email: 'khalid@example.com', message: lang === 'ar' ? 'طلب تفعيل واجهة الشركة B2B قيد الانتظار.' : 'B2B onboarding request is pending.', date: '2026-08-15' }
       ]);
       setGrowthList([{ monthAr: 'مايو', monthEn: 'May', count: 420 }, { monthAr: 'يونيو', monthEn: 'June', count: 850 }, { monthAr: 'يوليو', monthEn: 'July', count: 1240 }, { monthAr: 'أغسطس', monthEn: 'August', count: 1580 }]);
-    } catch (err) { console.error('Error fetching admin dashboard data:', err); } finally { setLoading(false); }
+    } catch (err) {
+      console.error('Error fetching admin dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchAdminData(); }, [lang]);
@@ -72,22 +87,8 @@ const AdminDashboard: React.FC = () => {
     return acc;
   }, {});
 
-  const handleUpdateCourseStatus = async (courseId: string, newStatus: CourseItem['status']) => {
-    try {
-      const res = await fetch(`${API_BASE}/admin/courses/${courseId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token || localStorage.getItem('user_token')}` },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (res.ok) {
-        setCoursesList((prev) => prev.map((c) => (c.id === courseId ? { ...c, status: newStatus } : c)));
-        setMessage(lang === 'ar' ? 'تم تحديث حالة الدورة بنجاح في النظام.' : 'Course operational status updated.');
-      }
-    } catch (err) { console.error(err); }
-  };
-
   const handleDeleteCourse = async (courseId: string) => {
-    if (!window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذه الدورة نهائياً؟' : 'Are you sure you want to delete this course?')) return;
+    if (!window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذه الدورة؟' : 'Are you sure you want to delete this course?')) return;
     try {
       const res = await fetch(`${API_BASE}/admin/courses/${courseId}`, {
         method: 'DELETE',
@@ -98,25 +99,6 @@ const AdminDashboard: React.FC = () => {
         setMessage(lang === 'ar' ? 'تم حذف الكورس بنجاح من قاعدة البيانات.' : 'Course deleted successfully.');
       }
     } catch (err) { console.error(err); }
-  };
-
-  const handleRoleChange = async (userId: string, newRole: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/admin/users/${userId}/role`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token || localStorage.getItem('user_token')}` },
-        body: JSON.stringify({ role: newRole }),
-      });
-      if (res.ok) {
-        setUsersList((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
-        setMessage(lang === 'ar' ? 'تم تعديل رتبة وصلاحية حساب المستخدم.' : 'User system permissions updated.');
-      }
-    } catch (err) { console.error(err); }
-  };
-
-  const toggleUserStatus = (userId: string) => {
-    setUsersList((prev) => prev.map((u) => (u.id === userId ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u)));
-    setMessage(lang === 'ar' ? 'تم تحديث وضع قفل الحساب الأمني بنجاح.' : 'Security account state toggled.');
   };
 
   if (loading) return <div className="min-h-screen bg-[#C9D6DF] flex items-center justify-center"><LoadingIndicator message={t.admin.loading} /></div>;
@@ -268,8 +250,7 @@ const AdminDashboard: React.FC = () => {
                       <th className="p-3">{lang === 'ar' ? 'الاسم' : 'Name'}</th>
                       <th className="p-3">{lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</th>
                       <th className="p-3">{lang === 'ar' ? 'الصلاحية' : 'Role'}</th>
-                      <th className="p-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
-                      <th className="p-3">{lang === 'ar' ? 'الإجراء' : 'Action'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الاشتراكات' : 'Enrollments'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200/60 font-bold">
@@ -279,13 +260,11 @@ const AdminDashboard: React.FC = () => {
                         <td className="p-3 text-capsule-navy font-black">{user.name}</td>
                         <td className="p-3 font-mono text-gray-500">{user.email}</td>
                         <td className="p-3">
-                          <select value={user.role} onChange={(e) => handleRoleChange(user.id, e.target.value)} className="p-1 bg-slate-100 border rounded-lg text-[10px] font-bold outline-none">
-                            <option value="STUDENT">STUDENT</option>
-                            <option value="ADMIN">ADMIN</option>
-                          </select>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                            {user.role}
+                          </span>
                         </td>
-                        <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${user.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>{user.status}</span></td>
-                        <td className="p-3"><button onClick={() => toggleUserStatus(user.id)} className={`px-2.5 py-1 rounded-lg text-[10px] font-black text-white ${user.status === 'active' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}>{user.status === 'active' ? (lang === 'ar' ? 'حظر' : 'Block') : (lang === 'ar' ? 'تنشيط' : 'Activate')}</button></td>
+                        <td className="p-3 font-mono text-capsule-teal">{user._count?.enrollments || 0}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -303,7 +282,6 @@ const AdminDashboard: React.FC = () => {
                     <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
                       <th className="p-3 text-start">{lang === 'ar' ? 'عنوان الدورة' : 'Course Title'}</th>
                       <th className="p-3">{lang === 'ar' ? 'السعر' : 'Price'}</th>
-                      <th className="p-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
                       <th className="p-3">{lang === 'ar' ? 'العمليات' : 'Actions'}</th>
                     </tr>
                   </thead>
@@ -312,11 +290,7 @@ const AdminDashboard: React.FC = () => {
                       <tr key={course.id} className="hover:bg-slate-100/50">
                         <td className="p-3 text-start font-black text-capsule-navy truncate max-w-[160px]">{course.title}</td>
                         <td className="p-3 font-mono">{course.price} SAR</td>
-                        <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${course.status === 'available' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{course.status}</span></td>
-                        <td className="p-3 flex items-center justify-center gap-2">
-                          <button onClick={() => handleUpdateCourseStatus(course.id, course.status === 'available' ? 'coming_soon' : 'available')} className={`px-2.5 py-1 text-[10px] font-black text-white rounded-lg ${course.status === 'available' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}>
-                            {course.status === 'available' ? (lang === 'ar' ? 'إيقاف' : 'Suspend') : (lang === 'ar' ? 'اعتماد' : 'Approve')}
-                          </button>
+                        <td className="p-3">
                           <button onClick={() => handleDeleteCourse(course.id)} className="px-2.5 py-1 text-[10px] font-black text-white bg-rose-600 hover:bg-rose-700 rounded-lg">
                             {lang === 'ar' ? 'حذف' : 'Delete'}
                           </button>

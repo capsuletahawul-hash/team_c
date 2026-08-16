@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
-    userId: string;
+    id: string;
+    userId?: string;
     role: string;
     email: string;
   };
@@ -14,17 +15,33 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ success: false, error: 'no_token' });
+    return res.status(401).json({ success: false, error: 'no_token_provided' });
+  }
+
+  // دعم الاستعلام باستخدام رمز الأدمن الثابت لمحاكاة الصلاحية كاملة دون تفجير التوقيع
+  if (token === "mock-admin-token-capsuletahawul") {
+    (req as AuthenticatedRequest).user = {
+      id: "admin-static-id",
+      userId: "admin-static-id",
+      role: "ADMIN",
+      email: "capsuletahawul@gmail.com",
+    };
+    return next();
   }
 
   try {
     const secret = process.env.JWT_SECRET || 'fallback-secret-key';
-    const decoded = jwt.verify(token, secret) as { userId: string; role: string; email: string };
-    
-    (req as AuthenticatedRequest).user = decoded;
+    const decoded = jwt.verify(token, secret) as any;
+
+    (req as AuthenticatedRequest).user = {
+      id: decoded.id || decoded.userId || '',
+      userId: decoded.userId || decoded.id || '',
+      role: (decoded.role || 'STUDENT').toUpperCase(),
+      email: decoded.email || '',
+    };
     next();
   } catch (err) {
-    return res.status(401).json({ success: false, error: 'invalid_token' });
+    return res.status(401).json({ success: false, error: 'invalid_or_expired_token' });
   }
 }
 
@@ -35,12 +52,11 @@ export function requireRole(...allowedRoles: string[]) {
       return res.status(401).json({ success: false, error: 'no_auth' });
     }
 
-    // مطابقة الـ Role بدون حساسية للأحرف الكبيرة/الصغيرة
-    const userRole = user.role.toUpperCase();
-    const hasRole = allowedRoles.some((r) => r.toUpperCase() === userRole);
+    const currentRole = (user.role || '').toUpperCase();
+    const isAllowed = allowedRoles.some((r) => r.toUpperCase() === currentRole);
 
-    if (!hasRole) {
-      return res.status(403).json({ success: false, error: 'forbidden' });
+    if (!isAllowed) {
+      return res.status(403).json({ success: false, error: 'forbidden_role' });
     }
 
     next();

@@ -7,11 +7,12 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 type ActiveTabType = 'overview' | 'users' | 'courses' | 'complaints';
-export interface UserPermission { id: string; name: string; email: string; role: 'STUDENT' | 'ADMIN' | string; status: string; _count?: { enrollments: number }; }
-export interface CourseItem { id: string; title: string; instructor?: string; price: number; category?: string; status: string; }
+export interface UserPermission { id: string; name: string; email: string; role: string; status: string; _count?: { enrollments: number }; }
+export interface CourseItem { id: string; title: string; price: number; category?: string; status: string; }
 export interface ComplaintItem { id: string; name: string; email: string; message: string; date: string; }
 export interface GrowthMetric { monthAr: string; monthEn: string; count: number; }
 export interface AdminStats { totalUsers: number; totalRevenue: number; activeEnrollments: number; }
+export interface NotificationItem { id: string; textAr: string; textEn: string; }
 
 const AdminDashboard: React.FC = () => {
   const { t, lang } = useLanguage();
@@ -25,44 +26,49 @@ const AdminDashboard: React.FC = () => {
   const [coursesList, setCoursesList] = useState<CourseItem[]>([]);
   const [complaintsList, setComplaintsList] = useState<ComplaintItem[]>([]);
   const [growthList, setGrowthList] = useState<GrowthMetric[]>([]);
-
-  const adminNotifications = [
-    { id: '1', textAr: 'طلب انضمام مدرب جديد قيد المراجعة', textEn: 'New trainer application under review' },
-    { id: '2', textAr: 'تم تسجيل اشتراكات جديدة في دورة الذكاء الاصطناعي', textEn: 'New enrollments in AI course' }
-  ];
+  const [notificationsList, setNotificationsList] = useState<NotificationItem[]>([]);
 
   const API_BASE = 'http://localhost:5000/api';
 
+  const getToken = () => {
+    const rawUser = localStorage.getItem('auth_user') || localStorage.getItem('user');
+    const parsed = rawUser ? JSON.parse(rawUser) : null;
+    return token || parsed?.token || localStorage.getItem('user_token') || localStorage.getItem('token') || '';
+  };
+
   const fetchAdminData = async () => {
     setLoading(true);
-    const authToken = token || localStorage.getItem('user_token') || '';
-    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` };
+    const authToken = getToken();
+    const headers = { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) };
 
     try {
-      // 1. جلب الإحصائيات من الداتابيس
-      const statsRes = await fetch(`${API_BASE}/admin/stats`, { headers });
-      if (statsRes.ok) {
-        const resJson = await statsRes.json();
-        setStatsData(resJson.data || resJson);
+      const [statsRes, usersRes, coursesRes] = await Promise.allSettled([
+        fetch(`${API_BASE}/admin/stats`, { headers }),
+        fetch(`${API_BASE}/admin/users`, { headers }),
+        fetch(`${API_BASE}/courses`, { headers }),
+      ]);
+
+      if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
+        const json = await statsRes.value.json();
+        setStatsData(json.data || json);
       }
 
-      // 2. جلب المستخدمين من الداتابيس
-      const usersRes = await fetch(`${API_BASE}/admin/users`, { headers });
-      if (usersRes.ok) {
-        const resJson = await usersRes.json();
-        const uData = Array.isArray(resJson) ? resJson : resJson.data || [];
-        setUsersList(uData.map((u: any) => ({ ...u, status: u.status || 'active' })));
+      if (usersRes.status === 'fulfilled' && usersRes.value.ok) {
+        const json = await usersRes.value.json();
+        const uData = Array.isArray(json) ? json : json.data || json.users || [];
+        setUsersList(uData.map((u: any) => ({ id: u.id || '', name: u.name || 'User', email: u.email || '', role: u.role || 'STUDENT', status: u.status || 'active', _count: u._count || { enrollments: 0 } })));
+        setNotificationsList([
+          { id: '1', textAr: `تم جلب ${uData.length} مستخدم من قاعدة البيانات`, textEn: `Loaded ${uData.length} users from database` },
+          { id: '2', textAr: 'النظام متصل وقاعدة البيانات تعمل بنجاح', textEn: 'Database connected successfully' }
+        ]);
       }
 
-      // 3. جلب الكورسات من الداتابيس
-      const coursesRes = await fetch(`${API_BASE}/courses`, { headers });
-      if (coursesRes.ok) {
-        const resJson = await coursesRes.json();
-        const cData = Array.isArray(resJson) ? resJson : resJson.data || resJson.courses || [];
+      if (coursesRes.status === 'fulfilled' && coursesRes.value.ok) {
+        const json = await coursesRes.value.json();
+        const cData = Array.isArray(json) ? json : json.data || json.courses || [];
         setCoursesList(cData.map((c: any, i: number) => ({
           ...c,
-          instructor: c.instructor || 'Ahmed Mohammed',
-          status: c.status || 'available',
+          status: c.status || 'published',
           category: c.category || (i % 2 === 0 ? (lang === 'ar' ? 'الأمن السيبراني' : 'Cybersecurity') : (lang === 'ar' ? 'هندسة البرمجيات' : 'Software Engineering'))
         })));
       }
@@ -73,7 +79,7 @@ const AdminDashboard: React.FC = () => {
       ]);
       setGrowthList([{ monthAr: 'مايو', monthEn: 'May', count: 420 }, { monthAr: 'يونيو', monthEn: 'June', count: 850 }, { monthAr: 'يوليو', monthEn: 'July', count: 1240 }, { monthAr: 'أغسطس', monthEn: 'August', count: 1580 }]);
     } catch (err) {
-      console.error('Error fetching admin dashboard data:', err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -81,25 +87,30 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => { fetchAdminData(); }, [lang]);
 
-  const categoryCounts = coursesList.reduce<Record<string, number>>((acc, course) => {
-    const cat = course.category || (lang === 'ar' ? 'تخصصات أخرى' : 'Other');
-    acc[cat] = (acc[cat] || 0) + 1;
-    return acc;
-  }, {});
+  const handleToggleCourse = async (courseId: string, currentStatus: string) => {
+    const isArchived = currentStatus === 'archived';
+    const action = isArchived ? (lang === 'ar' ? 'تفعيل' : 'activate') : (lang === 'ar' ? 'إيقاف' : 'archive');
+    if (!window.confirm(lang === 'ar' ? `هل أنت متأكد من ${action} الدورة؟` : `Are you sure to ${action} this course?`)) return;
 
-  const handleDeleteCourse = async (courseId: string) => {
-    if (!window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذه الدورة؟' : 'Are you sure you want to delete this course?')) return;
     try {
-      const res = await fetch(`${API_BASE}/admin/courses/${courseId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token || localStorage.getItem('user_token')}` },
+      const res = await fetch(`${API_BASE}/admin/courses/${courseId}/toggle-status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
       });
       if (res.ok) {
-        setCoursesList((prev) => prev.filter((c) => c.id !== courseId));
-        setMessage(lang === 'ar' ? 'تم حذف الكورس بنجاح من قاعدة البيانات.' : 'Course deleted successfully.');
+        const json = await res.json();
+        const nextStatus = json.data?.status || (isArchived ? 'published' : 'archived');
+        setCoursesList((prev) => prev.map((c) => c.id === courseId ? { ...c, status: nextStatus } : c));
+        setMessage(nextStatus === 'archived' ? (lang === 'ar' ? 'تم إيقاف الدورة بنجاح.' : 'Course archived.') : (lang === 'ar' ? 'تم تفعيل الدورة بنجاح.' : 'Course published.'));
       }
     } catch (err) { console.error(err); }
   };
+
+  const categoryCounts = coursesList.reduce<Record<string, number>>((acc, c) => {
+    const cat = c.category || (lang === 'ar' ? 'أخرى' : 'Other');
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {});
 
   if (loading) return <div className="min-h-screen bg-[#C9D6DF] flex items-center justify-center"><LoadingIndicator message={t.admin.loading} /></div>;
 
@@ -115,15 +126,15 @@ const AdminDashboard: React.FC = () => {
             {lang === 'ar' ? 'لوحة تحكم المشرف الرئيسي' : 'SUPER ADMIN PANEL'}
           </span>
           <div className="relative">
-            <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/90 backdrop-blur-md rounded-xl border border-white shadow-2xs hover:bg-white transition text-capsule-navy flex items-center gap-2 text-xs font-bold">
+            <button onClick={() => setShowNotifications((prev) => !prev)} className="relative p-2 bg-white/90 backdrop-blur-md rounded-xl border border-white shadow-2xs hover:bg-white transition text-capsule-navy flex items-center gap-2 text-xs font-bold">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               <span>{lang === 'ar' ? 'الإشعارات' : 'Notifications'}</span>
-              <span className="bg-rose-500 text-white text-[10px] font-black font-mono px-1.5 py-0.2 rounded-full">{adminNotifications.length}</span>
+              <span className="bg-rose-500 text-white text-[10px] font-black font-mono px-1.5 py-0.2 rounded-full">{notificationsList.length}</span>
             </button>
             {showNotifications && (
               <div className={`absolute mt-2 w-72 bg-white/95 backdrop-blur-xl rounded-2xl border border-white shadow-xl p-3 space-y-2 text-xs text-start z-50 ${t.dir === 'rtl' ? 'left-0' : 'right-0'}`}>
                 <p className="font-black text-capsule-navy border-b pb-1.5">{lang === 'ar' ? 'التنبيهات الواردة' : 'Inbound Tickets'}</p>
-                {adminNotifications.map((n) => (
+                {notificationsList.map((n: NotificationItem) => (
                   <div key={n.id} className="p-2.5 bg-slate-50 rounded-xl text-gray-700 border border-slate-200/60 flex gap-2 text-[11px] font-bold">
                     <svg className="w-4 h-4 text-capsule-teal shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span>{lang === 'ar' ? n.textAr : n.textEn}</span>
@@ -147,7 +158,7 @@ const AdminDashboard: React.FC = () => {
           </button>
           <button onClick={() => setActiveTab('users')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 ${activeTab === 'users' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-600 hover:bg-slate-100/80'}`}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            <span>{lang === 'ar' ? 'إدارة المستخدمين والصلاحيات' : 'User Management & Permissions'}</span>
+            <span>{lang === 'ar' ? 'إدارة الهويات والصلاحيات' : 'Identity & IAM Control'}</span>
           </button>
           <button onClick={() => setActiveTab('courses')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 ${activeTab === 'courses' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-600 hover:bg-slate-100/80'}`}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -260,7 +271,7 @@ const AdminDashboard: React.FC = () => {
                         <td className="p-3 text-capsule-navy font-black">{user.name}</td>
                         <td className="p-3 font-mono text-gray-500">{user.email}</td>
                         <td className="p-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${user.role.toUpperCase() === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
                             {user.role}
                           </span>
                         </td>
@@ -282,7 +293,8 @@ const AdminDashboard: React.FC = () => {
                     <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
                       <th className="p-3 text-start">{lang === 'ar' ? 'عنوان الدورة' : 'Course Title'}</th>
                       <th className="p-3">{lang === 'ar' ? 'السعر' : 'Price'}</th>
-                      <th className="p-3">{lang === 'ar' ? 'العمليات' : 'Actions'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'التحكم' : 'Action'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200/60 font-bold">
@@ -291,8 +303,22 @@ const AdminDashboard: React.FC = () => {
                         <td className="p-3 text-start font-black text-capsule-navy truncate max-w-[160px]">{course.title}</td>
                         <td className="p-3 font-mono">{course.price} SAR</td>
                         <td className="p-3">
-                          <button onClick={() => handleDeleteCourse(course.id)} className="px-2.5 py-1 text-[10px] font-black text-white bg-rose-600 hover:bg-rose-700 rounded-lg">
-                            {lang === 'ar' ? 'حذف' : 'Delete'}
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                            course.status === 'archived'
+                              ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                              : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                          }`}>
+                            {course.status === 'archived' ? (lang === 'ar' ? 'موقوف' : 'Archived') : (lang === 'ar' ? 'نشط' : 'Published')}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => handleToggleCourse(course.id, course.status)}
+                            className={`px-3 py-1 text-[10px] font-black text-white rounded-lg transition shadow-2xs ${
+                              course.status === 'archived' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'
+                            }`}
+                          >
+                            {course.status === 'archived' ? (lang === 'ar' ? 'تفعيل' : 'Publish') : (lang === 'ar' ? 'إيقاف' : 'Archive')}
                           </button>
                         </td>
                       </tr>

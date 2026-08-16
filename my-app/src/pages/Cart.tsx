@@ -49,6 +49,8 @@ interface FeedbackState {
   isError: boolean;
 }
 
+
+
 export default function Cart() {
   // CHANGE: Extracted type constraints from the custom Language Context hook
   const { t, lang } = useLanguage() as { t: { shoppingCart?: ShoppingCartTranslations; dir: "ltr" | "rtl" }; lang: string };
@@ -131,30 +133,45 @@ export default function Cart() {
     return;
   }
 
-  try {
+try {
     setCheckoutStatus(true);
     setFeedbackMessage({ text: '', isError: false });
 
     const course = cartItems[0];
-
     const response = await createOrder(String(course.id));
 
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Failed to create order');
     }
 
-    const order = response.data;
+    // 1. Log the exact response to your browser console (F12)
+    console.log("BACKEND ORDER DATA:", response.data);
+
+const orderData = response.data as { 
+      id?: string; 
+      orderId?: string; 
+      order?: { id: string }; 
+      amount?: number;
+    };
+    // 2. Safely check all the common places the ID might be hiding
+    const realOrderId = orderData.id || orderData.orderId || orderData.order?.id;
+
+    if (!realOrderId) {
+      throw new Error("Order was created, but could not find the ID in the response.");
+    }
 
     navigate('/payment', {
       state: {
-        orderId: order.id,
+        orderId: realOrderId, // <-- Now guaranteed to be a real string
         courseId: course.id,
         courseName: course.title,
         trainer: lang === 'ar' ? 'نخبة من المدربين' : 'Expert Instructors',
-        price: order.amount,
+        // Safely fallback to the calculated cart total if orderData.amount is missing
+        price: orderData.amount || finalTotalAmount, 
       },
     });
   } catch (error) {
+    console.error("Checkout Error:", error);
     setFeedbackMessage({
       text:
         error instanceof Error
@@ -167,7 +184,7 @@ export default function Cart() {
 
     setCheckoutStatus(false);
   }
-};
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>

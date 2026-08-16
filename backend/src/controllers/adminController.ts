@@ -4,6 +4,7 @@ import { trainerRepository, TrainerCourse } from "../repositories/trainerReposit
 import { userRepository } from "../repositories/userRepository.js";
 import { contractRepository } from "../repositories/contractRepository.js";
 import { companyRepository, TicketStatus } from "../repositories/companyRepository.js";
+import { prisma } from "../lib/prisma.js";
 
 // يحول حالة الدورة الداخلية إلى حالة الموافقة اللي تفهمها صفحة الأدمن
 function toApprovalStatus(status: TrainerCourse["status"]): "pending" | "approved" | "rejected" {
@@ -13,6 +14,52 @@ function toApprovalStatus(status: TrainerCourse["status"]): "pending" | "approve
 }
 
 export const adminController = {
+  /**
+   * Admin statistics
+   */
+  async getStats(_req: Request, res: Response) {
+    try {
+      const now = new Date();
+
+      const totalUsers = await prisma.user.count();
+
+      const revenueResult = await prisma.order.aggregate({
+        _sum: {
+          amount: true,
+        },
+        where: {
+          status: "PAID",
+        },
+      });
+
+      const activeEnrollments = await prisma.enrollment.count({
+        where: {
+          accessStartsAt: {
+            lte: now,
+          },
+          accessEndsAt: {
+            gte: now,
+          },
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          totalUsers,
+          totalRevenue: revenueResult._sum.amount ?? 0,
+          activeEnrollments,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        error: "internal_server_error",
+      });
+    }
+  },
+
   /**
    * List all courses across every trainer, for approval review
    */
@@ -78,7 +125,6 @@ export const adminController = {
       return res.status(500).json({ success: false, error: "internal_server_error" });
     }
   },
-
 
   /**
    * List all B2B contract / company-onboarding requests, for review

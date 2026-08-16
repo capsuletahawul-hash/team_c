@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 export const BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 // جلب التوكن من Local Storage
 export function getToken(): string | null {

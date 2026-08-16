@@ -90,7 +90,7 @@ export default function CoursesOverview() {
 
   // جلب الكورسات الحقيقية المعتمدة من الباك اند فقط (بدون أي بيانات وهمية)
   useEffect(() => {
-    fetch("http://localhost:3001/api/courses/public")
+    fetch("http://localhost:5000/api/courses/public")
       .then((res) => res.json())
       .then((data) => {
         setBackendCourses(data.success ? (data.courses ?? []) : []);

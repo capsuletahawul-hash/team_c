@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext'; // 🔄 استيراد
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-const API_URL = "http://localhost:3001";
+const API_URL = "http://localhost:5000";
 import { 
   PaperAirplaneIcon, UserIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon, 
   PhoneIcon, BriefcaseIcon, StarIcon as OutlineStar, ChatBubbleLeftRightIcon 

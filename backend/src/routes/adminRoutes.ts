@@ -38,6 +38,12 @@ router.get('/users', async (_req, res) => {
   }
 });
 
+// Admin Course CRUD (Week 6) — direct course management, distinct from the
+// trainer-submission/approval flow above
+router.post("/courses", adminController.createCourse);
+router.patch("/courses/:id", adminController.updateCourse);
+router.delete("/courses/:id", adminController.deleteCourse);
+
 // تعديل صلاحية حساب المستخدم
 router.patch('/users/:id/role', async (req, res) => {
   try {

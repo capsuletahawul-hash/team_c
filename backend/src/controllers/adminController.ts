@@ -5,6 +5,11 @@ import { userRepository } from "../repositories/userRepository.js";
 import { contractRepository } from "../repositories/contractRepository.js";
 import { companyRepository, TicketStatus } from "../repositories/companyRepository.js";
 import { prisma } from "../lib/prisma.js";
+import { adminService } from "../services/adminService.js";
+import {
+  createAdminCourseSchema,
+  updateAdminCourseSchema,
+} from "../validation/adminCourseValidation.js";
 
 // يحول حالة الدورة الداخلية إلى حالة الموافقة اللي تفهمها صفحة الأدمن
 function toApprovalStatus(status: TrainerCourse["status"]): "pending" | "approved" | "rejected" {
@@ -120,6 +125,74 @@ export const adminController = {
       }
 
       return res.status(200).json({ success: true, course });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Create a course directly (admin-managed CRUD, distinct from the
+   * trainer-submission/approval flow above)
+   */
+  async createCourse(req: Request, res: Response) {
+    try {
+      const validation = createAdminCourseSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          error: validation.error.flatten().fieldErrors,
+        });
+      }
+
+      const course = await adminService.createCourse(validation.data);
+      return res.status(201).json({ success: true, data: { course } });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Update a course directly (admin-managed CRUD)
+   */
+  async updateCourse(req: Request, res: Response) {
+    try {
+      const validation = updateAdminCourseSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          error: validation.error.flatten().fieldErrors,
+        });
+      }
+
+      const course = await adminService.updateCourse(String(req.params.id), validation.data);
+
+      if (!course) {
+        return res.status(404).json({ success: false, error: "course_not_found" });
+      }
+
+      return res.status(200).json({ success: true, data: { course } });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Delete a course directly (admin-managed CRUD)
+   */
+  async deleteCourse(req: Request, res: Response) {
+    try {
+      const deleted = await adminService.deleteCourse(String(req.params.id));
+
+      if (!deleted) {
+        return res.status(404).json({ success: false, error: "course_not_found" });
+      }
+
+      return res.status(204).send();
     } catch (err) {
       console.error(err);
       return res.status(500).json({ success: false, error: "internal_server_error" });

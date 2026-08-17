@@ -50,6 +50,10 @@ export const authService = {
       return { success: false, error: "Invalid email or password" };
     }
 
+    if (user.status === 'suspended') {
+      return { success: false, error: "Your account has been suspended" };
+    }
+
     const passwordMatch = await bcrypt.compare(input.password, user.password);
 
     if (!passwordMatch) {

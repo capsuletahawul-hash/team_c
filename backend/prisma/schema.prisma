@@ -13,6 +13,7 @@ model User {
   email          String       @unique
   password       String
   role           String       @default("STUDENT")
+  status         String       @default("active")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   enrollments    Enrollment[]

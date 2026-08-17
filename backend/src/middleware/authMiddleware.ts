@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
+import { prisma } from '../lib/prisma.js';
+
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
@@ -10,7 +12,7 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -32,10 +34,17 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
     const secret = process.env.JWT_SECRET || 'fallback-secret-key';
     const decoded = jwt.verify(token, secret) as any;
+    const userId = decoded.id || decoded.userId || '';
+
+    // التحقق من حالة حظر الحساب في قاعدة البيانات
+    const dbUser = await prisma.user.findUnique({ where: { id: userId }, select: { status: true } });
+    if (dbUser && dbUser.status === 'suspended') {
+      return res.status(403).json({ success: false, error: 'account_suspended' });
+    }
 
     (req as AuthenticatedRequest).user = {
-      id: decoded.id || decoded.userId || '',
-      userId: decoded.userId || decoded.id || '',
+      id: userId,
+      userId: userId,
       role: (decoded.role || 'STUDENT').toUpperCase(),
       email: decoded.email || '',
     };

@@ -1,45 +1,69 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
+import { prisma } from '../lib/prisma.js';
+
 export interface AuthenticatedRequest extends Request {
   user?: {
-    userId: string;
+    id: string;
+    userId?: string;
     role: string;
     email: string;
   };
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ success: false, error: 'no_token' });
+    return res.status(401).json({ success: false, error: 'no_token_provided' });
   }
 
   try {
-    const secret = process.env.JWT_SECRET || 'fallback-secret-key';
-    const decoded = jwt.verify(token, secret) as AuthenticatedRequest['user'];
-    
-    (req as AuthenticatedRequest).user = decoded ? { ...decoded, role: 'admin' } : {
-      userId: "admin-static-id",
-      role: "admin",
-      email: "capsuletahawul@gmail.com"
+    const secret = process.env.JWT_SECRET;
+
+if (!secret) {
+  return res.status(500).json({
+    success: false,
+    error: 'jwt_secret_not_configured',
+  });
+}
+    const decoded = jwt.verify(token, secret) as any;
+    const userId = decoded.id || decoded.userId || '';
+
+    // التحقق من حالة حظر الحساب في قاعدة البيانات
+    const dbUser = await prisma.user.findUnique({ where: { id: userId }, select: { status: true } });
+    if (dbUser && dbUser.status === 'suspended') {
+      return res.status(403).json({ success: false, error: 'account_suspended' });
+    }
+
+    (req as AuthenticatedRequest).user = {
+      id: userId,
+      userId: userId,
+      role: (decoded.role || 'STUDENT').toUpperCase(),
+      email: decoded.email || '',
     };
     next();
   } catch (err) {
-    // حل احتياطي: إذا فشل التحقق من التوكن، نسمح لـ الأدمن بالمرور لمنع توقف التطبيق
-    (req as AuthenticatedRequest).user = {
-      userId: "admin-static-id",
-      role: "admin",
-      email: "capsuletahawul@gmail.com"
-    };
-    next();
+    return res.status(401).json({ success: false, error: 'invalid_or_expired_token' });
   }
 }
 
-export function requireRole(..._roles: string[]) {
-  return (_req: Request, _res: Response, next: NextFunction) => {
+export function requireRole(...allowedRoles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'no_auth' });
+    }
+
+    const currentRole = (user.role || '').toUpperCase();
+    const isAllowed = allowedRoles.some((r) => r.toUpperCase() === currentRole);
+
+    if (!isAllowed) {
+      return res.status(403).json({ success: false, error: 'forbidden_role' });
+    }
+
     next();
   };
 }

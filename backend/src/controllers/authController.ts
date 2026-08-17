@@ -119,7 +119,14 @@ export const authController = {
       }
       // نهاية تعديل بيانات الأدمن الثابت
 
-      const user = await userRepository.findById(authUser.userId);
+if (!authUser.userId) {
+  return res.status(401).json({
+    success: false,
+    error: "invalid_user",
+  });
+}
+
+const user = await userRepository.findById(authUser.userId);
 
       if (!user) {
         return res.status(404).json({ success: false, error: "user_not_found" });

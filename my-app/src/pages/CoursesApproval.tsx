@@ -25,7 +25,11 @@ interface CourseItem {
   status: CourseStatus;
 }
 
-const CoursesApproval: React.FC = () => {
+interface CoursesApprovalProps {
+  isEmbedded?: boolean;
+}
+
+const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false }) => {
   const { t } = useLanguage();
   const l = t.coursesApproval;
 
@@ -122,6 +126,92 @@ const CoursesApproval: React.FC = () => {
         <p className="text-sm font-semibold text-[#0D4C54]">
           {isRtl ? "تعذر تحميل قائمة الكورسات." : "Unable to load courses."}
         </p>
+      </div>
+    );
+  }
+
+  if (isEmbedded) {
+    return (
+      <div dir={t.dir} className="font-sans text-slate-800 antialiased">
+        <div className="bg-white/90 backdrop-blur-md border border-white rounded-3xl p-6 shadow-sm overflow-hidden mb-6">
+          <h2 className="text-sm font-black text-capsule-navy border-b pb-3 mb-4">{l.hero.title}</h2>
+          <p className="text-xs text-gray-500 font-bold mb-4">{l.hero.subtitle}</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="bg-slate-100/80 p-4 rounded-2xl border border-slate-200/80">
+              <p className="text-[10px] font-black text-gray-500 uppercase mb-1">{l.stats.total}</p>
+              <p className="text-xl font-black font-mono text-capsule-navy">{courses.length}</p>
+            </div>
+            <div className="bg-slate-100/80 p-4 rounded-2xl border border-slate-200/80">
+              <p className="text-[10px] font-black text-gray-500 uppercase mb-1">{l.stats.approved}</p>
+              <p className="text-xl font-black font-mono text-emerald-600">
+                {courses.filter((c) => c.status === "approved").length}
+              </p>
+            </div>
+            <div className="bg-slate-100/80 p-4 rounded-2xl border border-slate-200/80">
+              <p className="text-[10px] font-black text-gray-500 uppercase mb-1">{l.stats.pending}</p>
+              <p className="text-xl font-black font-mono text-amber-500">
+                {courses.filter((c) => c.status === "pending").length}
+              </p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className={`w-full border-collapse ${tableAlign} text-xs`}>
+              <thead>
+                <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
+                  <th className="p-3">{l.table.colTitle}</th>
+                  <th className="p-3">{l.table.colTrainer}</th>
+                  <th className="p-3">{l.table.colCategory}</th>
+                  <th className="p-3">{l.table.colDuration}</th>
+                  <th className="p-3">{l.table.colStatus}</th>
+                  <th className="p-3 text-center">{l.table.colActions}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200/60 font-bold">
+                {courses.length === 0 ? (
+                  <tr><td colSpan={6} className="py-12 text-center">
+                    <p className="text-xs font-black text-gray-400">{isRtl ? 'لا توجد دورات معلقة للاعتماد' : 'No courses pending approval'}</p>
+                  </td></tr>
+                ) : courses.map((course) => (
+                  <tr key={course.id} className="hover:bg-slate-100/50 transition">
+                    <td className="p-3 text-capsule-navy font-black">{course.title}</td>
+                    <td className="p-3 text-gray-500">{course.trainer}</td>
+                    <td className="p-3 text-gray-500">{course.category}</td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-capsule-teal/10 text-capsule-teal border border-capsule-teal/20">
+                        {course.durationVal}{l.table.unitHours}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <span className={`text-[10px] font-black ${
+                        course.status === "approved" ? "text-emerald-600" : course.status === "rejected" ? "text-rose-600" : "text-amber-500"
+                      }`}>
+                        {getStatusLabel(course.status)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center">
+                      {course.status === "pending" ? (
+                        <div className="flex gap-2 justify-center">
+                          <button onClick={() => approveCourse(course.id)} className="px-2.5 py-1 text-[10px] font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition cursor-pointer">
+                            {l.table.actionApprove}
+                          </button>
+                          <button onClick={() => rejectCourse(course.id)} className="px-2.5 py-1 text-[10px] font-black text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition cursor-pointer">
+                            {l.table.actionReject}
+                          </button>
+                        </div>
+                      ) : course.status === "approved" ? (
+                        <span className="text-emerald-600 text-[10px] font-black">{l.table.statusApproved}</span>
+                      ) : (
+                        <span className="text-rose-600 text-[10px] font-black">{l.table.statusRejected}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     );
   }

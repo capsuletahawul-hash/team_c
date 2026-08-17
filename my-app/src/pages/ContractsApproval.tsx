@@ -54,7 +54,11 @@ interface TicketItem {
   discount: number;
 }
 
-const ContractsApproval: React.FC = () => {
+interface ContractsApprovalProps {
+  isEmbedded?: boolean;
+}
+
+const ContractsApproval: React.FC<ContractsApprovalProps> = ({ isEmbedded = false }) => {
   const { t } = useLanguage();
   const l = t.contractsApproval;
   const isRtl = t.dir === "rtl";
@@ -170,6 +174,149 @@ const ContractsApproval: React.FC = () => {
         <p className="text-sm font-semibold text-[#0D4C54]">
           {isRtl ? "تعذر تحميل طلبات الشركات." : "Unable to load company requests."}
         </p>
+      </div>
+    );
+  }
+
+  if (isEmbedded) {
+    return (
+      <div dir={t.dir} className="font-sans text-slate-800 antialiased">
+        <div className="bg-white/90 backdrop-blur-md border border-white rounded-3xl p-6 shadow-sm overflow-hidden mb-6">
+          <h2 className="text-sm font-black text-capsule-navy border-b pb-3 mb-4">{l.hero.title}</h2>
+          <p className="text-xs text-gray-500 font-bold mb-4">{l.hero.subtitle}</p>
+
+          <div className="flex border-b border-slate-200/80 mb-6 gap-1 md:gap-2 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("onboarding")}
+              className={`whitespace-nowrap px-4 py-2 font-black text-xs transition-all border-b-2 cursor-pointer ${
+                activeTab === "onboarding" ? "border-b-capsule-teal text-capsule-teal" : "border-b-transparent text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {isRtl ? "طلبات الانضمام (نموذج عام)" : "Onboarding Requests"}
+            </button>
+            <button
+              onClick={() => setActiveTab("tickets")}
+              className={`whitespace-nowrap px-4 py-2 font-black text-xs transition-all border-b-2 cursor-pointer ${
+                activeTab === "tickets" ? "border-b-capsule-teal text-capsule-teal" : "border-b-transparent text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {isRtl ? "تذاكر المعسكرات (من لوحة الشركة)" : "Bootcamp Tickets"}
+            </button>
+          </div>
+
+          {activeTab === "onboarding" && (
+            <div className="overflow-x-auto">
+              {requests.length === 0 ? (
+                <p className="p-6 text-xs text-gray-400 font-black">{l.table.noRequestsText}</p>
+              ) : (
+                <table className={`w-full border-collapse ${tableAlign} text-xs`}>
+                  <thead>
+                    <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
+                      <th className="p-3">{l.table.id}</th>
+                      <th className="p-3">{l.table.company}</th>
+                      <th className="p-3">{l.table.contact}</th>
+                      <th className="p-3">{l.table.trainingType}</th>
+                      <th className="p-3">{l.table.trainees}</th>
+                      <th className="p-3">{l.table.status}</th>
+                      <th className="p-3 text-center">{l.table.action}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200/60 font-bold">
+                    {requests.map((req) => (
+                      <tr key={req.id} className="hover:bg-slate-100/50 transition">
+                        <td className="p-3 font-mono text-capsule-teal">{req.id.slice(0, 8)}...</td>
+                        <td className="p-3 text-gray-700">{req.companyName}</td>
+                        <td className="p-3 text-gray-500">
+                          <p>{req.contactPerson}</p>
+                          <span className="text-[9px] text-gray-400">{req.email}</span>
+                        </td>
+                        <td className="p-3 text-gray-500">{req.trainingType}</td>
+                        <td className="p-3 text-gray-500">{req.trainees}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
+                            req.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : req.status === 'rejected' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {getStatusLabel(req.status)}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          {req.status === "pending" ? (
+                            <div className="flex gap-2 justify-center">
+                              <button onClick={() => approveRequest(req.id)} className="px-2 py-1 text-[10px] font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition cursor-pointer">
+                                {l.table.approveAction}
+                              </button>
+                              <button onClick={() => rejectRequest(req.id)} className="px-2 py-1 text-[10px] font-black text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition cursor-pointer">
+                                {l.table.rejectAction}
+                              </button>
+                            </div>
+                          ) : req.status === "approved" ? (
+                            <span className="text-emerald-600 text-[10px] font-black">{l.table.statusApproved}</span>
+                          ) : (
+                            <span className="text-rose-600 text-[10px] font-black">{l.table.statusRejected}</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {activeTab === "tickets" && (
+            <div className="overflow-x-auto mt-4">
+              {tickets.length === 0 ? (
+                <p className="p-6 text-xs text-gray-400 font-black">{isRtl ? "لا توجد تذاكر معسكرات بعد." : "No bootcamp tickets yet."}</p>
+              ) : (
+                <table className={`w-full border-collapse ${tableAlign} text-xs`}>
+                  <thead>
+                    <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
+                      <th className="p-3">{isRtl ? "رقم التذكرة" : "Ticket ID"}</th>
+                      <th className="p-3">{isRtl ? "الشركة" : "Company"}</th>
+                      <th className="p-3">{isRtl ? "البرنامج" : "Program"}</th>
+                      <th className="p-3">{isRtl ? "عدد الموظفين" : "Employees"}</th>
+                      <th className="p-3">{isRtl ? "الميزانية" : "Budget"}</th>
+                      <th className="p-3">{isRtl ? "الحالة" : "Status"}</th>
+                      <th className="p-3 text-center">{isRtl ? "الإجراء" : "Action"}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200/60 font-bold">
+                    {tickets.map((tkt) => (
+                      <tr key={tkt.id} className="hover:bg-slate-100/50 transition">
+                        <td className="p-3 font-mono text-capsule-teal">{tkt.id.slice(0, 8)}...</td>
+                        <td className="p-3 text-gray-700">{tkt.companyName}</td>
+                        <td className="p-3 text-gray-500">
+                          <p>{tkt.program}</p>
+                          <span className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 inline-block mt-0.5">{tkt.domain}</span>
+                        </td>
+                        <td className="p-3 text-gray-500">{tkt.count}</td>
+                        <td className="p-3 text-gray-500 font-mono">{tkt.budget.toLocaleString()} {isRtl ? "ر.س" : "SAR"}</td>
+                        <td className="p-3">
+                          <span className={`text-[10px] font-black ${
+                            tkt.status === "approved" ? "text-emerald-600" : tkt.status === "issued" ? "text-indigo-600" : "text-amber-500"
+                          }`}>
+                            {getTicketStatusLabel(tkt.status)}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          {tkt.status === "review" ? (
+                            <button onClick={() => issueQuote(tkt.id)} className="px-2.5 py-1 text-[10px] bg-capsule-teal text-white rounded-lg font-black hover:bg-teal-700 transition cursor-pointer">
+                              {isRtl ? "إصدار عرض السعر" : "Issue Quote"}
+                            </button>
+                          ) : (
+                            <span className="text-gray-400 italic text-[10px]">
+                              {isRtl ? "بانتظار قرار الشركة" : "Awaiting company decision"}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }

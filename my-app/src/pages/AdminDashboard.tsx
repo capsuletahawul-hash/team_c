@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingIndicator from '../components/LoadingIndicator';
+import { AdminOverview, AdminOrdersTab, AdminUsersTab, CourseModal } from '../components/AdminComponents';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import ContractsApproval from './ContractsApproval';
@@ -45,32 +46,34 @@ const AdminDashboard: React.FC = () => {
   const fetchAdminData = async () => {
     setLoading(true);
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` };
-    try {
-      const [statsRes, usersRes, coursesRes, ordersRes, enrollmentsRes] = await Promise.allSettled([
-        fetch(`${API_BASE}/admin/stats`, { headers }),
-        fetch(`${API_BASE}/admin/users`, { headers }),
-        fetch(`${API_BASE}/admin/courses/crud`, { headers }),
-        fetch(`${API_BASE}/admin/orders`, { headers }),
-        fetch(`${API_BASE}/admin/enrollments`, { headers }),
-      ]);
-      if (statsRes.status === 'fulfilled' && statsRes.value.ok) setStatsData(await statsRes.value.json().then(j => j.data || j));
-      if (usersRes.status === 'fulfilled' && usersRes.value.ok) {
-        const u = await usersRes.value.json().then(j => Array.isArray(j) ? j : j.data || j.users || []);
-        setUsersList(u.map((x: any) => ({ id: x.id || '', name: x.name || 'User', email: x.email || '', role: x.role || 'STUDENT', status: x.status || 'active', _count: x._count || { enrollments: 0 } })));
-        setNotificationsList([{ id: '1', textAr: `تم جلب ${u.length} مستخدم من قاعدة البيانات`, textEn: `Loaded ${u.length} users` }, { id: '2', textAr: 'النظام متصل وقاعدة البيانات تعمل بنجاح', textEn: 'Database connected successfully' }]);
-      }
-      if (coursesRes.status === 'fulfilled' && coursesRes.value.ok) {
-        const c = await coursesRes.value.json().then((j: any) => Array.isArray(j) ? j : (j.data?.courses || j.data || j.courses || []));
-        setCoursesList(c.map((x: any, i: number) => ({ ...x, status: x.status || 'coming_soon', category: x.category || (i % 2 === 0 ? (isRtl ? 'الأمن السيبراني' : 'Cybersecurity') : (isRtl ? 'هندسة البرمجيات' : 'Software Engineering')) })));
-      }
-      if (ordersRes.status === 'fulfilled' && ordersRes.value.ok) setOrdersList(await ordersRes.value.json().then((j: any) => j.data?.orders || j.data || j.orders || []));
-      if (enrollmentsRes.status === 'fulfilled' && enrollmentsRes.value.ok) setEnrollmentsList(await enrollmentsRes.value.json().then((j: any) => j.data?.enrollments || j.data || j.enrollments || []));
-      setComplaintsList([
-        { id: 'TKT-991', name: 'سارة العبدالله', email: 'sara@example.com', message: isRtl ? 'تواجهني مشكلة أثناء تحميل الملفات.' : 'I face an issue downloading files.', date: '2026-08-14' },
-        { id: 'TKT-992', name: 'خالد المنصور', email: 'khalid@example.com', message: isRtl ? 'طلب تفعيل واجهة الشركة B2B قيد الانتظار.' : 'B2B onboarding request is pending.', date: '2026-08-15' }
-      ]);
-      setGrowthList([{ monthAr: 'مايو', monthEn: 'May', count: 420 }, { monthAr: 'يونيو', monthEn: 'June', count: 850 }, { monthAr: 'يوليو', monthEn: 'July', count: 1240 }, { monthAr: 'أغسطس', monthEn: 'August', count: 1580 }]);
-    } catch (err) { console.error(err); } finally { setLoading(false); }
+    const statsPromise = fetch(`${API_BASE}/admin/stats`, { headers }).then(async r => {
+      if (r.ok) { const j = await r.json(); setStatsData(j.data || j); }
+      setLoading(false);
+    }).catch(() => setLoading(false));
+
+    const [, usersRes, coursesRes, ordersRes, enrollmentsRes] = await Promise.allSettled([
+      statsPromise,
+      fetch(`${API_BASE}/admin/users`, { headers }),
+      fetch(`${API_BASE}/admin/courses/crud`, { headers }),
+      fetch(`${API_BASE}/admin/orders`, { headers }),
+      fetch(`${API_BASE}/admin/enrollments`, { headers }),
+    ]);
+    if (usersRes.status === 'fulfilled' && (usersRes.value as Response).ok) {
+      const u = await (usersRes.value as Response).json().then((j: any) => Array.isArray(j) ? j : (j.data?.users || j.data || j.users || []));
+      setUsersList(u.map((x: any) => ({ id: x.id || '', name: x.name || 'User', email: x.email || '', role: x.role || 'STUDENT', status: x.status || 'active', _count: x._count || { enrollments: 0 } })));
+      setNotificationsList([{ id: '1', textAr: `تم جلب ${u.length} مستخدم من قاعدة البيانات`, textEn: `Loaded ${u.length} users` }, { id: '2', textAr: 'النظام متصل وقاعدة البيانات تعمل بنجاح', textEn: 'Database connected successfully' }]);
+    }
+    if (coursesRes.status === 'fulfilled' && (coursesRes.value as Response).ok) {
+      const c = await (coursesRes.value as Response).json().then((j: any) => Array.isArray(j) ? j : (j.data?.courses || j.data || j.courses || []));
+      setCoursesList(c.map((x: any, i: number) => ({ ...x, status: x.status || 'coming_soon', category: x.category || (i % 2 === 0 ? (isRtl ? 'الأمن السيبراني' : 'Cybersecurity') : (isRtl ? 'هندسة البرمجيات' : 'Software Engineering')) })));
+    }
+    if (ordersRes.status === 'fulfilled' && (ordersRes.value as Response).ok) setOrdersList(await (ordersRes.value as Response).json().then((j: any) => j.data?.orders || j.data || j.orders || []));
+    if (enrollmentsRes.status === 'fulfilled' && (enrollmentsRes.value as Response).ok) setEnrollmentsList(await (enrollmentsRes.value as Response).json().then((j: any) => j.data?.enrollments || j.data || j.enrollments || []));
+    setComplaintsList([
+      { id: 'TKT-991', name: 'سارة العبدالله', email: 'sara@example.com', message: isRtl ? 'تواجهني مشكلة أثناء تحميل الملفات.' : 'I face an issue downloading files.', date: '2026-08-14' },
+      { id: 'TKT-992', name: 'خالد المنصور', email: 'khalid@example.com', message: isRtl ? 'طلب تفعيل واجهة الشركة B2B قيد الانتظار.' : 'B2B onboarding request is pending.', date: '2026-08-15' }
+    ]);
+    setGrowthList([{ monthAr: 'مايو', monthEn: 'May', count: 420 }, { monthAr: 'يونيو', monthEn: 'June', count: 850 }, { monthAr: 'يوليو', monthEn: 'July', count: 1240 }, { monthAr: 'أغسطس', monthEn: 'August', count: 1580 }]);
   };
 
   useEffect(() => { fetchAdminData(); }, [lang]);
@@ -91,6 +94,29 @@ const AdminDashboard: React.FC = () => {
     setEditCourseId(c.id);
     setCourseForm({ title: c.title || '', description: c.description || '', category: c.category || 'Software Engineering', level: c.level || 'beginner', price: String(c.price || ''), durationWeeks: String(c.durationWeeks || ''), maxStudents: String(c.maxStudents || ''), trainerId: c.trainerId || '' });
     setShowCourseModal(true);
+  };
+
+  const handleMarkOrderStatus = async (orderId: string, status: 'PAID' | 'FAILED') => {
+    const label = status === 'PAID' ? (isRtl ? 'مدفوع' : 'PAID') : (isRtl ? 'فاشل' : 'FAILED');
+    if (!window.confirm(isRtl ? `تعيين حالة الطلب إلى ${label}؟` : `Mark this order as ${label}?`)) return;
+    try {
+      const res = await fetch(`${API_BASE}/admin/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        setOrdersList((prev: any[]) => prev.map((o: any) => o.id === orderId ? { ...o, status } : o));
+        setStatsData(prev => {
+          const updatedOrders = ordersList.map((o: any) => o.id === orderId ? { ...o, status } : o);
+          const newRevenue = updatedOrders.filter((o: any) => o.status === 'PAID').reduce((s: number, o: any) => s + (o.amount || 0), 0);
+          return { ...prev, totalRevenue: newRevenue };
+        });
+        setMessage(isRtl ? `تم تحديث حالة الطلب إلى ${label} بنجاح.` : `Order marked as ${label} successfully.`);
+      } else {
+        alert(await res.json().then((j: any) => j.error || 'Failed'));
+      }
+    } catch (err) { console.error(err); }
   };
 
   const handleDeleteCourse = async (id: string) => {
@@ -137,7 +163,7 @@ const AdminDashboard: React.FC = () => {
   const categoryCounts = coursesList.reduce<Record<string, number>>((a, c) => { const cat = c.category || (isRtl ? 'أخرى' : 'Other'); a[cat] = (a[cat] || 0) + 1; return a; }, {});
   const trainersList = usersList.filter(u => u.role.toUpperCase() === 'TRAINER');
 
-  if (loading) return <div className="min-h-screen bg-[#C9D6DF] flex items-center justify-center"><LoadingIndicator message={t.admin.loading} /></div>;
+  if (loading) return <LoadingIndicator variant="dashboard" />;
 
   return (
     <div className="min-h-screen bg-[#C9D6DF] text-capsule-navy font-sans antialiased flex flex-col relative overflow-hidden" dir={t.dir}>
@@ -201,82 +227,22 @@ const AdminDashboard: React.FC = () => {
           {message && <div className={`p-3.5 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold ${t.dir === 'rtl' ? 'border-r-4' : 'border-l-4'} border-emerald-500 shadow-2xs`}>{message}</div>}
 
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-start">
-                {[{ title: isRtl ? 'إجمالي المستخدمين' : 'Total Users', value: statsData.totalUsers, color: 'text-capsule-navy' },
-                  { title: isRtl ? 'الكورسات الحالية' : 'Total Platform Courses', value: coursesList.length, color: 'text-capsule-teal' },
-                  { title: isRtl ? 'الاشتراكات النشطة' : 'Active Enrollments', value: statsData.activeEnrollments, color: 'text-capsule-navy' },
-                  { title: isRtl ? 'إجمالي الأرباح' : 'Total Revenue', value: `${statsData.totalRevenue} SAR`, color: 'text-emerald-600' }
-                ].map((c, i) => (
-                  <div key={i} className="bg-white/90 border border-white p-5 rounded-3xl shadow-sm">
-                    <p className="text-xs font-black text-gray-500 mb-1">{c.title}</p>
-                    <p className={`text-xl font-black font-mono ${c.color}`}>{c.value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-white/90 border border-white rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-around gap-8">
-                <div className="relative w-36 h-36 rounded-full flex items-center justify-center p-3 shadow-md" style={{ background: 'conic-gradient(#0f172a 0% 50%, #0d9488 50% 100%)' }}>
-                  <div className="w-24 h-24 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-                    <span className="text-xl font-black font-mono text-capsule-navy">{coursesList.length}</span>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase">{isRtl ? 'إجمالي الكورسات' : 'Total Courses'}</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(categoryCounts).map(([cat, count], idx) => (
-                    <div key={cat} className="flex items-center gap-4 p-2 bg-slate-100/80 rounded-xl border border-slate-200/60 min-w-[200px] justify-between">
-                      <div className="flex items-center gap-2"><span className={`w-3.5 h-3.5 rounded-full ${idx === 0 ? 'bg-capsule-navy' : 'bg-capsule-teal'}`}></span><span className="text-xs font-black text-capsule-navy">{cat}</span></div>
-                      <span className="text-xs font-black font-mono bg-white px-2 py-0.5 rounded-lg border border-slate-200/60 shadow-2xs">{count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-white/90 border border-white rounded-3xl p-6 shadow-sm">
-                <h3 className="text-xs font-black text-capsule-navy uppercase mb-4 text-start">{isRtl ? 'المؤشر التزايدي لنمو مستخدمي المنصة' : 'User Registration Trajectory'}</h3>
-                <div className="space-y-3">
-                  {growthList.map((tItem, idx) => (
-                    <div key={idx} className="bg-slate-100/80 p-2.5 rounded-xl border border-slate-200/60 flex items-center justify-between gap-4">
-                      <span className="text-xs font-black text-capsule-navy w-16 text-start">{isRtl ? tItem.monthAr : tItem.monthEn}</span>
-                      <div className="flex-grow bg-slate-200 h-2.5 rounded-full overflow-hidden p-0.5"><div className="bg-gradient-to-r from-capsule-teal to-capsule-navy h-full rounded-full" style={{ width: `${Math.min((tItem.count / 1600) * 100, 100)}%` }}></div></div>
-                      <span className="text-xs font-black font-mono text-capsule-teal w-20 text-end">{tItem.count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <AdminOverview
+              isRtl={isRtl}
+              statsData={statsData}
+              coursesCount={coursesList.length}
+              categoryCounts={categoryCounts}
+              growthList={growthList}
+            />
           )}
 
           {activeTab === 'users' && (
-            <div className="bg-white/90 border border-white rounded-3xl shadow-sm overflow-hidden p-6">
-              <h3 className="text-sm font-black text-capsule-navy border-b pb-3 mb-4 text-start">{isRtl ? 'إدارة الهويات وحسابات النظام' : 'User Identity Control'}</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-center border-collapse">
-                  <thead>
-                    <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
-                      {['ID', isRtl ? 'الاسم' : 'Name', isRtl ? 'البريد الإلكتروني' : 'Email', isRtl ? 'الصلاحية' : 'Role', isRtl ? 'الاشتراكات' : 'Enrollments', isRtl ? 'الحالة' : 'Status', isRtl ? 'الإجراء' : 'Action'].map(h => <th className="p-3" key={h}>{h}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200/60 font-bold">
-                    {usersList.map(user => (
-                      <tr key={user.id} className="hover:bg-slate-100/50">
-                        <td className="p-3 font-mono text-blue-600 text-start">{user.id.slice(0, 8)}...</td>
-                        <td className="p-3 text-capsule-navy font-black">{user.name}</td>
-                        <td className="p-3 font-mono text-gray-500">{user.email}</td>
-                        <td className="p-3">
-                          <select value={user.role} onChange={(e) => handleRoleChange(user.id, e.target.value)} className="p-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold outline-none text-capsule-navy cursor-pointer">
-                            <option value="STUDENT">STUDENT</option>
-                            <option value="TRAINER">TRAINER</option>
-                            <option value="ADMIN">ADMIN</option>
-                          </select>
-                        </td>
-                        <td className="p-3 font-mono text-capsule-teal">{user._count?.enrollments || 0}</td>
-                        <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${user.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>{user.status === 'active' ? (isRtl ? 'نشط' : 'Active') : (isRtl ? 'موقوف' : 'Suspended')}</span></td>
-                        <td className="p-3"><button onClick={() => toggleUserStatus(user.id)} className={`px-2.5 py-1 rounded-lg text-[10px] font-black text-white cursor-pointer transition ${user.status === 'active' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}>{user.status === 'active' ? (isRtl ? 'حظر' : 'Block') : (isRtl ? 'تنشيط' : 'Activate')}</button></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <AdminUsersTab
+              isRtl={isRtl}
+              usersList={usersList}
+              onRoleChange={handleRoleChange}
+              onToggleUserStatus={toggleUserStatus}
+            />
           )}
 
           {activeTab === 'courses' && (
@@ -322,52 +288,11 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {activeTab === 'orders' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { label: isRtl ? 'إجمالي الطلبات' : 'Total Orders', value: ordersList.length, color: 'text-capsule-navy' },
-                  { label: isRtl ? 'طلبات مدفوعة' : 'Paid Orders', value: ordersList.filter((o: any) => o.status === 'PAID').length, color: 'text-emerald-600' },
-                  { label: isRtl ? 'إجمالي الإيرادات' : 'Total Revenue', value: `${ordersList.filter((o: any) => o.status === 'PAID').reduce((s: number, o: any) => s + (o.amount || 0), 0)} SAR`, color: 'text-capsule-teal' },
-                ].map((s, i) => (
-                  <div key={i} className="bg-white/90 border border-white p-4 rounded-2xl shadow-sm text-start">
-                    <p className="text-[10px] font-black text-gray-500 uppercase mb-1">{s.label}</p>
-                    <p className={`text-lg font-black font-mono ${s.color}`}>{s.value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-white/90 border border-white rounded-3xl shadow-sm overflow-hidden p-6">
-                <h3 className="text-sm font-black text-capsule-navy border-b pb-3 mb-4 text-start">{isRtl ? 'سجل العمليات والطلبات' : 'Billing & Orders Ledger'}</h3>
-                {ordersList.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-                    <svg className="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-                    <p className="text-sm font-black text-gray-400">{isRtl ? 'لا توجد طلبات شراء بعد' : 'No orders found yet'}</p>
-                    <p className="text-xs text-gray-400 font-bold">{isRtl ? 'ستظهر هنا عمليات الشراء بمجرد اكتمالها' : 'Completed purchases will appear here'}</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-center border-collapse">
-                      <thead>
-                        <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
-                          {['Order ID', isRtl ? 'المستخدم' : 'User', isRtl ? 'الكورس' : 'Course', isRtl ? 'المبلغ' : 'Amount', isRtl ? 'الحالة' : 'Status', isRtl ? 'التاريخ' : 'Date'].map(h => <th className="p-3" key={h}>{h}</th>)}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200/60 font-bold">
-                        {ordersList.map((order: any) => (
-                          <tr key={order.id} className="hover:bg-slate-100/50">
-                            <td className="p-3 font-mono text-blue-600 text-start">{String(order.id).slice(0, 8)}...</td>
-                            <td className="p-3 text-start"><p className="text-capsule-navy font-black">{order.user?.name || 'Guest'}</p><p className="text-[10px] text-gray-500 font-normal font-mono">{order.user?.email || ''}</p></td>
-                            <td className="p-3 text-capsule-navy font-black text-start max-w-[150px] truncate">{order.course?.title || 'Unknown Course'}</td>
-                            <td className="p-3 font-mono text-emerald-600">{order.amount} SAR</td>
-                            <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${order.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{order.status}</span></td>
-                            <td className="p-3 font-mono text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
+            <AdminOrdersTab
+              isRtl={isRtl}
+              ordersList={ordersList}
+              onMarkOrderStatus={handleMarkOrderStatus}
+            />
           )}
 
           {activeTab === 'enrollments' && (
@@ -444,31 +369,16 @@ const AdminDashboard: React.FC = () => {
         </div>
       </main>
 
-      {showCourseModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white/95 border border-white p-6 rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto space-y-4 text-start">
-            <div className="flex justify-between items-center border-b pb-3">
-              <h3 className="text-sm font-black text-capsule-navy">{editCourseId ? (isRtl ? 'تعديل بيانات الدورة التدريبية' : 'Edit Course') : (isRtl ? 'إضافة دورة تدريبية جديدة' : 'Add New Course')}</h3>
-              <button onClick={() => setShowCourseModal(false)} className="p-1 text-gray-400 hover:text-gray-600 transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg></button>
-            </div>
-            <form onSubmit={handleSaveCourse} className="space-y-3.5 text-xs font-bold text-gray-700">
-              <div><label className="block text-gray-500 mb-1">{isRtl ? 'عنوان الدورة' : 'Course Title'}</label><input type="text" name="title" value={courseForm.title} onChange={e => setCourseForm({...courseForm, title: e.target.value})} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-capsule-navy font-bold" /></div>
-              <div><label className="block text-gray-500 mb-1">{isRtl ? 'وصف الدورة' : 'Course Description'}</label><textarea name="description" value={courseForm.description} onChange={e => setCourseForm({...courseForm, description: e.target.value})} required rows={3} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-capsule-navy font-bold" /></div>
-              <div className="grid grid-cols-2 gap-3.5">
-                <div><label className="block text-gray-500 mb-1">{isRtl ? 'التصنيف' : 'Category'}</label><select name="category" value={courseForm.category} onChange={e => setCourseForm({...courseForm, category: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-capsule-navy font-bold">{[ { val: 'Software Engineering', label: isRtl ? 'هندسة البرمجيات' : 'Software Engineering' }, { val: 'Cybersecurity', label: isRtl ? 'الأمن السيبراني' : 'Cybersecurity' } ].map(o => <option key={o.val} value={o.val}>{o.label}</option>)}</select></div>
-                <div><label className="block text-gray-500 mb-1">{isRtl ? 'مستوى الصعوبة' : 'Difficulty Level'}</label><select name="level" value={courseForm.level} onChange={e => setCourseForm({...courseForm, level: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-capsule-navy font-bold">{[ { val: 'beginner', label: isRtl ? 'مبتدئ' : 'Beginner' }, { val: 'intermediate', label: isRtl ? 'متوسط' : 'Intermediate' }, { val: 'advanced', label: isRtl ? 'متقدم' : 'Advanced' } ].map(o => <option key={o.val} value={o.val}>{o.label}</option>)}</select></div>
-              </div>
-              <div className="grid grid-cols-3 gap-3.5">
-                <div><label className="block text-gray-500 mb-1">{isRtl ? 'السعر (SAR)' : 'Price'}</label><input type="number" name="price" value={courseForm.price} onChange={e => setCourseForm({...courseForm, price: e.target.value})} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-capsule-navy font-bold font-mono" /></div>
-                <div><label className="block text-gray-500 mb-1">{isRtl ? 'المدة (أسابيع)' : 'Duration (Weeks)'}</label><input type="number" name="durationWeeks" value={courseForm.durationWeeks} onChange={e => setCourseForm({...courseForm, durationWeeks: e.target.value})} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-capsule-navy font-bold font-mono" /></div>
-                <div><label className="block text-gray-500 mb-1">{isRtl ? 'الأقصى للطلاب' : 'Max Students'}</label><input type="number" name="maxStudents" value={courseForm.maxStudents} onChange={e => setCourseForm({...courseForm, maxStudents: e.target.value})} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-capsule-navy font-bold font-mono" /></div>
-              </div>
-              <div><label className="block text-gray-500 mb-1">{isRtl ? 'المدرب المسؤول' : 'Assigned Instructor'}</label><select name="trainerId" value={courseForm.trainerId} onChange={e => setCourseForm({...courseForm, trainerId: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-capsule-navy font-bold"><option value="">{isRtl ? 'اختر مدرباً...' : 'Select instructor...'}</option>{trainersList.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
-              <div className="flex gap-3 pt-3 border-t justify-end"><button type="button" onClick={() => setShowCourseModal(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-gray-600 rounded-xl font-black cursor-pointer">{isRtl ? 'إلغاء' : 'Cancel'}</button><button type="submit" className="px-5 py-2 bg-capsule-navy hover:bg-slate-800 text-white rounded-xl font-black cursor-pointer">{isRtl ? 'حفظ البيانات' : 'Save Changes'}</button></div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CourseModal
+        show={showCourseModal}
+        editCourseId={editCourseId}
+        isRtl={isRtl}
+        courseForm={courseForm}
+        trainersList={trainersList}
+        onClose={() => setShowCourseModal(false)}
+        onFormChange={setCourseForm}
+        onSave={handleSaveCourse}
+      />
       <Footer />
     </div>
   );

@@ -6,40 +6,31 @@ export const enrollmentRepository = {
    * إنشاء تسجيل جديد مع تحديث المقاعد المتاحة في الكورس داخل Transaction
    */
   async create(userId: string, courseId: string, accessStartsAt: Date, accessEndsAt: Date) {
-    // نستخدم $transaction لضمان تنفيذ الشغلتين مع بعض أو إلغاء العمليتين لو حدث خطأ
     return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // 1. التأكد من وجود مقاعد شاغرة أولاً
-      const course = (await tx.course.findUnique({
+      // 1. إيجاد الكورس
+      const course = await tx.course.findUnique({
         where: { id: courseId },
-      })) as { seatsLeft?: number } | null;
-
-      if (!course) {
-        throw new Error('Course not found');
-      }
-
-      const seatsLeft = course.seatsLeft ?? 0;
-
-      if (seatsLeft <= 0) {
-        throw new Error('No available seats left in this course');
-      }
-
-      // 2. إنقاص مقعد واحد من الكورس (Decrement)
-      await tx.course.update({
-        where: { id: courseId },
-        data: {
-          seatsLeft: {
-            decrement: 1,
-          },
-        },
       });
+
+      // 2. إنقاص مقعد واحد من الكورس إذا كان متوفراً أكبر من 0
+      if (course && course.seatsLeft && course.seatsLeft > 0) {
+        await tx.course.update({
+          where: { id: courseId },
+          data: {
+            seatsLeft: {
+              decrement: 1,
+            },
+          },
+        });
+      }
 
       // 3. إنشاء سجّل التسجيل (Enrollment)
       const enrollment = await tx.enrollment.create({
         data: {
           userId,
           courseId,
-          accessStartsAt, // Add the start date[cite: 1]
-          accessEndsAt,   // Add the end date[cite: 1]
+          accessStartsAt,
+          accessEndsAt,
         },
         include: {
           course: true,

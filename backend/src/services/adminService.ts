@@ -1,6 +1,20 @@
 import { prisma } from '../lib/prisma.js';
+import { courseRepository } from '../repositories/courseRepository.js';
+import type { Prisma } from '@prisma/client';
 
 export const adminService = {
+  // إدارة الكورسات (Create/Update/Delete) — Week 6 Admin Course CRUD
+  async createCourse(data: Prisma.CourseUncheckedCreateInput) {
+    return courseRepository.create(data);
+  },
+
+  async updateCourse(id: string, data: Prisma.CourseUncheckedUpdateInput) {
+    return courseRepository.update(id, data);
+  },
+
+  async deleteCourse(id: string) {
+    return courseRepository.delete(id);
+  },
   // حساب الإحصائيات من الداتابيس عبر Prisma Aggregates
   async getStats() {
     const totalUsers = await prisma.user.count();

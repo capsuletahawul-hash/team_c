@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'; // 👈 استيراد الم�
 import './index.css';
 import { LanguageProvider } from './context/LanguageContext'; // حذفنا امتداد .jsx
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import App from './App'; // حذفنا امتداد .jsx
 
 const rootElement = document.getElementById('root');
@@ -11,13 +12,15 @@ const rootElement = document.getElementById('root');
 if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
-      <LanguageProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </BrowserRouter>
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </BrowserRouter>
+        </LanguageProvider>
+      </ThemeProvider>
     </StrictMode>,
   );
-}
+}

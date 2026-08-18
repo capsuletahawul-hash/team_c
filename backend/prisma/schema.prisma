@@ -11,6 +11,7 @@ enum Role {
   STUDENT @map("Student")
   ADMIN   @map("Admin")
   TRAINER @map("Trainer")
+  COMPANY @map("Company")
 }
 
 model User {

@@ -239,12 +239,12 @@ function CourseStats({ ui, course }: { ui: UIStrings; course: TranslatedCourse }
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {cards.map((cfg) => (
-        <div key={cfg.key} className="group relative bg-white p-5 rounded-2xl border border-gray-100 shadow-md overflow-hidden transform hover:-translate-y-1 transition-all">
+        <div key={cfg.key} className="group relative bg-white dark:bg-[#162035]/80 backdrop-blur-xl p-5 rounded-2xl border border-gray-100 dark:border-white/10 shadow-md overflow-hidden transform hover:-translate-y-1 transition-all">
           <div className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${cfg.color}`} />
-          <div className={`p-3 rounded-xl inline-block ${cfg.bg} ${cfg.text}`}><cfg.icon className="w-6 h-6 stroke-[2]" /></div>
+          <div className={`p-3 rounded-xl inline-block ${cfg.bg} dark:bg-slate-800 ${cfg.text}`}><cfg.icon className="w-6 h-6 stroke-[2]" /></div>
           <div className="space-y-1 mt-4">
             <h3 className={`text-xl font-black bg-gradient-to-r ${cfg.color} bg-clip-text text-transparent`}>{cfg.val}</h3>
-            <p className="text-xs font-semibold text-capsule-navy/70 leading-snug">{cfg.label}</p>
+            <p className="text-xs font-semibold text-gray-600 dark:text-slate-200 leading-snug">{cfg.label}</p>
           </div>
         </div>
       ))}

@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
+import lightLogo from "../assets/light_trans_logo.png";
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -47,6 +50,9 @@ function TrainerNavbar({
   
   // Extract contextual parameters for regional localization setups
   const { t, lang, toggleLanguage } = useLanguage();
+  const { theme } = useTheme();
+
+  const currentLogo = theme === 'dark' ? lightLogo : logo;
 
   /**
    * Safe localized application paths mapped specifically for the educator interface.
@@ -86,11 +92,11 @@ function TrainerNavbar({
           {/* Main Home Branding Path */}
           <Link to="/trainer-dashboard" className="flex items-center gap-3 cursor-pointer">
             <img
-              src={logo}
+              src={currentLogo}
               alt="Capsula Tahawul Logo"
               className="w-12 h-12 object-contain"
             />
-            <span className="text-lg font-extrabold tracking-wide text-capsule-navy">
+            <span className="text-lg font-extrabold tracking-wide text-capsule-navy dark:text-white">
               {t.brand}
             </span>
           </Link>
@@ -142,10 +148,8 @@ function TrainerNavbar({
             {lang === 'ar' ? 'EN' : 'AR'}
           </button>
 
-          {/* Theme State Switch Placeholder */}
-          <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition">
-            🌙
-          </button>
+          {/* Day/Night Theme Toggle (UIverse strong-squid-82 CSS Button) */}
+          <ThemeToggle size="14px" />
 
           {/* Conditional layout switching based on public login settings context */}
           {showAuthButtons ? (

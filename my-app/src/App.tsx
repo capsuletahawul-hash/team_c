@@ -43,7 +43,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element, allowedRoles }
 
   // إذا كان مسجلاً ولكن رتبته لا تطابق الرتب المسموح لها بدخول الصفحة
   if (allowedRoles && !allowedRoles.includes(role)) {
-    return <Navigate to="/" replace />;
+    const roleDashboardMap: Record<Role, string> = {
+      admin: '/admin-dashboard',
+      company: '/company-dashboard',
+      trainer: '/trainer-dashboard',
+      student: '/student-dashboard',
+    };
+    return <Navigate to={roleDashboardMap[role] || '/'} replace />;
   }
 
   return element;
@@ -153,16 +159,16 @@ const App: React.FC = () => {
       <Route path="/business-contract" element={<BusinessContractForm />} />
       <Route path="/c" element={<PaymentPage />} />
 
-      {/* مسارات الطلاب المحمية */}
+      {/* مسارات الطلاب المحمية (مع السماح للأدمن بالشراء والتصفح) */}
       <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={['student']} element={<StudentDashboardRoute />} />} />
       <Route path="/student-profile" element={<ProtectedRoute allowedRoles={['student']} element={<StudentProfileRoute />} />} />
-      <Route path="/student-courses-overview" element={<ProtectedRoute allowedRoles={['student']} element={<StudentCoursesOverview />} />} />
-      <Route path="/my-courses" element={<ProtectedRoute allowedRoles={['student']} element={<MyCourses />} />} />
-      <Route path="/cart" element={<ProtectedRoute allowedRoles={['student', 'trainer']} element={<Cart />} />} />
+      <Route path="/student-courses-overview" element={<ProtectedRoute allowedRoles={['student', 'admin', 'trainer']} element={<StudentCoursesOverview />} />} />
+      <Route path="/my-courses" element={<ProtectedRoute allowedRoles={['student', 'admin', 'trainer']} element={<MyCourses />} />} />
+      <Route path="/cart" element={<ProtectedRoute allowedRoles={['student', 'trainer', 'admin', 'company']} element={<Cart />} />} />
       
       {/* مسارات الدفع ومعالجة العودة من Moyasar */}
-      <Route path="/payment" element={<ProtectedRoute allowedRoles={['student', 'trainer']} element={<PaymentPage />} />} />
-      <Route path="/payment/return" element={<ProtectedRoute allowedRoles={['student', 'trainer']} element={<PaymentPage />} />} />
+      <Route path="/payment" element={<ProtectedRoute allowedRoles={['student', 'trainer', 'admin', 'company']} element={<PaymentPage />} />} />
+      <Route path="/payment/return" element={<ProtectedRoute allowedRoles={['student', 'trainer', 'admin', 'company']} element={<PaymentPage />} />} />
 
       {/* مسارات الشركات المحمية */}
       <Route path="/company-dashboard" element={<ProtectedRoute allowedRoles={['company']} element={<CompanyDashboard />} />} /> 

@@ -115,14 +115,14 @@ const BusinessContractForm: React.FC = () => {
   return (
     <div 
       dir={t.dir} 
-      className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased transition-all duration-300"
+      className="min-h-screen bg-[#F8FAFC] dark:bg-[#0A0F1D] flex flex-col font-sans text-slate-800 dark:text-slate-100 antialiased transition-all duration-300"
     >
-     <Navbar 
-  activePage="companies" 
-  showAuthButtons={true} 
-  onSignIn={() => {}} 
-  onSignUp={() => {}} 
-/>
+      <Navbar 
+        activePage="companies" 
+        showAuthButtons={true} 
+        onSignIn={() => {}} 
+        onSignUp={() => {}} 
+      />
 
       <main className="flex-grow">
         {/* Hero Section with responsive bidirectional background graphics */}
@@ -141,19 +141,19 @@ const BusinessContractForm: React.FC = () => {
 
         {/* Main Form container */}
         <div className="max-w-3xl mx-auto py-12 px-6">
-          <div className={`bg-white rounded-2xl border border-gray-100 shadow-xs p-8 ${textAlign}`}>
-            <h2 className="text-base font-bold text-[#0D4C54] mb-6 pb-3 border-b border-gray-100">{l.form.title}</h2>
+          <div className={`bg-white dark:bg-[#162035]/80 backdrop-blur-xl rounded-2xl border border-gray-100 dark:border-white/10 shadow-xl p-8 ${textAlign}`}>
+            <h2 className="text-base font-bold text-[#0D4C54] dark:text-white mb-6 pb-3 border-b border-gray-100 dark:border-slate-800">{l.form.title}</h2>
 
             {/* Conditionally rendered success message */}
             {submitted && (
-              <div className={`p-4 bg-emerald-50 border-emerald-500 text-emerald-800 rounded-xl text-xs font-bold shadow-xs mb-6 flex items-center gap-2 ${borderSide}`}>
+              <div className={`p-4 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-800 dark:text-emerald-300 rounded-xl text-xs font-bold shadow-xs mb-6 flex items-center gap-2 ${borderSide}`}>
                 <span>{l.form.successMsg}</span>
               </div>
             )}
 
             {/* Conditionally rendered API/validation error message */}
             {submitError && (
-              <div className={`p-4 bg-red-50 border-red-500 text-red-700 rounded-xl text-xs font-bold shadow-xs mb-6 flex items-center gap-2 ${borderSide}`}>
+              <div className={`p-4 bg-red-50 dark:bg-rose-950/60 border-red-500 text-red-700 dark:text-rose-300 rounded-xl text-xs font-bold shadow-xs mb-6 flex items-center gap-2 ${borderSide}`}>
                 <span>{submitError}</span>
               </div>
             )}
@@ -162,25 +162,25 @@ const BusinessContractForm: React.FC = () => {
               {/* Company & Contact names */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.companyName}</label>
+                  <label className="font-bold text-xs text-gray-500 dark:text-slate-300 block mb-1.5">{l.inputs.companyName}</label>
                   <input
                     type="text"
                     name="companyName"
                     value={formData.companyName}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 text-[#0D4C54] transition"
+                    className="w-full border border-gray-200 dark:border-white/15 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 dark:bg-[#0F172A] text-[#0D4C54] dark:text-white transition placeholder:text-gray-400 dark:placeholder:text-slate-500"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.contactPerson}</label>
+                  <label className="font-bold text-xs text-gray-500 dark:text-slate-300 block mb-1.5">{l.inputs.contactPerson}</label>
                   <input
                     type="text"
                     name="contactPerson"
                     value={formData.contactPerson}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 text-[#0D4C54] transition"
+                    className="w-full border border-gray-200 dark:border-white/15 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 dark:bg-[#0F172A] text-[#0D4C54] dark:text-white transition placeholder:text-gray-400 dark:placeholder:text-slate-500"
                   />
                 </div>
               </div>
@@ -188,26 +188,26 @@ const BusinessContractForm: React.FC = () => {
               {/* Email & Phone numbers */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.email}</label>
+                  <label className="font-bold text-xs text-gray-500 dark:text-slate-300 block mb-1.5">{l.inputs.email}</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 text-[#0D4C54] text-left transition"
+                    className="w-full border border-gray-200 dark:border-white/15 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 dark:bg-[#0F172A] text-[#0D4C54] dark:text-white text-left transition placeholder:text-gray-400 dark:placeholder:text-slate-500"
                     dir="ltr"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.phone}</label>
+                  <label className="font-bold text-xs text-gray-500 dark:text-slate-300 block mb-1.5">{l.inputs.phone}</label>
                   <input
                     type="text"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 text-[#0D4C54] text-left transition"
+                    className="w-full border border-gray-200 dark:border-white/15 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 dark:bg-[#0F172A] text-[#0D4C54] dark:text-white text-left transition placeholder:text-gray-400 dark:placeholder:text-slate-500"
                     dir="ltr"
                   />
                 </div>
@@ -216,22 +216,22 @@ const BusinessContractForm: React.FC = () => {
               {/* Training type selection & Trainees count */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.trainingType}</label>
+                  <label className="font-bold text-xs text-gray-500 dark:text-slate-300 block mb-1.5">{l.inputs.trainingType}</label>
                   <select
                     name="trainingType"
                     value={formData.trainingType}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-200 rounded-xl p-3 text-sm font-bold focus:outline-none focus:border-[#00A499] bg-gray-50 text-[#0D4C54] transition cursor-pointer"
+                    className="w-full border border-gray-200 dark:border-white/15 rounded-xl p-3 text-sm font-bold focus:outline-none focus:border-[#00A499] bg-gray-50 dark:bg-[#0F172A] text-[#0D4C54] dark:text-white transition cursor-pointer"
                   >
-                    <option value="" className="text-gray-400">{l.inputs.selectType}</option>
+                    <option value="" className="text-gray-400 dark:text-slate-500">{l.inputs.selectType}</option>
                     <option value="course">{l.inputs.type1}</option>
                     <option value="bootcamp">{l.inputs.type2}</option>
                     <option value="workshop">{l.inputs.type3}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.trainees}</label>
+                  <label className="font-bold text-xs text-gray-500 dark:text-slate-300 block mb-1.5">{l.inputs.trainees}</label>
                   <input
                     type="number"
                     name="trainees"
@@ -239,39 +239,54 @@ const BusinessContractForm: React.FC = () => {
                     value={formData.trainees}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 text-[#0D4C54] transition"
+                    className="w-full border border-gray-200 dark:border-white/15 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] bg-gray-50/50 dark:bg-[#0F172A] text-[#0D4C54] dark:text-white transition placeholder:text-gray-400 dark:placeholder:text-slate-500"
                   />
                 </div>
               </div>
 
               {/* Training start date */}
               <div>
-                <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.startDate}</label>
+                <label className="font-bold text-xs text-gray-500 dark:text-slate-300 block mb-1.5">{l.inputs.startDate}</label>
                 <input
                   type="date"
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
                   required
-                  className={`w-full border border-gray-200 rounded-xl p-3 text-sm font-bold focus:outline-none focus:border-[#00A499] bg-gray-50/50 text-[#0D4C54] transition ${textAlign}`}
+                  className={`w-full border border-gray-200 dark:border-white/15 rounded-xl p-3 text-sm font-bold focus:outline-none focus:border-[#00A499] bg-gray-50/50 dark:bg-[#0F172A] text-[#0D4C54] dark:text-white transition ${textAlign}`}
                 />
               </div>
 
-              {/* Additional Notes */}
+              {/* Additional Notes & Document Upload Dropzone */}
               <div>
-                <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.notes}</label>
+                <label className="font-bold text-xs text-gray-500 dark:text-slate-300 block mb-1.5">{l.inputs.notes}</label>
                 <textarea
                   rows={4}
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
                   placeholder={l.inputs.placeholderNotes}
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] resize-none bg-gray-50/50 text-[#0D4C54] transition placeholder:text-gray-300"
+                  className="w-full border border-gray-200 dark:border-white/15 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-[#00A499] resize-none bg-gray-50/50 dark:bg-[#0F172A] text-[#0D4C54] dark:text-white transition placeholder:text-gray-400 dark:placeholder:text-slate-500"
                 />
               </div>
 
+              {/* File Attachment Dropzone (RFP / Requirement Documents) */}
+              <div>
+                <label className="font-bold text-xs text-gray-500 dark:text-slate-300 block mb-1.5">
+                  {isRtl ? "إرفاق ملف الشروط أو كراسة الطلب (RFP / PDF)" : "Attach RFP / Contract Document (PDF/Doc)"}
+                </label>
+                <div className="border-2 border-dashed border-gray-200 dark:border-white/20 hover:border-capsule-teal dark:hover:border-teal-400 rounded-xl p-5 text-center bg-gray-50/40 dark:bg-[#0F172A]/60 transition cursor-pointer">
+                  <span className="text-2xl block mb-1">📁</span>
+                  <p className="text-xs font-bold text-gray-600 dark:text-slate-300">
+                    {isRtl ? "انقر هنا لاختيار الملف أو اسحبه لإرفاقه مع الطلب" : "Click to browse or drag & drop RFP document"}
+                  </p>
+                  <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1 font-mono">PDF, DOCX, ZIP (MAX 10MB)</p>
+                  <input type="file" className="hidden" accept=".pdf,.doc,.docx,.zip" />
+                </div>
+              </div>
+
               {/* Submit action container */}
-              <div className={`pt-3 border-t border-gray-50 flex ${flexAlignment}`}>
+              <div className={`pt-4 border-t border-gray-100 dark:border-slate-800 flex ${flexAlignment}`}>
                 <Button type="submit" variant="primary" disabled={submitting}>
                   {submitting ? (isRtl ? "جارٍ الإرسال..." : "Submitting...") : l.inputs.submitBtn}
                 </Button>

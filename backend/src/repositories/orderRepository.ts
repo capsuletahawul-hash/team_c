@@ -13,14 +13,26 @@ export const orderRepository = {
   },
 
   async findById(id: string) {
-  return prisma.order.findUnique({
-    where: { id },
-    include: {
-      user: true,
-      course: true,
-    },
-  });
-},
+    return prisma.order.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        course: true,
+      },
+    });
+  },
+
+  async findByUserId(userId: string) {
+    return prisma.order.findMany({
+      where: { userId },
+      include: {
+        course: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  },
 
   async updateStatus(id: string, status: string, paymentId?: string) {
     return prisma.order.update({

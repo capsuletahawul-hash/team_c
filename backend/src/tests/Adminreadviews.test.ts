@@ -14,7 +14,6 @@ vi.mock('../lib/prisma.js', () => ({
     },
     order: { findMany: vi.fn() },
     enrollment: { findMany: vi.fn() },
-    // getStats also lives on this router; keep it from crashing if hit
     course: { count: vi.fn() },
   },
 }));
@@ -26,11 +25,13 @@ const mUserFindMany = prisma.user.findMany as unknown as ReturnType<typeof vi.fn
 const mOrderFindMany = prisma.order.findMany as unknown as ReturnType<typeof vi.fn>;
 const mEnrollmentFindMany = prisma.enrollment.findMany as unknown as ReturnType<typeof vi.fn>;
 
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key';
 const JWT_SECRET = process.env.JWT_SECRET;
 
 function tokenFor(role: string) {
-  return jwt.sign({ userId: 'test-user', role, email: 'test@example.com' }, JWT_SECRET);
+  return jwt.sign(
+    { userId: 'test-user', role, email: 'test@example.com' },
+    JWT_SECRET
+  );
 }
 
 let server: Server;
@@ -44,6 +45,7 @@ beforeAll(async () => {
   await new Promise<void>((resolve) => {
     server = app.listen(0, () => resolve());
   });
+
   const address = server.address();
   const port = typeof address === 'object' && address ? address.port : 0;
   baseUrl = `http://127.0.0.1:${port}`;
@@ -62,9 +64,6 @@ async function get(path: string, token?: string) {
   });
 }
 
-// Node's built-in fetch types return Promise<unknown> from res.json()
-// (unlike the DOM lib's Promise<any>), so we narrow it once here instead
-// of casting at every call site.
 async function readJson(res: Response): Promise<any> {
   return res.json();
 }
@@ -120,7 +119,11 @@ describe('GET /api/admin/orders', () => {
 
     const body = await readJson(res);
     expect(body.success).toBe(true);
-    expect(body.data.orders[0]).toMatchObject({ id: 'o1', amount: 500, status: 'PAID' });
+    expect(body.data.orders[0]).toMatchObject({
+      id: 'o1',
+      amount: 500,
+      status: 'PAID',
+    });
     expect(JSON.stringify(body)).not.toMatch(/password/i);
   });
 
@@ -133,6 +136,7 @@ describe('GET /api/admin/orders', () => {
 describe('GET /api/admin/enrollments', () => {
   it('admin gets enrollments -> success (200)', async () => {
     const now = Date.now();
+
     mEnrollmentFindMany.mockResolvedValue([
       {
         id: 'e1',
@@ -157,8 +161,9 @@ describe('GET /api/admin/enrollments', () => {
     const res = await get('/api/admin/enrollments', studentToken);
     expect(res.status).toBe(403);
   });
+});
 
-  describe('Authorization security', () => {
+describe('Authorization security', () => {
   it('invalid JWT -> 401', async () => {
     const res = await get('/api/admin/users', 'this-is-not-a-valid-jwt');
     expect(res.status).toBe(401);
@@ -168,6 +173,4 @@ describe('GET /api/admin/enrollments', () => {
     const res = await get('/api/admin/users?role=ADMIN', studentToken);
     expect(res.status).toBe(403);
   });
-});
-
 });

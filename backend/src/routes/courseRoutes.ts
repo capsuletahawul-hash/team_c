@@ -8,16 +8,14 @@ const router = Router();
 
 /**
  * Public Courses
- * Accessible by everyone (Students, Guests, etc.)
+ * يدعم كلاً من / و /public لتجنب خطأ 404
  */
+router.get("/", trainerController.getPublicCourses);
 router.get("/public", trainerController.getPublicCourses);
 router.get("/public/:id", trainerController.getPublicCourseById);
 
 /**
- * FIX: this is the first route in the codebase that actually enforces
- * time-limited access. requireAuth identifies the user; requireActiveAccess
- * (accessMiddleware.ts) checks their Enrollment window on every request and
- * returns 403 { success:false, error:"access_expired" } if it's not active.
+ * Time-limited course content access
  */
 router.get(
   "/:courseId/content",

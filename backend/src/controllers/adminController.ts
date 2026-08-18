@@ -5,6 +5,11 @@ import { userRepository } from "../repositories/userRepository.js";
 import { contractRepository } from "../repositories/contractRepository.js";
 import { companyRepository, TicketStatus } from "../repositories/companyRepository.js";
 import { prisma } from "../lib/prisma.js";
+import { adminService } from "../services/adminService.js";
+import {
+  createAdminCourseSchema,
+  updateAdminCourseSchema,
+} from "../validation/adminCourseValidation.js";
 
 // يحول حالة الدورة الداخلية إلى حالة الموافقة اللي تفهمها صفحة الأدمن
 function toApprovalStatus(status: TrainerCourse["status"]): "pending" | "approved" | "rejected" {
@@ -14,6 +19,52 @@ function toApprovalStatus(status: TrainerCourse["status"]): "pending" | "approve
 }
 
 export const adminController = {
+  /**
+   * Admin statistics
+   */
+  async getStats(_req: Request, res: Response) {
+    try {
+      const now = new Date();
+
+      const totalUsers = await prisma.user.count();
+
+      const revenueResult = await prisma.order.aggregate({
+        _sum: {
+          amount: true,
+        },
+        where: {
+          status: "PAID",
+        },
+      });
+
+      const activeEnrollments = await prisma.enrollment.count({
+        where: {
+          accessStartsAt: {
+            lte: now,
+          },
+          accessEndsAt: {
+            gte: now,
+          },
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          totalUsers,
+          totalRevenue: revenueResult._sum.amount ?? 0,
+          activeEnrollments,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        error: "internal_server_error",
+      });
+    }
+  },
+
   /**
    * List all courses across every trainer, for approval review
    */
@@ -80,6 +131,73 @@ export const adminController = {
     }
   },
 
+  /**
+   * Create a course directly (admin-managed CRUD, distinct from the
+   * trainer-submission/approval flow above)
+   */
+  async createCourse(req: Request, res: Response) {
+    try {
+      const validation = createAdminCourseSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          error: validation.error.flatten().fieldErrors,
+        });
+      }
+
+      const course = await adminService.createCourse(validation.data);
+      return res.status(201).json({ success: true, data: { course } });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Update a course directly (admin-managed CRUD)
+   */
+  async updateCourse(req: Request, res: Response) {
+    try {
+      const validation = updateAdminCourseSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          error: validation.error.flatten().fieldErrors,
+        });
+      }
+
+      const course = await adminService.updateCourse(String(req.params.id), validation.data);
+
+      if (!course) {
+        return res.status(404).json({ success: false, error: "course_not_found" });
+      }
+
+      return res.status(200).json({ success: true, data: { course } });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Delete a course directly (admin-managed CRUD)
+   */
+  async deleteCourse(req: Request, res: Response) {
+    try {
+      const deleted = await adminService.deleteCourse(String(req.params.id));
+
+      if (!deleted) {
+        return res.status(404).json({ success: false, error: "course_not_found" });
+      }
+
+      return res.status(204).send();
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
 
   /**
    * List all B2B contract / company-onboarding requests, for review
@@ -274,6 +392,118 @@ export const adminController = {
       }
 
       return res.status(200).json({ success: true, ticket });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Admin read-only view: list all registered users.
+   *
+   * Uses Prisma `select` to explicitly whitelist safe fields — password
+   * hashes must never be returned here. `_count` gives the enrollment
+   * count for each user in the same query (no N+1 loop over users).
+   */
+  async getUsers(_req: Request, res: Response) {
+    try {
+      const users = await prisma.user.findMany({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true,
+          _count: {
+            select: { enrollments: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const data = users.map((u: (typeof users)[number]) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt,
+        enrollmentCount: u._count.enrollments,
+      }));
+
+      return res.status(200).json({ success: true, data: { users: data } });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Admin read-only view: list all orders across every user, with the
+   * buyer's and course's basic details attached via `include` + nested
+   * `select` (one query, no N+1).
+   */
+  async getOrders(_req: Request, res: Response) {
+    try {
+      const orders = await prisma.order.findMany({
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+          paymentId: true,
+          createdAt: true,
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+          course: {
+            select: { id: true, title: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return res.status(200).json({ success: true, data: { orders } });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Admin read-only view: list all enrollments, showing who has access to
+   * what and whether that access is currently active, upcoming, or expired.
+   * The status is derived in JS from the access window since it depends
+   * on "now", not on a stored column.
+   */
+  async getEnrollments(_req: Request, res: Response) {
+    try {
+      const now = new Date();
+
+      const enrollments = await prisma.enrollment.findMany({
+        select: {
+          id: true,
+          accessStartsAt: true,
+          accessEndsAt: true,
+          createdAt: true,
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+          course: {
+            select: { id: true, title: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const data = enrollments.map((e: (typeof enrollments)[number]) => {
+        let accessStatus: "upcoming" | "active" | "expired";
+        if (now < e.accessStartsAt) accessStatus = "upcoming";
+        else if (now > e.accessEndsAt) accessStatus = "expired";
+        else accessStatus = "active";
+
+        return { ...e, accessStatus };
+      });
+
+      return res.status(200).json({ success: true, data: { enrollments: data } });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ success: false, error: "internal_server_error" });

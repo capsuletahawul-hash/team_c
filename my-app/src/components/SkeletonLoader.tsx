@@ -93,9 +93,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
 
   // Dashboard Variant
   return (
-    <div className="min-h-screen bg-[#C9D6DF] font-sans flex flex-col" dir={dir}>
-      <Shimmer className="bg-white/70 border-b border-white/80 h-14" />
-      <Shimmer className="bg-white/50 border-b border-white/60 h-10" />
+    <div className="w-full font-sans flex flex-col" dir={dir}>
       <main className="flex-grow max-w-7xl mx-auto px-6 py-8 w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1 bg-white/90 rounded-3xl p-4 space-y-2.5 h-fit shadow-sm">
           <Shimmer className="h-4 w-3/4 mb-4 rounded-full" />

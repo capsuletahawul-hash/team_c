@@ -163,7 +163,15 @@ const AdminDashboard: React.FC = () => {
   const categoryCounts = coursesList.reduce<Record<string, number>>((a, c) => { const cat = c.category || (isRtl ? 'أخرى' : 'Other'); a[cat] = (a[cat] || 0) + 1; return a; }, {});
   const trainersList = usersList.filter(u => u.role.toUpperCase() === 'TRAINER');
 
-  if (loading) return <LoadingIndicator variant="dashboard" />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#C9D6DF] text-capsule-navy font-sans flex flex-col relative overflow-hidden" dir={t.dir}>
+        <Navbar activePage="home" />
+        <LoadingIndicator variant="dashboard" />
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#C9D6DF] text-capsule-navy font-sans antialiased flex flex-col relative overflow-hidden" dir={t.dir}>

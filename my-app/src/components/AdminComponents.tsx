@@ -270,6 +270,7 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ isRtl, usersList, 
                 <select value={user.role} onChange={(e) => onRoleChange(user.id, e.target.value)} className="p-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold outline-none text-capsule-navy cursor-pointer">
                   <option value="STUDENT">STUDENT</option>
                   <option value="TRAINER">TRAINER</option>
+                  <option value="COMPANY">COMPANY</option>
                   <option value="ADMIN">ADMIN</option>
                 </select>
               </td>

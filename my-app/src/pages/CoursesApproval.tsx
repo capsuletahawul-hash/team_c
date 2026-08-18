@@ -110,11 +110,15 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
   const heroArcAlign = isRtl ? "rotate-[-25deg]" : "rotate-[25deg]";
   const tableAlign = isRtl ? "text-right" : "text-left";
 
-  // Graceful handling of loading states
   if (loading) {
+    if (isEmbedded) {
+      return <LoadingIndicator variant="table" />;
+    }
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <LoadingIndicator message={l.loading} />
+      <div className="min-h-screen bg-[#C9D6DF] flex flex-col" dir={t.dir}>
+        <Navbar activePage="home" />
+        <LoadingIndicator variant="table" />
+        <Footer />
       </div>
     );
   }

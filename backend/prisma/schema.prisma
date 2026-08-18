@@ -8,9 +8,9 @@ datasource db {
 }
 
 enum Role {
-  STUDENT
-  ADMIN
-  TRAINER
+  STUDENT @map("Student")
+  ADMIN   @map("Admin")
+  TRAINER @map("Trainer")
 }
 
 model User {

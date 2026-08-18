@@ -5,7 +5,7 @@ export const BASE_URL =
 
 // جلب التوكن من Local Storage
 export function getToken(): string | null {
-  return localStorage.getItem("user_token");
+  return sessionStorage.getItem("user_token");
 }
 
 // دالة موحدة لجميع طلبات الـ API

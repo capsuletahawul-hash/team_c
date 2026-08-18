@@ -84,7 +84,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         // 2. جلب دورات الطالب من الباك إند
         // ملاحظة: studentRoutes مرتبطة في server.ts بالمسار /api/student، و BASE_URL
         // المستورد من services/api.ts يتضمن /api بالفعل — لازم نستخدمه كما هو.
-        const token = localStorage.getItem("user_token");
+        const token = sessionStorage.getItem("user_token");
 
         const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
           headers: {

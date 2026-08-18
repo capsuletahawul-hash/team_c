@@ -68,7 +68,7 @@ function TrainerCourses(): React.JSX.Element {
   const isRTL = t.dir === 'rtl';
   const borderSide = isRTL ? 'border-r-4' : 'border-l-4';
 
-  const token = localStorage.getItem('user_token');
+  const token = sessionStorage.getItem('user_token');
 
   const [coursesList, setCoursesList] = useState<CourseItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

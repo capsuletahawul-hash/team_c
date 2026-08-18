@@ -134,7 +134,7 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
 
       // حفظ بيانات التوكين حية داخل الـ Storage في حال إرجاعها من السيرفر مباشرة بعد التسجيل
       if (result.token) {
-        localStorage.setItem("user_token", result.token);
+        sessionStorage.setItem("user_token", result.token);
       }
 
       // تحويل الرتبة إلى حروف صغيرة لتتوافق مع نظام الـ Dashboard الحالي

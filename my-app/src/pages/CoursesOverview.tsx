@@ -31,6 +31,7 @@ const CARD_VISUALS = [
 
 // القيم الافتراضية للفلاتر عند فتح الصفحة أو إعادة تعيينها.
 const EMPTY_FILTERS: Filters = { category: [], price: [], duration: [] };
+const PAGE_SIZE = 8;
 const CATEGORY_LABELS = {
   programming: { ar: "برمجة", en: "Programming" },
   cybersecurity: { ar: "سايبر", en: "Cybersecurity" },
@@ -87,6 +88,7 @@ export default function CoursesOverview() {
   const [appliedFilters, setAppliedFilters] = useState<typeof EMPTY_FILTERS>(EMPTY_FILTERS);
   const [backendCourses, setBackendCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   // جلب الكورسات الحقيقية المعتمدة من الباك اند فقط (بدون أي بيانات غير معتمدة)
   useEffect(() => {
@@ -186,6 +188,21 @@ export default function CoursesOverview() {
       .sort((a, b) => sortIndex === 0 ? b.rating - a.rating : a.price - b.price);
   }, [searchQuery, sortIndex, dynamicCourses, appliedFilters]);
 
+  const totalPages = Math.max(1, Math.ceil(processedCourses.length / PAGE_SIZE));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortIndex, appliedFilters]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [totalPages, currentPage]);
+
+  const paginatedCourses = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return processedCourses.slice(start, start + PAGE_SIZE);
+  }, [processedCourses, currentPage]);
+
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir} lang={lang}>
       {/* التعديل هنا فقط: تم إرجاع المكون الاصلي مع الخاصية لضبط تسجيل الخروج */}
@@ -278,7 +295,7 @@ export default function CoursesOverview() {
             <div className="text-center py-12 text-gray-500 dark:text-slate-400">{isRTL ? "جاري التحميل..." : "Loading..."}</div>
           ) : processedCourses.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {processedCourses.map((c, i) => (
+              {paginatedCourses.map((c, i) => (
                 <article className="bg-white dark:bg-[#162035]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-xl" key={c.id || i}>
                   <div className={`h-[120px] relative flex items-center justify-center bg-gradient-to-br ${c.gradient}`}>
                     <span className="text-[34px] text-white drop-shadow-md">{c.icon}</span>
@@ -325,11 +342,36 @@ export default function CoursesOverview() {
           )}
 
           {/* أزرار التنقل بين الصفحات */}
-          <div className="flex justify-center items-center gap-2 mt-9 flex-wrap">
-            <button className="border border-gray-200 bg-white rounded-lg px-3 py-2 text-[13px] text-capsule-navy font-medium hover:bg-gray-50">{isRTL ? "›" : "‹"} {l.results.prev}</button>
-            {[1, 2, 3, 4].map(n => <button key={n} className={`border rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${n === 1 ? "bg-capsule-teal text-white border-capsule-teal" : "border-gray-200 bg-white text-capsule-navy hover:bg-gray-50"}`}>{n}</button>)}
-            <button className="border border-gray-200 bg-white rounded-lg px-3 py-2 text-[13px] text-capsule-navy font-medium hover:bg-gray-50">{l.results.next} {isRTL ? "‹" : "›"}</button>
-          </div>
+          {processedCourses.length > 0 && (
+            <div className="flex justify-center items-center gap-2 mt-9 flex-wrap">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="border border-gray-200 bg-white rounded-lg px-3 py-2 text-[13px] text-capsule-navy font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
+              >
+                {isRTL ? "›" : "‹"} {l.results.prev}
+              </button>
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(n => (
+                <button
+                  type="button"
+                  key={n}
+                  onClick={() => setCurrentPage(n)}
+                  className={`border rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${n === currentPage ? "bg-capsule-teal text-white border-capsule-teal" : "border-gray-200 bg-white text-capsule-navy hover:bg-gray-50"}`}
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className="border border-gray-200 bg-white rounded-lg px-3 py-2 text-[13px] text-capsule-navy font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
+              >
+                {l.results.next} {isRTL ? "‹" : "›"}
+              </button>
+            </div>
+          )}
         </section>
       </main>
       <Footer />

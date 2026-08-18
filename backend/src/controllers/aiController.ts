@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { aiService } from '../services/aiService.js';
+import { AI_ERROR_CODES } from '../types/ai.js';
 
 export const askAboutCourses = async (req: Request, res: Response) => {
     try {
@@ -21,15 +22,14 @@ export const askAboutCourses = async (req: Request, res: Response) => {
             },
         });
     } catch (error: any) {
-        const errorMap: Record<string, string> = {
-            ai_provider_error: 'ai_provider_error',
-            ai_timeout: 'ai_timeout',
-            ai_bad_format: 'ai_bad_format',
-            ai_bad_shape: 'ai_bad_shape',
-            cost_cap_reached: 'cost_cap_reached',
-        };
-
-        const mappedError = errorMap[error.message] || 'ai_service_unavailable';
+        // FIX: use the shared AI_ERROR_CODES constants (types/ai.ts) instead of a
+        // hand-typed map — the old map was missing ai_rate_limited entirely and
+        // used 'cost_cap_reached' instead of the canonical 'ai_cost_cap_reached',
+        // so those thrown errors fell through to the generic fallback below.
+        const knownCodes: string[] = Object.values(AI_ERROR_CODES);
+        const mappedError = knownCodes.includes(error.message)
+            ? error.message
+            : AI_ERROR_CODES.INTERNAL_ERROR;
 
         return res.status(error.status || 500).json({
             success: false,

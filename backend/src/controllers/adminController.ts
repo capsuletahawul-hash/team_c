@@ -33,7 +33,9 @@ export const adminController = {
           amount: true,
         },
         where: {
-          status: "PAID",
+          status: {
+            in: ["PAID", "paid", "COMPLETED", "completed", "PENDING", "pending"],
+          },
         },
       });
 

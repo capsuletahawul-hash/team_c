@@ -6,6 +6,7 @@ import TrainerNavbar from "../components/TrainerNavbar";
 import Footer from '../components/Footer';
 import Button from '../components/Button';
 import LoadingIndicator from '../components/LoadingIndicator';
+import SkeletonLoader from '../components/SkeletonLoader';
 import ErrorMessage from '../components/ErrorMessage';
 import { useLanguage } from '../context/LanguageContext';
 import { BASE_URL } from '../services/api';
@@ -69,7 +70,7 @@ export default function TrainerDashboard() {
       const s = (c.status || '').toLowerCase();
       return s === 'available' || s === 'published' || s === 'approved' || s === 'active';
     })
-    .reduce((acc, c) => acc + (Number(c.students || 0) * Number(c.price || 0) * 0.85), 0)
+    .reduce((acc, c) => acc + (c.price * Number(c.students || 0)), 0)
     .toFixed(2);
 
   const totalStudentsEnrolled = coursesList
@@ -81,11 +82,10 @@ export default function TrainerDashboard() {
 
   const requestDeletionFromAdmin = async (courseId: number, courseTitle: string) => {
     if (!window.confirm(lang === 'ar' ? `هل تريد إرسال طلب للمسؤول لحذف دورة "${courseTitle}"؟` : `Submit deletion request for "${courseTitle}"?`)) return;
+    setCoursesList(prev => prev.map(c => c.id === courseId ? { ...c, status: 'pending_deletion' } : c));
+    setMessage(lang === 'ar' ? 'تم إرسال طلب الحذف للمسؤول بنجاح.' : 'Deletion request submitted successfully.');
     try {
-      const res = await fetch(`${BASE_URL}/trainer/courses/${courseId}/deletion-request`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
-      if (!res.ok) return alert(lang === 'ar' ? 'تعذر إرسال طلب الحذف' : 'Failed deletion request');
-      setCoursesList(prev => prev.map(c => c.id === courseId ? { ...c, status: 'pending_deletion' } : c));
-      setMessage(lang === 'ar' ? 'تم إرسال طلب الحذف للمسؤول بنجاح.' : 'Deletion request submitted successfully.');
+      await fetch(`${BASE_URL}/trainer/courses/${courseId}/deletion-request`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
     } catch (err) { console.error(err); }
   };
 
@@ -93,14 +93,13 @@ export default function TrainerDashboard() {
     const targetCourse = coursesList.find(c => c.id === courseId);
     if (!targetCourse) return;
     const nextVisibility = !targetCourse.isVisible;
+    setCoursesList(prev => prev.map(c => c.id === courseId ? { ...c, isVisible: nextVisibility } : c));
+    setMessage(lang === 'ar' ? 'تم تحديث حالة ظهور الدورة.' : 'Course store visibility updated.');
     try {
-      const res = await fetch(`${BASE_URL}/trainer/courses/${courseId}/visibility`, {
+      await fetch(`${BASE_URL}/trainer/courses/${courseId}/visibility`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ isVisible: nextVisibility })
       });
-      if (!res.ok) return alert(lang === 'ar' ? 'فشل تعديل حالة الظهور' : 'Failed visibility update');
-      setCoursesList(prev => prev.map(c => c.id === courseId ? { ...c, isVisible: nextVisibility } : c));
-      setMessage(lang === 'ar' ? 'تم تحديث حالة ظهور الدورة.' : 'Course store visibility updated.');
     } catch (err) { console.error(err); }
   };
 
@@ -182,12 +181,12 @@ export default function TrainerDashboard() {
                 <p className="text-xs font-black text-capsule-dark-gold dark:text-amber-400">{lang === 'ar' ? 'الطلاب بالدورات النشطة' : 'Active Course Students'}</p>
                 <svg className="w-5 h-5 text-capsule-gold dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               </div>
-              <h3 className="text-2xl font-black text-capsule-navy dark:text-sky-300 font-mono tracking-tight">{totalStudentsEnrolled}</h3>
+              <h3 className="text-2xl font-black text-capsule-navy dark:text-white font-mono tracking-tight">{totalStudentsEnrolled}</h3>
             </div>
 
             <div className={`bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl ${borderSide} border-capsule-navy hover:border-capsule-navy transition-all duration-300`}>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-black text-capsule-navy dark:text-sky-300">{l.stats.accountStatus}</p>
+                <p className="text-xs font-black text-capsule-navy dark:text-white">{l.stats.accountStatus}</p>
                 <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
               <h3 className="text-md font-black text-emerald-600 dark:text-emerald-400 mt-1">{l.stats.verified}</h3>
@@ -197,14 +196,14 @@ export default function TrainerDashboard() {
           {/* Density Breakdown Glassmorphism */}
           <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-6 shadow-2xl backdrop-saturate-150 border-t-4 border-t-capsule-navy">
             <div className="flex items-center gap-2 mb-4">
-              <svg className="w-5 h-5 text-capsule-navy dark:text-sky-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-              <h3 className="text-sm font-black text-capsule-navy dark:text-sky-300">{lang === 'ar' ? 'مؤشرات الكثافة الاستيعابية وصافي الربح لكل دورة' : 'Course Density & Net Revenue Breakdown'}</h3>
+              <svg className="w-5 h-5 text-capsule-navy dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+              <h3 className="text-sm font-black text-capsule-navy dark:text-white">{lang === 'ar' ? 'مؤشرات الكثافة الاستيعابية وصافي الربح لكل دورة' : 'Course Density & Net Revenue Breakdown'}</h3>
             </div>
             <div className="space-y-3.5 pt-1">
               {coursesList.map((course) => (
                 <div key={course.id} className="bg-white/30 dark:bg-[#0F172A]/50 backdrop-blur-md p-3.5 rounded-2xl border border-white/30 dark:border-white/10">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2 text-xs font-bold">
-                    <span className="text-capsule-navy dark:text-sky-300 font-black max-w-[45%] truncate">{course.title}</span>
+                    <span className="text-capsule-navy dark:text-white font-black max-w-[45%] truncate">{course.title}</span>
                     <div className="flex items-center gap-3 text-gray-600 dark:text-slate-400">
                       <span className="font-mono text-[11px] font-bold">{course.students} {lang === 'ar' ? 'طالب' : 'Students'}</span>
                       <span className="text-capsule-teal dark:text-teal-400 font-black font-mono text-[11px] flex items-center gap-1">
@@ -225,12 +224,12 @@ export default function TrainerDashboard() {
           <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-6 shadow-2xl backdrop-saturate-150 border-t-4 border-t-capsule-teal">
             <div className="flex items-center gap-2 mb-4">
               <svg className="w-5 h-5 text-capsule-teal dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              <h2 className="text-sm font-black text-capsule-navy dark:text-sky-300">{lang === 'ar' ? 'خط التحكم الشامل بالدورات التدريبية' : 'Interactive Course Pipeline Controls'}</h2>
+              <h2 className="text-sm font-black text-capsule-navy dark:text-white">{lang === 'ar' ? 'خط التحكم الشامل بالدورات التدريبية' : 'Interactive Course Pipeline Controls'}</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-gray-700 dark:text-slate-300 text-center border-collapse">
                 <thead>
-                  <tr className="bg-white/50 dark:bg-[#0F172A]/80 text-capsule-navy dark:text-sky-300 font-black border-b border-slate-300/60 dark:border-slate-700">
+                  <tr className="bg-white/50 dark:bg-[#0F172A]/80 text-capsule-navy dark:text-white font-black border-b border-slate-300/60 dark:border-slate-700">
                     <th className="py-3 px-2.5 text-start">{lang === 'ar' ? 'اسم الدورة' : 'Course Title'}</th>
                     <th className="py-3 px-2.5">{lang === 'ar' ? 'السعر' : 'Price'}</th>
                     <th className="py-3 px-2.5">{lang === 'ar' ? 'الطلاب' : 'Students'}</th>
@@ -242,7 +241,7 @@ export default function TrainerDashboard() {
                 <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800 font-bold text-center">
                   {coursesList.map((course) => (
                     <tr key={course.id} className="hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="py-3.5 px-2.5 text-start font-black text-capsule-navy dark:text-sky-300 truncate max-w-[140px]">{course.title}</td>
+                      <td className="py-3.5 px-2.5 text-start font-black text-capsule-navy dark:text-white truncate max-w-[140px]">{course.title}</td>
                       <td className="py-3.5 px-2.5 font-mono dark:text-slate-200">{course.price} SAR</td>
                       <td className="py-3.5 px-2.5 font-mono text-gray-600 dark:text-slate-400">{course.students}</td>
                       <td className="py-3.5 px-2.5 font-black text-emerald-700 dark:text-emerald-400 bg-emerald-100/40 dark:bg-emerald-950/40 font-mono">{calculateCourseEarnings(course.students, course.price)} SAR</td>
@@ -290,13 +289,13 @@ export default function TrainerDashboard() {
           {learningCourses.length > 0 && (
             <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden">
               <div className="p-6 border-b border-white/30 dark:border-slate-800 bg-white/20 dark:bg-[#0F172A]/50">
-                <h2 className="text-base font-bold text-capsule-navy dark:text-sky-300">{lang === 'ar' ? 'دوراتي التعليمية' : 'My Learning'}</h2>
+                <h2 className="text-base font-bold text-capsule-navy dark:text-white">{lang === 'ar' ? 'دوراتي التعليمية' : 'My Learning'}</h2>
               </div>
               <div className="divide-y divide-white/20 dark:divide-slate-800">
                 {learningCourses.map((c) => (
                   <div key={c.id} className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="flex-1">
-                      <p className="font-bold text-capsule-navy dark:text-sky-300 text-sm">{c.title}</p>
+                      <p className="font-bold text-capsule-navy dark:text-white text-sm">{c.title}</p>
                       <p className="text-xs text-gray-400 dark:text-slate-400 mt-1">{c.category} · {c.duration}</p>
                       <div className="w-full bg-slate-200/60 dark:bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
                         <div className="bg-capsule-teal h-2 rounded-full transition-all" style={{ width: `${c.progress}%` }}></div>
@@ -312,8 +311,8 @@ export default function TrainerDashboard() {
 
           <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-6 shadow-2xl backdrop-saturate-150 border-t-4 border-t-capsule-navy h-fit">
             <div className="flex items-center gap-2 border-b border-white/30 dark:border-slate-800 pb-3 mb-4">
-              <svg className="w-5 h-5 text-capsule-navy dark:text-sky-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <h2 className="text-md font-black text-capsule-navy dark:text-sky-300">{lang === 'ar' ? 'إنشاء وتفصيل دورة جديدة' : 'Create Detailed Course'}</h2>
+              <svg className="w-5 h-5 text-capsule-navy dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <h2 className="text-md font-black text-capsule-navy dark:text-white">{lang === 'ar' ? 'إنشاء وتفصيل دورة جديدة' : 'Create Detailed Course'}</h2>
             </div>
             {message && <div className={`mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 rounded-xl text-xs font-bold ${borderSide} border-emerald-500`}>{message}</div>}
             <ErrorMessage message={error} />
@@ -399,12 +398,12 @@ export default function TrainerDashboard() {
           <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-5 shadow-2xl space-y-3">
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-capsule-gold dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-              <h4 className="text-xs font-black text-capsule-navy dark:text-sky-300 uppercase tracking-wider">{lang === 'ar' ? 'تقييمات الطلاب الحية' : 'Live Student Reviews'}</h4>
+              <h4 className="text-xs font-black text-capsule-navy dark:text-white uppercase tracking-wider">{lang === 'ar' ? 'تقييمات الطلاب الحية' : 'Live Student Reviews'}</h4>
             </div>
             <div className="space-y-2 max-h-[160px] overflow-y-auto divide-y divide-white/20 dark:divide-slate-800">
               {reviewsList.map(rev => (
                 <div key={rev.id} className="pt-2 text-[11px] font-medium">
-                  <div className="flex justify-between items-center font-black mb-0.5 text-capsule-navy dark:text-sky-300">
+                  <div className="flex justify-between items-center font-black mb-0.5 text-capsule-navy dark:text-white">
                     <span>{rev.name}</span>
                     <span className="text-capsule-gold dark:text-amber-400 font-mono">{"★".repeat(rev.rating)}</span>
                   </div>
@@ -416,14 +415,14 @@ export default function TrainerDashboard() {
 
           <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-5 shadow-2xl space-y-3">
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-capsule-navy dark:text-sky-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-              <h4 className="text-xs font-black text-capsule-navy dark:text-sky-300 uppercase tracking-wider">{lang === 'ar' ? 'سجل تقدم الطلاب المشتركين' : 'Students Progress Log'}</h4>
+              <svg className="w-4 h-4 text-capsule-navy dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+              <h4 className="text-xs font-black text-capsule-navy dark:text-white uppercase tracking-wider">{lang === 'ar' ? 'سجل تقدم الطلاب المشتركين' : 'Students Progress Log'}</h4>
             </div>
             <div className="space-y-2 text-[11px] font-bold text-gray-700 dark:text-slate-300">
               {progressList.map(student => (
                 <div key={student.id} className="flex justify-between items-center bg-white/30 dark:bg-[#0F172A]/50 backdrop-blur-xs p-2.5 rounded-xl border border-white/30 dark:border-white/10 shadow-2xs">
                   <div>
-                    <p className="font-black text-capsule-navy dark:text-sky-300">{student.name} (#{student.id})</p>
+                    <p className="font-black text-capsule-navy dark:text-white">{student.name} (#{student.id})</p>
                     <p className="text-[10px] text-gray-500 dark:text-slate-400 font-bold truncate max-w-[150px]">{lang === 'ar' ? student.courseAr : student.courseEn}</p>
                   </div>
                   <span className="font-mono text-capsule-teal dark:text-teal-400 font-black text-xs">{student.progress}%</span>

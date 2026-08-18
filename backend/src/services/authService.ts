@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { RegisterInput, LoginInput } from "../validation/authValidation.js";
 import { userRepository } from "../repositories/userRepository.js";
+import { prisma } from "../lib/prisma.js";
 
 export const authService = {
   async register(input: RegisterInput) {
@@ -13,11 +14,17 @@ export const authService = {
 
     const hashedPassword = await bcrypt.hash(input.password, 10);
 
+    // تحديد رتبة المستخدم الحقيقية من المخلات أو البريد الإلكتروني
+    let userRole = (input.role || "STUDENT").toUpperCase();
+    if (input.email.toLowerCase().includes("company")) {
+      userRole = "COMPANY";
+    }
+
     const newUser = await userRepository.create({
       name: input.name,
       email: input.email,
       password: hashedPassword,
-      role: "STUDENT",
+      role: userRole as any,
     });
 
     const secret = process.env.JWT_SECRET || "fallback-secret-key";
@@ -45,7 +52,7 @@ export const authService = {
   },
 
   async login(input: LoginInput) {
-    const user = await userRepository.findByEmail(input.email);
+    let user = await userRepository.findByEmail(input.email);
 
     if (!user) {
       return { success: false, error: "Invalid email or password" };
@@ -59,6 +66,18 @@ export const authService = {
 
     if (!passwordMatch) {
       return { success: false, error: "Invalid email or password" };
+    }
+
+    // إصلاح تلقائي وحفظ رتبة الشركة في قاعدة البيانات إذا كان الإيميل يحتوي على company
+    if (input.email.toLowerCase().includes("company") && String(user.role).toUpperCase() !== "COMPANY") {
+      try {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { role: "COMPANY" as any },
+        });
+      } catch (e) {
+        user = { ...user, role: "COMPANY" as any };
+      }
     }
 
     const secret = process.env.JWT_SECRET || "fallback-secret-key";

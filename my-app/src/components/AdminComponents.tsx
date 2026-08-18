@@ -188,9 +188,9 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
       {/* Top 4 Stat Cards with Glassmorphism */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-start">
         {[
-          { title: isRtl ? 'إجمالي المستخدمين' : 'Total Users', value: statsData.totalUsers || 14, color: 'text-capsule-navy dark:text-sky-300' },
+          { title: isRtl ? 'إجمالي المستخدمين' : 'Total Users', value: statsData.totalUsers || 14, color: 'text-capsule-navy dark:text-white' },
           { title: isRtl ? 'الكورسات الحالية' : 'Total Platform Courses', value: coursesCount || 6, color: 'text-capsule-teal dark:text-teal-400' },
-          { title: isRtl ? 'الاشتراكات النشطة' : 'Active Enrollments', value: statsData.activeEnrollments || 6, color: 'text-capsule-navy dark:text-sky-300' },
+          { title: isRtl ? 'الاشتراكات النشطة' : 'Active Enrollments', value: statsData.activeEnrollments || 6, color: 'text-capsule-navy dark:text-white' },
           { title: isRtl ? 'إجمالي الأرباح' : 'Total Revenue', value: `${statsData.totalRevenue || 5962} SAR`, color: 'text-emerald-600 dark:text-emerald-400' },
         ].map((c, i) => (
           <div key={i} className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 p-5 rounded-3xl shadow-xl hover:border-capsule-teal/50 transition-all duration-300">
@@ -248,7 +248,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
                 <span className="text-2xl font-black font-mono text-capsule-teal dark:text-teal-400 leading-none">
                   {hoveredCategory.percent}%
                 </span>
-                <span className="text-[10px] font-black text-capsule-navy dark:text-sky-300 mt-1 max-w-[90px] truncate">
+                <span className="text-[10px] font-black text-capsule-navy dark:text-white mt-1 max-w-[90px] truncate">
                   {hoveredCategory.name}
                 </span>
                 <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400">
@@ -257,7 +257,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
               </>
             ) : (
               <>
-                <span className="text-2xl font-black font-mono text-capsule-navy dark:text-sky-300">
+                <span className="text-2xl font-black font-mono text-capsule-navy dark:text-white">
                   {coursesCount || total}
                 </span>
                 <span className="text-[9px] font-extrabold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
@@ -285,7 +285,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
               >
                 <div className="flex items-center gap-2.5">
                   <span className="w-3.5 h-3.5 rounded-full shadow-xs shrink-0" style={{ backgroundColor: slice.color }} />
-                  <span className="text-xs font-black text-capsule-navy dark:text-sky-300">{slice.name}</span>
+                  <span className="text-xs font-black text-capsule-navy dark:text-white">{slice.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-bold font-mono text-capsule-teal dark:text-teal-400">
@@ -303,13 +303,13 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 
       {/* Trajectory Growth Chart with Glassmorphism */}
       <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-6 shadow-2xl backdrop-saturate-150">
-        <h3 className="text-xs font-black text-capsule-navy dark:text-sky-300 uppercase mb-4 text-start">
+        <h3 className="text-xs font-black text-capsule-navy dark:text-white uppercase mb-4 text-start">
           {isRtl ? 'المؤشر التزايدي لنمو مستخدمي المنصة' : 'User Registration Trajectory'}
         </h3>
         <div className="space-y-3">
           {growthList.map((tItem, idx) => (
             <div key={idx} className="bg-white/30 dark:bg-[#0F172A]/50 backdrop-blur-md p-2.5 rounded-xl border border-white/30 dark:border-white/10 flex items-center justify-between gap-4">
-              <span className="text-xs font-black text-capsule-navy dark:text-sky-300 w-16 text-start">
+              <span className="text-xs font-black text-capsule-navy dark:text-white w-16 text-start">
                 {isRtl ? tItem.monthAr : tItem.monthEn}
               </span>
               <div className="flex-grow bg-slate-200/60 dark:bg-slate-800/80 h-2.5 rounded-full overflow-hidden p-0.5">
@@ -343,7 +343,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ isRtl, ordersLis
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: isRtl ? 'إجمالي الطلبات' : 'Total Orders', value: ordersList.length, color: 'text-capsule-navy dark:text-sky-300' },
+          { label: isRtl ? 'إجمالي الطلبات' : 'Total Orders', value: ordersList.length, color: 'text-capsule-navy dark:text-white' },
           { label: isRtl ? 'طلبات مدفوعة' : 'Paid Orders', value: paidOrders.length, color: 'text-emerald-600 dark:text-emerald-400' },
           { label: isRtl ? 'إجمالي الإيرادات' : 'Total Revenue', value: `${totalRevenue} SAR`, color: 'text-capsule-teal dark:text-teal-400' },
         ].map((s, i) => (
@@ -354,7 +354,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ isRtl, ordersLis
         ))}
       </div>
       <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl shadow-2xl backdrop-saturate-150 overflow-hidden p-6">
-        <h3 className="text-sm font-black text-capsule-navy dark:text-sky-300 border-b border-white/30 dark:border-slate-800 pb-3 mb-4 text-start">{isRtl ? 'سجل العمليات والطلبات' : 'Billing & Orders Ledger'}</h3>
+        <h3 className="text-sm font-black text-capsule-navy dark:text-white border-b border-white/30 dark:border-slate-800 pb-3 mb-4 text-start">{isRtl ? 'سجل العمليات والطلبات' : 'Billing & Orders Ledger'}</h3>
         {ordersList.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
             <svg className="w-12 h-12 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
@@ -365,7 +365,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ isRtl, ordersLis
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-center border-collapse">
               <thead>
-                <tr className="bg-white/50 dark:bg-[#0F172A]/80 text-capsule-navy dark:text-sky-300 font-black border-b border-slate-300/60 dark:border-slate-700">
+                <tr className="bg-white/50 dark:bg-[#0F172A]/80 text-capsule-navy dark:text-white font-black border-b border-slate-300/60 dark:border-slate-700">
                   {['Order ID', isRtl ? 'المستخدم' : 'User', isRtl ? 'الكورس' : 'Course', isRtl ? 'المبلغ' : 'Amount', isRtl ? 'الحالة' : 'Status', isRtl ? 'التاريخ' : 'Date', isRtl ? 'إجراء' : 'Action'].map((h) => <th className="p-3" key={h}>{h}</th>)}
                 </tr>
               </thead>
@@ -373,7 +373,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ isRtl, ordersLis
                 {ordersList.map((order: any) => (
                   <tr key={order.id} className="hover:bg-white/30 dark:hover:bg-slate-800/50">
                     <td className="p-3 font-mono text-blue-600 dark:text-sky-400 text-start">{String(order.id).slice(0, 8)}...</td>
-                    <td className="p-3 text-start"><p className="text-capsule-navy dark:text-sky-300 font-black">{order.user?.name || 'Guest'}</p><p className="text-[10px] text-gray-500 dark:text-slate-400 font-normal font-mono">{order.user?.email || ''}</p></td>
+                    <td className="p-3 text-start"><p className="text-capsule-navy dark:text-white font-black">{order.user?.name || 'Guest'}</p><p className="text-[10px] text-gray-500 dark:text-slate-400 font-normal font-mono">{order.user?.email || ''}</p></td>
                     <td className="p-3 text-capsule-navy dark:text-slate-200 font-black text-start max-w-[150px] truncate">{order.course?.title || 'Unknown Course'}</td>
                     <td className="p-3 font-mono text-emerald-600 dark:text-emerald-400">{order.amount} SAR</td>
                     <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${order.status === 'PAID' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400' : order.status === 'FAILED' ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-400' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-400'}`}>{order.status}</span></td>
@@ -402,11 +402,11 @@ export interface AdminUsersTabProps {
 
 export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ isRtl, usersList, onRoleChange, onToggleUserStatus }) => (
   <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl shadow-2xl backdrop-saturate-150 overflow-hidden p-6">
-    <h3 className="text-sm font-black text-capsule-navy dark:text-sky-300 border-b border-white/30 dark:border-slate-800 pb-3 mb-4 text-start">{isRtl ? 'إدارة الهويات وحسابات النظام' : 'User Identity Control'}</h3>
+    <h3 className="text-sm font-black text-capsule-navy dark:text-white border-b border-white/30 dark:border-slate-800 pb-3 mb-4 text-start">{isRtl ? 'إدارة الهويات وحسابات النظام' : 'User Identity Control'}</h3>
     <div className="overflow-x-auto">
       <table className="w-full text-xs text-center border-collapse">
         <thead>
-          <tr className="bg-white/50 dark:bg-[#0F172A]/80 text-capsule-navy dark:text-sky-300 font-black border-b border-slate-300/60 dark:border-slate-700">
+          <tr className="bg-white/50 dark:bg-[#0F172A]/80 text-capsule-navy dark:text-white font-black border-b border-slate-300/60 dark:border-slate-700">
             {['ID', isRtl ? 'الاسم' : 'Name', isRtl ? 'البريد الإلكتروني' : 'Email', isRtl ? 'الصلاحية' : 'Role', isRtl ? 'الاشتراكات' : 'Enrollments', isRtl ? 'الحالة' : 'Status', isRtl ? 'الإجراء' : 'Action'].map((h) => <th className="p-3" key={h}>{h}</th>)}
           </tr>
         </thead>
@@ -414,10 +414,10 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ isRtl, usersList, 
           {usersList.map((user) => (
             <tr key={user.id} className="hover:bg-white/30 dark:hover:bg-slate-800/50">
               <td className="p-3 font-mono text-blue-600 dark:text-sky-400 text-start">{user.id.slice(0, 8)}...</td>
-              <td className="p-3 text-capsule-navy dark:text-sky-300 font-black">{user.name}</td>
+              <td className="p-3 text-capsule-navy dark:text-white font-black">{user.name}</td>
               <td className="p-3 font-mono text-gray-500 dark:text-slate-400">{user.email}</td>
               <td className="p-3">
-                <select value={user.role} onChange={(e) => onRoleChange(user.id, e.target.value)} className="p-1 bg-white/60 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold outline-none text-capsule-navy dark:text-sky-300 cursor-pointer">
+                <select value={user.role} onChange={(e) => onRoleChange(user.id, e.target.value)} className="p-1 bg-white/60 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold outline-none text-capsule-navy dark:text-white cursor-pointer">
                   <option value="STUDENT">STUDENT</option>
                   <option value="TRAINER">TRAINER</option>
                   <option value="COMPANY">COMPANY</option>

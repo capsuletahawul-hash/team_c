@@ -34,8 +34,17 @@
   animation: shimmer 1.6s ease-in-out infinite;
 }
 
+/* Brand Gold Badge ("الأكثر طلباً") matching exact identity image */
+.badge-brand-gold,
+html.dark .badge-brand-gold {
+  background-color: #FFD369 !important;
+  color: #164961 !important;
+  font-weight: 900 !important;
+  border: 1px solid rgba(209, 158, 34, 0.4) !important;
+}
+
 /* ============================================================================
-   UIverse strong-squid-82 Day/Night Switch Button Styles
+   UIverse strong-squid-82 Day/Night Switch Button Styles (Compact & Scaled)
    ============================================================================ */
 .theme-switch {
   --container-width: 5.625em;
@@ -58,7 +67,7 @@
   height: var(--container-height);
   cursor: pointer;
   user-select: none;
-  font-size: 14px;
+  font-size: 11px !important;
 }
 
 .theme-switch__checkbox {
@@ -183,7 +192,7 @@
 }
 
 /* ============================================================================
-   Dark Mode Global Override Engine (Translucent Glass & Full-Bleed Radial Glow)
+   Dark Mode Global Override Engine (Pure Crisp White Text Engine)
    ============================================================================ */
 
 body {
@@ -197,12 +206,12 @@ html.dark #root {
   background-color: #0A0F1D !important;
   background-image: radial-gradient(circle at 50% 30%, #111C33 0%, #0A0F1D 65%, #060A14 100%) !important;
   background-attachment: fixed !important;
-  color: #F1F5F9 !important;
+  color: #FFFFFF !important;
 }
 
 html.dark main {
   background-color: transparent !important;
-  color: #F1F5F9 !important;
+  color: #FFFFFF !important;
 }
 
 /* Gradients (Top Hero Header Sections & Bottom Footer) in Dark Mode using Dark Brand Palette */
@@ -215,7 +224,7 @@ html.dark [class*="bg-gradient-to-tr"] {
 
 html.dark footer p.text-gray-300,
 html.dark footer p.text-gray-400 {
-  color: #D1D5DB !important;
+  color: #E2E8F0 !important;
 }
 
 /* Overriding bg-capsule-bg & page background containers */
@@ -225,7 +234,7 @@ html.dark .bg-gray-50,
 html.dark .bg-slate-50,
 html.dark .bg-gray-100 {
   background-color: transparent !important;
-  color: #F1F5F9 !important;
+  color: #FFFFFF !important;
 }
 
 /* Navbars & Header elements */
@@ -238,13 +247,53 @@ html.dark nav {
 html.dark nav button.bg-gray-100,
 html.dark nav button.bg-gray-200 {
   background-color: rgba(22, 32, 53, 0.8) !important;
-  color: #E2E8F0 !important;
+  color: #FFFFFF !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 html.dark nav div.bg-gray-50 {
   background-color: rgba(15, 23, 42, 0.8) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ALL BUTTONS GLOBAL DARK MODE ENGINE */
+html.dark button {
+  color: #FFFFFF !important;
+}
+
+html.dark button.bg-white,
+html.dark button.bg-white\/90,
+html.dark button.bg-white\/80,
+html.dark button.bg-slate-100,
+html.dark button.bg-slate-200,
+html.dark button.bg-gray-100,
+html.dark button.bg-gray-200 {
+  background-color: rgba(22, 32, 53, 0.85) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark button.bg-white:hover,
+html.dark button.bg-slate-100:hover,
+html.dark button.bg-slate-200:hover,
+html.dark button.bg-gray-100:hover,
+html.dark button.bg-gray-200:hover {
+  background-color: rgba(30, 44, 72, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+html.dark button.bg-slate-800,
+html.dark button.bg-slate-900 {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+html.dark button.bg-slate-800:hover,
+html.dark button.bg-slate-900:hover {
+  background-color: rgba(26, 40, 68, 0.95) !important;
+  color: #FFFFFF !important;
 }
 
 /* Translucent Glass Cards in Dark Mode */
@@ -259,7 +308,7 @@ html.dark .bg-white\/40,
 html.dark [class*="bg-white/"] {
   background-color: rgba(22, 32, 53, 0.6) !important;
   backdrop-filter: blur(16px) !important;
-  color: #F8FAFC !important;
+  color: #FFFFFF !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
@@ -270,7 +319,7 @@ html.dark div.bg-white,
 html.dark article.bg-white {
   background-color: rgba(22, 32, 53, 0.75) !important;
   backdrop-filter: blur(16px) !important;
-  color: #F8FAFC !important;
+  color: #FFFFFF !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
@@ -289,14 +338,14 @@ html.dark .bg-slate-100\/50,
 html.dark .bg-slate-50 {
   background-color: rgba(15, 23, 42, 0.6) !important;
   backdrop-filter: blur(12px) !important;
-  color: #F8FAFC !important;
+  color: #FFFFFF !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 html.dark .bg-slate-200,
 html.dark .bg-slate-200\/80 {
   background-color: rgba(13, 22, 39, 0.7) !important;
-  color: #38BDF8 !important;
+  color: #FFFFFF !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
@@ -315,7 +364,7 @@ html.dark tr.hover\:bg-slate-100\/50:hover {
 html.dark .text-slate-700,
 html.dark .text-slate-800,
 html.dark .text-slate-900 {
-  color: #F8FAFC !important;
+  color: #FFFFFF !important;
 }
 
 /* Status Badges in Dark Mode */
@@ -334,21 +383,21 @@ html.dark .bg-amber-100 {
   color: #FBBF24 !important;
 }
 
-/* Typography in Dark Mode */
+/* Pure White & Slate Typography in Dark Mode */
 html.dark .text-gray-900,
 html.dark .text-gray-800,
 html.dark .text-gray-700,
 html.dark .text-gray-600 {
-  color: #E2E8F0 !important;
+  color: #FFFFFF !important;
 }
 
 html.dark .text-gray-500,
 html.dark .text-gray-400 {
-  color: #94A3B8 !important;
+  color: #CBD5E1 !important;
 }
 
 html.dark .text-capsule-navy {
-  color: #38BDF8 !important;
+  color: #FFFFFF !important;
 }
 
 /* Form Inputs & Select Dropdowns in Dark Mode */
@@ -356,18 +405,18 @@ html.dark input,
 html.dark select,
 html.dark textarea {
   background-color: rgba(15, 23, 42, 0.7) !important;
-  color: #F8FAFC !important;
+  color: #FFFFFF !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 html.dark option {
   background-color: #0F172A !important;
-  color: #F8FAFC !important;
+  color: #FFFFFF !important;
 }
 
 html.dark input::placeholder,
 html.dark textarea::placeholder {
-  color: #64748B !important;
+  color: #94A3B8 !important;
 }
 
 /* Skeleton Loader in Dark Mode */
@@ -384,4 +433,121 @@ html.dark .skeleton-shimmer {
 html.dark [class*="bg-[#C9D6DF]"],
 html.dark .bg-\[\#C9D6DF\] {
   background-color: transparent !important;
+}
+
+/* ============================================================================
+   Moyassar SDK Form & Input Typed Text High-Contrast Engine
+   ============================================================================ */
+
+/* Light Mode Input Typed Text */
+.mysr-form input,
+.mysr-form select,
+.mysr-input,
+.mysr-form input[type="text"],
+.mysr-form input[type="number"],
+.mysr-form input[type="tel"] {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  caret-color: #00A499 !important;
+  font-weight: 500 !important;
+  font-size: 15px !important;
+  border: 1.5px solid #CBD5E1 !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.mysr-form input::placeholder {
+  color: #64748B !important;
+  font-weight: 400 !important;
+}
+
+.mysr-form label {
+  color: #0F172A !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Dark Mode Input Typed Text Engine */
+html.dark .mysr-form,
+html.dark .mysr-form *,
+html.dark .mysr-form label,
+html.dark .mysr-form span,
+html.dark .mysr-form p,
+html.dark .mysr-form div,
+html.dark .mysr-form h1,
+html.dark .mysr-form h2,
+html.dark .mysr-form h3 {
+  color: #FFFFFF !important;
+}
+
+html.dark .mysr-form input,
+html.dark .mysr-form select,
+html.dark .mysr-input,
+html.dark .mysr-form input[type="text"],
+html.dark .mysr-form input[type="number"],
+html.dark .mysr-form input[type="tel"],
+html.dark .mysr-form .mysr-name-input,
+html.dark .mysr-form .mysr-number-input,
+html.dark .mysr-form .mysr-cvc-input,
+html.dark .mysr-form .mysr-expiry-input {
+  background-color: #0F172A !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  caret-color: #FFFFFF !important;
+  font-weight: 500 !important;
+  font-size: 15px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 0.75rem !important;
+}
+
+/* Chrome / Safari WebKit Autofill Overrides in Dark Mode */
+html.dark .mysr-form input:-webkit-autofill,
+html.dark .mysr-form input:-webkit-autofill:hover,
+html.dark .mysr-form input:-webkit-autofill:focus,
+html.dark .mysr-form input:-webkit-autofill:active,
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0F172A inset !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  color: #FFFFFF !important;
+}
+
+/* Light Mode Autofill Overrides */
+.mysr-form input:-webkit-autofill,
+.mysr-form input:-webkit-autofill:hover,
+.mysr-form input:-webkit-autofill:focus,
+.mysr-form input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000 !important;
+}
+
+/* Text Selection Override */
+html.dark .mysr-form input::selection,
+html.dark .mysr-form ::selection {
+  background-color: #00A499 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .mysr-form input::placeholder {
+  color: #94A3B8 !important;
+  font-weight: 500 !important;
+}
+
+html.dark .mysr-form input:focus {
+  border-color: #00A499 !important;
+  box-shadow: 0 0 0 3px rgba(0, 164, 153, 0.3) !important;
+}
+
+html.dark .mysr-form button[type="submit"],
+html.dark .mysr-form .mysr-submit-btn {
+  background: linear-gradient(to right, #00A499, #164961) !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  border-radius: 0.75rem !important;
+  padding: 0.85rem !important;
+  font-size: 16px !important;
 }

@@ -95,25 +95,35 @@ function Navbar({
             <div className="flex items-center gap-3">
               <Link
                 to="/sign-in"
-                className="px-4 h-8 rounded-full border border-capsule-navy text-capsule-navy font-semibold hover:bg-capsule-navy hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer"
+                className="px-4 h-8 rounded-full border border-capsule-navy text-capsule-navy dark:border-sky-400 dark:text-sky-400 font-semibold hover:bg-capsule-navy hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer text-xs"
               >
                 {t.tabs.login}
               </Link>
 
               <Link
                 to="/sign-up"
-                className="px-4 h-8 rounded-full bg-gradient-to-r from-capsule-teal to-capsule-navy text-white font-semibold shadow-md hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer"
+                className="px-4 h-8 rounded-full bg-gradient-to-r from-capsule-teal to-capsule-navy text-white font-semibold shadow-md hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer text-xs"
               >
                 {t.tabs.signup}
               </Link>
             </div>
           ) : (
-            <button
-              onClick={handleLogout}
-              className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300 cursor-pointer"
-            >
-              {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/cart"
+                className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-capsule-teal/20 text-gray-700 dark:text-sky-300 font-bold flex items-center justify-center transition-all cursor-pointer border border-gray-200 dark:border-white/10 shadow-xs"
+                title={lang === 'ar' ? 'السلة' : 'Cart'}
+              >
+                🛒
+              </Link>
+
+              <button
+                onClick={handleLogout}
+                className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300 cursor-pointer text-xs"
+              >
+                {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
+              </button>
+            </div>
           )}
         </div>
 

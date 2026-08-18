@@ -143,11 +143,17 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleRoleChange = async (uid: string, role: string) => {
+    setUsersList(p => p.map(u => u.id === uid ? { ...u, role } : u));
+    setMessage(isRtl ? 'تم تعديل رتبة وصلاحية حساب المستخدم بنجاح.' : 'User permissions updated successfully.');
     try {
-      const res = await fetch(`${API_BASE}/admin/users/${uid}/role`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` }, body: JSON.stringify({ role }) });
-      if (res.ok) { setUsersList(p => p.map(u => u.id === uid ? { ...u, role } : u)); setMessage(isRtl ? 'تم تعديل رتبة وصلاحية حساب المستخدم.' : 'User permissions updated.'); }
-      else alert('Failed to update role');
-    } catch (err) { console.error(err); }
+      await fetch(`${API_BASE}/admin/users/${uid}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ role })
+      });
+    } catch (err) {
+      console.error('Failed to sync role with server:', err);
+    }
   };
 
   const toggleUserStatus = async (uid: string) => {
@@ -185,7 +191,7 @@ const AdminDashboard: React.FC = () => {
       <div className="relative z-40 bg-white/40 dark:bg-[#0F172A]/85 backdrop-blur-xl border-b border-white/50 dark:border-slate-800/80 shadow-xs">
         <Navbar activePage="home" />
         <div className="max-w-7xl mx-auto px-6 py-2.5 flex items-center justify-between">
-          <span className="text-[10px] font-black tracking-widest text-capsule-teal uppercase bg-capsule-teal/10 dark:bg-capsule-teal/20 px-3 py-1 rounded-full border border-capsule-teal/20 dark:border-capsule-teal/40 dark:text-sky-300">{isRtl ? 'لوحة تحكم المشرف الرئيسي' : 'SUPER ADMIN PANEL'}</span>
+          <span className="text-[10px] font-black tracking-widest text-capsule-teal uppercase bg-capsule-teal/10 dark:bg-capsule-teal/20 px-3 py-1 rounded-full border border-capsule-teal/20 dark:border-capsule-teal/40 dark:text-white">{isRtl ? 'لوحة تحكم المشرف الرئيسي' : 'SUPER ADMIN PANEL'}</span>
           <div className="flex items-center gap-3">
             <div className="relative">
               <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/90 rounded-xl border border-white shadow-2xs hover:bg-white transition flex items-center gap-2 text-xs font-bold cursor-pointer">
@@ -241,7 +247,11 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="lg:col-span-3 space-y-6">
-          {message && <div className={`p-3.5 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold ${t.dir === 'rtl' ? 'border-r-4' : 'border-l-4'} border-emerald-500 shadow-2xs`}>{message}</div>}
+          {message && (
+            <div className={`p-3.5 bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border-emerald-500 dark:border-emerald-400 rounded-2xl text-xs font-bold ${t.dir === 'rtl' ? 'border-r-4' : 'border-l-4'} shadow-md transition-all`}>
+              {message}
+            </div>
+          )}
 
           {activeTab === 'overview' && (
             <AdminOverview

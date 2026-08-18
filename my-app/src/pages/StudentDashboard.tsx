@@ -231,13 +231,13 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
                           {l.mockData[course.catKey] || (course as any).category} · {l.mockData[course.durKey] || (course as any).duration}
                         </p>
 
-                        <div className="w-full bg-gray-100 rounded-full h-2 mt-3 overflow-hidden">
+                        <div className="w-full bg-gray-100 dark:bg-slate-800/80 border border-slate-200/40 dark:border-white/10 rounded-full h-2.5 mt-3 overflow-hidden shadow-inner">
                           <div
-                            className="bg-capsule-teal h-2 rounded-full transition-all"
+                            className="bg-capsule-teal dark:bg-gradient-to-r dark:from-teal-400 dark:to-emerald-400 h-full rounded-full transition-all shadow-xs"
                             style={{ width: `${course.progress}%` }}
                           ></div>
                         </div>
-                        <p className="text-xs font-bold text-gray-400 mt-1">{course.progress}% {l.resume.completedProgress}</p>
+                        <p className="text-xs font-black text-gray-400 dark:text-slate-300 mt-1.5">{course.progress}% {l.resume.completedProgress}</p>
                       </div>
 
                       <Button

@@ -88,12 +88,17 @@ export default function CoursesOverview() {
   const [backendCourses, setBackendCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // جلب الكورسات الحقيقية المعتمدة من الباك اند فقط (بدون أي بيانات وهمية)
+  // جلب الكورسات الحقيقية المعتمدة من الباك اند فقط (بدون أي بيانات غير معتمدة)
   useEffect(() => {
     fetch("http://localhost:5000/api/courses/public")
       .then((res) => res.json())
       .then((data) => {
-        setBackendCourses(data.success ? (data.courses ?? []) : []);
+        const raw = data.success ? (data.courses ?? []) : [];
+        const approvedOnly = raw.filter((c: any) => {
+          const s = String(c.status || '').toLowerCase();
+          return s === 'published' || s === 'available' || s === 'approved' || s === 'active' || !c.status;
+        });
+        setBackendCourses(approvedOnly);
       })
       .catch(() => {
         setBackendCourses([]);
@@ -227,7 +232,7 @@ export default function CoursesOverview() {
           <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap gap-3 items-center">
             <div className="flex items-center gap-2 bg-capsule-bg border border-gray-200 rounded-full px-4 py-2 flex-1 min-w-[220px]">
               <span>🔍</span>
-              <input type="text" placeholder={isRTL ? "ابحث عن الكورس أو المدرب" : "Search for a course or trainer"} value={searchQuery} onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} className="bg-transparent border-none outline-none w-full text-sm text-capsule-navy placeholder:text-gray-400" />
+              <input type="text" placeholder={isRTL ? "ابحث عن الكورس أو المدرب" : "Search for a course or trainer"} value={searchQuery} onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} className="bg-transparent border-none outline-none w-full text-sm text-capsule-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500" />
             </div>
             <div className="flex gap-2 flex-wrap">
               {filterGroups.map(g => {
@@ -235,11 +240,11 @@ export default function CoursesOverview() {
                 const open = openFilter === g.key;
                 return (
                   <div className="relative" key={g.key}>
-                    <button className={`border rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors ${open || act > 0 ? "border-capsule-teal text-capsule-teal bg-capsule-teal/10" : "border-gray-200 bg-white text-capsule-navy hover:bg-gray-50"}`} onClick={() => setOpenFilter(open ? null : g.key)}>{g.label}{act > 0 ? ` (${act})` : ""} ⌄</button>
+                    <button className={`border rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all cursor-pointer ${open || act > 0 ? "border-capsule-teal text-capsule-teal bg-capsule-teal/10 dark:bg-capsule-teal/20 dark:text-teal-300 dark:border-capsule-teal/50" : "border-gray-200 dark:border-white/10 bg-white dark:bg-[#162035]/80 text-capsule-navy dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-[#1E293B]"}`} onClick={() => setOpenFilter(open ? null : g.key)}>{g.label}{act > 0 ? ` (${act})` : ""} ⌄</button>
                     {open && (
-                      <div className={`absolute z-40 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg p-3 flex flex-col gap-2 ${isRTL ? "right-0 text-right" : "left-0 text-left"}`}>
+                      <div className={`absolute z-40 mt-2 w-56 bg-white dark:bg-[#162035] border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl p-3 flex flex-col gap-2 ${isRTL ? "right-0 text-right" : "left-0 text-left"}`}>
                         {g.items.map((it, idx) => (
-                          <label key={idx} className="flex items-center gap-2.5 text-[13.5px] cursor-pointer text-gray-700 hover:text-black py-0.5 w-full justify-start select-none">
+                          <label key={idx} className="flex items-center gap-2.5 text-[13.5px] cursor-pointer text-gray-700 dark:text-slate-200 hover:text-black dark:hover:text-white py-0.5 w-full justify-start select-none">
                             <input type="checkbox" checked={idx === 0 || it.value === null ? draftFilters[g.key as FilterKey].length === 0 : draftFilters[g.key as FilterKey].includes(it.value)} onChange={() => toggleFilterValue(g.key as FilterKey, it.value, idx)} className="accent-capsule-teal w-4 h-4 shrink-0" />
                             <span className="leading-none">{it.label}</span>
                           </label>
@@ -250,33 +255,42 @@ export default function CoursesOverview() {
                 );
               })}
             </div>
-            <button className="bg-capsule-gold text-capsule-navy font-bold px-4 py-2 rounded-full text-[13px] hover:bg-yellow-500 transition-colors" onClick={() => { setAppliedFilters(draftFilters); setOpenFilter(null); }}>{isRTL ? "تطبيق الفلاتر" : "Apply"}</button>
-            <button className="bg-white border border-gray-200 rounded-full px-4 py-2 text-[13px] font-semibold text-capsule-navy hover:bg-gray-50 transition-colors" onClick={() => { setDraftFilters(EMPTY_FILTERS); setAppliedFilters(EMPTY_FILTERS); setOpenFilter(null); }}>{isRTL ? "إزالة الفلاتر" : "Clear Filters"}</button>
+            <button className="bg-capsule-gold text-capsule-navy dark:bg-[#D19E22] dark:text-slate-950 font-black px-4.5 py-2 rounded-full text-[13px] hover:bg-yellow-500 dark:hover:bg-[#FFD369] transition-all shadow-md cursor-pointer" onClick={() => { setAppliedFilters(draftFilters); setOpenFilter(null); }}>{isRTL ? "تطبيق الفلاتر" : "Apply"}</button>
+            <button className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-white/15 rounded-full px-4.5 py-2 text-[13px] font-semibold text-capsule-navy dark:text-white hover:bg-gray-50 dark:hover:bg-[#1E293B] transition-all cursor-pointer" onClick={() => { setDraftFilters(EMPTY_FILTERS); setAppliedFilters(EMPTY_FILTERS); setOpenFilter(null); }}>{isRTL ? "إزالة الفلاتر" : "Clear Filters"}</button>
           </div>
         </section>
 
         {/* قسم عرض الدورات */}
         <section className="max-w-7xl mx-auto px-6 pt-7 pb-15 w-full">
           <div className="flex justify-between items-center mb-4.5 flex-wrap gap-2.5">
-            <span className="font-bold text-capsule-navy">{isRTL ? `دورات (${processedCourses.length})` : `Courses (${processedCourses.length})`}</span>
+            <span className="font-bold text-capsule-navy dark:text-white">{isRTL ? `دورات (${processedCourses.length})` : `Courses (${processedCourses.length})`}</span>
             <div className="flex items-center gap-2 text-[13.5px]">
-              <span className="text-gray-600">{isRTL ? "ترتيب حسب" : "Sort by"}</span>
-              <select value={sortIndex} onChange={(e: ChangeEvent<HTMLSelectElement>) => setSortIndex(Number(e.target.value))} className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px] bg-white focus:outline-none focus:border-capsule-teal">
+              <span className="text-gray-600 dark:text-slate-400">{isRTL ? "ترتيب حسب" : "Sort by"}</span>
+              <select value={sortIndex} onChange={(e: ChangeEvent<HTMLSelectElement>) => setSortIndex(Number(e.target.value))} className="border border-gray-200 dark:border-white/15 rounded-lg px-2.5 py-1.5 text-[13px] bg-white dark:bg-[#162035] text-capsule-navy dark:text-white focus:outline-none focus:border-capsule-teal">
                 <option value={0}>{isRTL ? "الأعلى تقييماً" : "Highest Rated"}</option>
-                <option value={1}>{isRTL ? "السعر: من الأقل للأعلى" : "Price: Low to High"}</option>
+                <option value={1}>{isRTL ? "الأقل سعراً" : "Price: Low to High"}</option>
+                <option value={2}>{isRTL ? "الأكثر طلباً" : "Most Popular"}</option>
               </select>
             </div>
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-gray-500">{isRTL ? "جاري التحميل..." : "Loading..."}</div>
+            <div className="text-center py-12 text-gray-500 dark:text-slate-400">{isRTL ? "جاري التحميل..." : "Loading..."}</div>
           ) : processedCourses.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {processedCourses.map((c, i) => (
-                <article className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-capsule-navy/10" key={c.id || i}>
+                <article className="bg-white dark:bg-[#162035]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-xl" key={c.id || i}>
                   <div className={`h-[120px] relative flex items-center justify-center bg-gradient-to-br ${c.gradient}`}>
                     <span className="text-[34px] text-white drop-shadow-md">{c.icon}</span>
-                    {c.badgeKey && <span className={`absolute top-2.5 bg-capsule-gold text-capsule-navy text-[11px] font-extrabold px-2.5 py-1 rounded-full ${isRTL ? 'right-2.5' : 'left-2.5'}`}>{l.results.badges[c.badgeKey]}</span>}
+                    {c.badgeKey && (
+                      <span className={`absolute top-2.5 text-[11px] font-black px-2.5 py-1 rounded-full shadow-xs backdrop-blur-md ${isRTL ? 'right-2.5' : 'left-2.5'} ${
+                        c.badgeKey === 'new'
+                          ? 'bg-[#7FB1BC]/25 text-[#164961] dark:bg-[#7FB1BC]/25 dark:text-[#7FB1BC] border border-[#7FB1BC]/40'
+                          : 'bg-[#FFD369] text-[#164961] dark:bg-[#FFD369] dark:text-[#164961] border border-[#D19E22]/40'
+                      }`}>
+                        {l.results.badges[c.badgeKey] || c.badgeKey}
+                      </span>
+                    )}
                   </div>
                   <div className="p-4 flex flex-col gap-2 flex-1">
                     <span className="text-[11px] font-bold uppercase text-capsule-teal tracking-wide">{c.category}</span>
@@ -299,8 +313,8 @@ export default function CoursesOverview() {
                     </div>
                     <div className="flex gap-3.5 text-[12px] text-gray-500 font-medium mt-1 mb-2"><span>⏱ {c.duration} {l.results.hoursLabel}</span><span>👥 {c.students} {l.results.studentsLabel}</span></div>
                     <div className="flex justify-between items-center mt-auto pt-3 border-t border-dashed border-gray-200">
-                      <span className={`font-extrabold text-[14px] ${c.price === 0 ? 'text-[#3E5F44]' : 'text-capsule-navy'}`}>{c.price === 0 ? l.results.free : `${c.price} ${l.results.sar}`}</span>
-                      <button onClick={() => navigate(`/course-details/${c.id}`)} className="border-2 border-capsule-teal text-capsule-teal bg-transparent rounded-full px-3.5 py-1.5 text-[12.5px] font-bold hover:bg-capsule-teal hover:text-white transition-colors">{l.results.viewDetails}</button>
+                      <span className={`font-extrabold text-[14px] ${c.price === 0 ? 'text-[#3E5F44]' : 'text-capsule-navy dark:text-white'}`}>{c.price === 0 ? l.results.free : `${c.price} ${l.results.sar}`}</span>
+                      <button onClick={() => navigate(`/course-details/${c.id}`)} className="border-2 border-capsule-teal text-capsule-teal bg-transparent rounded-full px-3.5 py-1.5 text-[12.5px] font-bold hover:bg-capsule-teal hover:text-white transition-colors cursor-pointer">{l.results.viewDetails}</button>
                     </div>
                   </div>
                 </article>

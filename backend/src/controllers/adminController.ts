@@ -202,6 +202,107 @@ export const adminController = {
   /**
    * List all B2B contract / company-onboarding requests, for review
    */
+
+  /**
+   * List all orders for admin
+   */
+  async getOrders(_req: Request, res: Response) {
+    try {
+      const orders = await prisma.order.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          course: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: { orders },
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        error: "internal_server_error",
+      });
+    }
+  },
+
+  /**
+   * List all enrollments for admin
+   */
+  async getEnrollments(_req: Request, res: Response) {
+    try {
+      const enrollments = await prisma.enrollment.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          course: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      const now = new Date();
+
+      const enriched = enrollments.map((enrollment : any) => {
+        let accessStatus = "inactive";
+
+        if (
+          enrollment.accessStartsAt <= now &&
+          enrollment.accessEndsAt >= now
+        ) {
+          accessStatus = "active";
+        } else if (enrollment.accessStartsAt > now) {
+          accessStatus = "upcoming";
+        } else if (enrollment.accessEndsAt < now) {
+          accessStatus = "expired";
+        }
+
+        return {
+          ...enrollment,
+          accessStatus,
+        };
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: { enrollments: enriched },
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        error: "internal_server_error",
+      });
+    }
+  },
+
   async getContracts(_req: Request, res: Response) {
     try {
       const requests = await contractRepository.findAll();
@@ -336,76 +437,4 @@ export const adminController = {
     }
   },
 
-  /**
-   * Admin read-only view: list all orders across every user, with the
-   * buyer's and course's basic details attached via `include` + nested
-   * `select` (one query, no N+1).
-   */
-  async getOrders(_req: Request, res: Response) {
-    try {
-      const orders = await prisma.order.findMany({
-        select: {
-          id: true,
-          amount: true,
-          status: true,
-          paymentId: true,
-          createdAt: true,
-          user: {
-            select: { id: true, name: true, email: true },
-          },
-          course: {
-            select: { id: true, title: true },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      return res.status(200).json({ success: true, data: { orders } });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ success: false, error: "internal_server_error" });
-    }
-  },
-
-  /**
-   * Admin read-only view: list all enrollments, showing who has access to
-   * what and whether that access is currently active, upcoming, or expired.
-   * The status is derived in JS from the access window since it depends
-   * on "now", not on a stored column.
-   */
-  async getEnrollments(_req: Request, res: Response) {
-    try {
-      const now = new Date();
-
-      const enrollments = await prisma.enrollment.findMany({
-        select: {
-          id: true,
-          accessStartsAt: true,
-          accessEndsAt: true,
-          createdAt: true,
-          user: {
-            select: { id: true, name: true, email: true },
-          },
-          course: {
-            select: { id: true, title: true },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      const data = enrollments.map((e: (typeof enrollments)[number]) => {
-        let accessStatus: "upcoming" | "active" | "expired";
-        if (now < e.accessStartsAt) accessStatus = "upcoming";
-        else if (now > e.accessEndsAt) accessStatus = "expired";
-        else accessStatus = "active";
-
-        return { ...e, accessStatus };
-      });
-
-      return res.status(200).json({ success: true, data: { enrollments: data } });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ success: false, error: "internal_server_error" });
-    }
-  },
 };

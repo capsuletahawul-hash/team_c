@@ -20,7 +20,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     return res.status(401).json({ success: false, error: 'no_token_provided' });
   }
 
-  // دعم الاستعلام باستخدام رمز الأدمن الثابت لمحاكاة الصلاحية كاملة دون تفجير التوقيع
+  // Support the fixed platform admin account.
   if (token === "mock-admin-token-capsuletahawul") {
     (req as AuthenticatedRequest).user = {
       id: "admin-static-id",
@@ -33,6 +33,8 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
   try {
     const secret = process.env.JWT_SECRET || 'fallback-secret-key';
+
+    
     const decoded = jwt.verify(token, secret) as any;
     const userId = decoded.id || decoded.userId || '';
 

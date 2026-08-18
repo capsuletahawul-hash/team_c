@@ -17,8 +17,10 @@ export const authService = {
       name: input.name,
       email: input.email,
       password: hashedPassword,
-      role: input.role || "STUDENT",
+      role: "STUDENT",
     });
+
+    const secret = process.env.JWT_SECRET || "fallback-secret-key";
 
     const token = jwt.sign(
       {
@@ -26,7 +28,7 @@ export const authService = {
         email: newUser.email,
         role: newUser.role,
       },
-      process.env.JWT_SECRET || "fallback-secret-key",
+      secret,
       { expiresIn: "7d" }
     );
 
@@ -43,14 +45,13 @@ export const authService = {
   },
 
   async login(input: LoginInput) {
-    // 🌟 البحث دائماً من قاعدة البيانات عبر Prisma
     const user = await userRepository.findByEmail(input.email);
 
     if (!user) {
       return { success: false, error: "Invalid email or password" };
     }
 
-    if (user.status === 'suspended') {
+    if (user.status === "suspended") {
       return { success: false, error: "Your account has been suspended" };
     }
 
@@ -60,13 +61,15 @@ export const authService = {
       return { success: false, error: "Invalid email or password" };
     }
 
+    const secret = process.env.JWT_SECRET || "fallback-secret-key";
+
     const token = jwt.sign(
       {
         userId: user.id,
         email: user.email,
         role: user.role,
       },
-      process.env.JWT_SECRET || "fallback-secret-key",
+      secret,
       { expiresIn: "7d" }
     );
 

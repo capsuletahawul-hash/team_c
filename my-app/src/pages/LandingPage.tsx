@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getPlatformOverview, getCourses } from '../mocks/mockApi.js';
+import { getPlatformOverview } from '../mocks/mockApi.js';
+import { BASE_URL } from '../services/api';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
@@ -61,6 +62,31 @@ interface LandingPageProps {
   onNavigateToCompanyOnboarding: () => void;
 }
 
+// --- HELPER FETCH FUNCTION ---
+
+async function fetchRealCourses() {
+  try {
+    // We fetch all courses once since the backend doesn't filter by category yet
+    const url = `${BASE_URL}/courses/public`;
+
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { success: false, data: { courses: [] } };
+    }
+
+    const coursesArray = Array.isArray(result) ? result : (result.data?.courses || result.data || result.courses || []);
+
+    return {
+      success: true,
+      data: { courses: coursesArray }
+    };
+  } catch (error) {
+    return { success: false, data: { courses: [] } };
+  }
+}
+
 // --- COMPONENT START ---
 
 function LandingPage({ 
@@ -69,21 +95,23 @@ function LandingPage({
   onNavigateToTrainerOnboarding, 
   onNavigateToCompanyOnboarding 
 }: LandingPageProps) {
-  // Initialize context and extract required translation objects
   const { t, lang } = useLanguage();
   const l = t.platformOverview; 
 
   const [overview, setOverview] = useState<PlatformOverview | null>(null);
+  
+  // Master list of all courses fetched from the database
+  const [allCourses, setAllCourses] = useState<Course[]>([]); 
+  // The currently visible list of courses
   const [courses, setCourses] = useState<Course[]>([]);
-  
-  // Track the active category by its backend-safe key string[cite: 2]
+
   const [activeCategoryKey, setActiveCategoryKey] = useState<string>(l.catalog.filterAll);
-  
+
   const [loading, setLoading] = useState<boolean>(true);
-  const [catalogLoading, setCatalogLoading] = useState<boolean>(false);
+  // Kept for UI feedback even though filtering is instant now
+  const [catalogLoading, setCatalogLoading] = useState<boolean>(false); 
   const [error, setError] = useState<string>('');
 
-  // Dual-binding configuration maps localized UI display labels to raw backend API database keys[cite: 2]
   const CATEGORIES = [
     { key: l.catalog.filterAll, label: l.catalog.filterAll },
     { key: 'Web Development', label: lang === 'ar' ? 'تطوير الويب' : 'Web Development' },
@@ -92,7 +120,6 @@ function LandingPage({
     { key: 'Cloud Computing', label: lang === 'ar' ? 'الحوسبة السحابية' : 'Cloud Computing' }
   ];
 
-  // Clean helper utility to extract correct field based on lang context[cite: 2]
   const getLocalizedValue = (arValue: string | undefined, enValue: string | undefined): string => {
     if (lang === 'ar') {
       return arValue || enValue || '';
@@ -105,7 +132,7 @@ function LandingPage({
 
     Promise.all([
       getPlatformOverview() as Promise<ApiResponse<PlatformOverview>>,
-      getCourses() as Promise<ApiResponse<CoursesPayload>>
+      fetchRealCourses() as Promise<ApiResponse<CoursesPayload>>
     ])
       .then(([overviewRes, coursesRes]) => {
         if (!isMounted) return;
@@ -113,7 +140,11 @@ function LandingPage({
         if (overviewRes.success) setOverview(overviewRes.data);
         else setError(l.errorPlatform);
 
-        if (coursesRes.success) setCourses(coursesRes.data.courses);
+        if (coursesRes.success) {
+          // Store in both the master list and the active display list
+          setAllCourses(coursesRes.data.courses);
+          setCourses(coursesRes.data.courses);
+        }
 
         setLoading(false);
       })
@@ -124,19 +155,30 @@ function LandingPage({
       });
 
     return () => { isMounted = false; };
-  }, [lang, l.errorPlatform, l.errorNetwork]); // Dependencies updated for language switches[cite: 2]
+  }, [lang, l.errorPlatform, l.errorNetwork]);
 
-  const handleCategoryClick = async (categoryKey: string) => {
+ const handleCategoryClick = (categoryKey: string) => {
     setActiveCategoryKey(categoryKey);
     setCatalogLoading(true);
 
-    const filters = categoryKey === l.catalog.filterAll ? {} : { category: categoryKey };
-    const result = (await getCourses(filters)) as ApiResponse<CoursesPayload>;
-
-    if (result.success) {
-      setCourses(result.data.courses);
-    }
-    setCatalogLoading(false);
+    // Filter instantly on the frontend using the master list
+    setTimeout(() => {
+      if (categoryKey === l.catalog.filterAll) {
+        setCourses(allCourses);
+      } else {
+        const filtered = allCourses.filter(c => {
+          // If "Web Development" is clicked, allow both categories
+          if (categoryKey === 'Web Development') {
+            return c.category === 'Web Development' || c.category === 'Software Engineering';
+          }
+          // Otherwise, require an exact match
+          return c.category === categoryKey;
+        });
+        
+        setCourses(filtered);
+      }
+      setCatalogLoading(false);
+    }, 150); // slight delay to let the UI feel natural
   };
 
   if (loading) {

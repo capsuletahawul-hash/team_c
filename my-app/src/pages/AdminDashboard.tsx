@@ -41,7 +41,7 @@ const AdminDashboard: React.FC = () => {
   const getToken = () => {
     const raw = localStorage.getItem('auth_user') || localStorage.getItem('user');
     const parsed = raw ? JSON.parse(raw) : null;
-    return token || parsed?.token || localStorage.getItem('user_token') || localStorage.getItem('token') || '';
+    return token || parsed?.token || sessionStorage.getItem('user_token') || localStorage.getItem('token') || '';
   };
 
   const fetchAdminData = async () => {

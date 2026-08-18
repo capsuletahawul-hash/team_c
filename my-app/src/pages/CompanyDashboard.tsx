@@ -137,7 +137,7 @@ export default function CompanyDashboard() {
     thEmpProgress: lang === 'ar' ? 'نسبة الإنجاز' : 'Completion Rate'
   };
 
-  const token = localStorage.getItem('user_token');
+  const token = sessionStorage.getItem('user_token');
 
   // إفراغ المصفوفات من البيانات الثابتة لانتظار البيانات الحية من السيرفر[cite: 9]
   const [tickets, setTickets] = useState<TicketItem[]>([]);

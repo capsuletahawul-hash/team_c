@@ -64,7 +64,7 @@ const TrainerProfile: React.FC = () => {
   const l = t.trainerProfile;
   const isRTL = lang === "ar";
 
-  const token = localStorage.getItem('user_token');
+  const token = sessionStorage.getItem('user_token');
 
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);

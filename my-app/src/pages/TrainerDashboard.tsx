@@ -19,7 +19,7 @@ export interface CourseItem {
 export default function TrainerDashboard() {
   const { t, lang } = useLanguage();
   const l = t.trainerDashboard;
-  const token = localStorage.getItem('user_token');
+  const token = sessionStorage.getItem('user_token');
 
   const [coursesList, setCoursesList] = useState<CourseItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

@@ -1,10 +1,12 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { getCurrentUser } from '../services/api';
 
 // تعريف الأدوار المتاحة للمستخدمين في النظام
 export type Role = 'student' | 'company' | 'trainer' | 'admin' | null;
 
 interface AuthState {
   isAuthenticated: boolean;
+  isVerifying: boolean;
   role: Role;
   token: string | null;
   login: (role: Role, token?: string) => void;
@@ -14,76 +16,72 @@ interface AuthState {
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // استعادة دور المستخدم فورياً من جميع مفاتيح localStorage الممكنة
-  const [role, setRole] = useState<Role>(() => {
-    const savedRole = localStorage.getItem('user_role') || localStorage.getItem('role');
-    if (savedRole) return savedRole.toLowerCase() as Role;
+  // FIX: كان مخزّن بـ localStorage (يدوم حتى لو المستخدم سكّر المتصفح
+  // كامل)، يعني أي شخص ثاني يفتح نفس الجهاز يورث جلسة أول واحد. sessionStorage
+  // ينمسح تلقائيًا لما التاب/المتصفح يتسكر، فكل شخص يحتاج يسجّل دخول من جديد.
 
-    const authUser = localStorage.getItem('auth_user') || localStorage.getItem('user');
-    if (authUser) {
-      try {
-        const parsed = JSON.parse(authUser);
-        const r = parsed?.user?.role || parsed?.role;
-        if (r) return String(r).toLowerCase() as Role;
-      } catch (e) {}
-    }
-    return null;
+  // استعادة دور المستخدم من sessionStorage
+  const [role, setRole] = useState<Role>(() => {
+    const savedRole = sessionStorage.getItem('user_role');
+    return (savedRole as Role) || null;
   });
 
-  // استعادة التوكن فورياً من جميع مفاتيح localStorage الممكنة
+  // استعادة التوكن من sessionStorage
   const [token, setToken] = useState<string | null>(() => {
-    const savedToken = localStorage.getItem('user_token') || localStorage.getItem('token');
-    if (savedToken) return savedToken;
-
-    const authUser = localStorage.getItem('auth_user') || localStorage.getItem('user');
-    if (authUser) {
-      try {
-        const parsed = JSON.parse(authUser);
-        if (parsed?.token) return parsed.token;
-      } catch (e) {}
-    }
-    return null;
+    return sessionStorage.getItem('user_token');
   });
 
   const login = (r: Role, t?: string) => {
-    const normalizedRole = r ? (String(r).toLowerCase() as Role) : null;
-
-    if (normalizedRole) {
-      localStorage.setItem('user_role', normalizedRole);
-      localStorage.setItem('role', normalizedRole);
-      setRole(normalizedRole);
+    if (r) {
+      sessionStorage.setItem('user_role', r);
+      setRole(r);
     } else {
-      localStorage.removeItem('user_role');
-      localStorage.removeItem('role');
+      sessionStorage.removeItem('user_role');
       setRole(null);
     }
 
     if (t) {
-      localStorage.setItem('user_token', t);
-      localStorage.setItem('token', t);
+      sessionStorage.setItem('user_token', t);
       setToken(t);
-    } else {
-      localStorage.removeItem('user_token');
-      localStorage.removeItem('token');
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('role');
-    localStorage.removeItem('user_token');
-    localStorage.removeItem('token');
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user_role');
+    sessionStorage.removeItem('user_token');
     setRole(null);
     setToken(null);
   };
 
-  // يعتبر المستخدم مسجل دخول فورياً إذا وجد دور أو توكن حقيقي في localStorage
-  const isAuthenticated = Boolean(role || token);
+  // كان يثق بالتوكن المخزّن بشكل أعمى، حتى لو منتهي الصلاحية أو ملغى من
+  // السيرفر — يخلي المستخدم يظهر "مسجل دخول" بالواجهة بدون داعي. نتحقق من
+  // التوكن مع السيرفر (GET /auth/me) عند فتح الموقع، ونسجّل خروج تلقائي لو رفضه.
+  const [isVerifying, setIsVerifying] = useState(true);
+
+  useEffect(() => {
+    if (!token) {
+      setIsVerifying(false);
+      return;
+    }
+
+    getCurrentUser()
+      .catch(() => {
+        sessionStorage.removeItem('user_role');
+        sessionStorage.removeItem('user_token');
+        setRole(null);
+        setToken(null);
+      })
+      .finally(() => setIsVerifying(false));
+    // يشتغل مرة وحدة عند تحميل الموقع — التوكن هنا هو القيمة الأولية من
+    // sessionStorage فقط، تغييره لاحقًا (login/logout) ما يعيد تشغيل التحقق
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // يعتبر مسجل دخول فقط إذا وجد Role و Token معاً، وبعد التحقق من صلاحيته
+  const isAuthenticated = Boolean(role && token);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, role, token, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isVerifying, role, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

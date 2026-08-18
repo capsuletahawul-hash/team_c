@@ -7,11 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// FIX: كانت @map تحوّل القيم لحرف أول كبير ("Student"...)، بينما الميجريشن
+// الفعلية المرفوعة (20260817170000_add_role_enum_week6) أنشأت الـ Postgres
+// enum بحروف كبيرة بالكامل ('STUDENT','ADMIN','TRAINER') — تعارض بين
+// السكيما والميجريشن يكسر أي قراءة لجدول User. حذفنا @map لتطابق الواقع
+// الفعلي بقاعدة البيانات، بدون أي ميجريشن أو تعديل بيانات جديد.
 enum Role {
-  STUDENT @map("Student")
-  ADMIN   @map("Admin")
-  TRAINER @map("Trainer")
-  COMPANY @map("Company")
+  STUDENT
+  ADMIN
+  TRAINER
+  COMPANY
 }
 
 model User {

@@ -18,11 +18,7 @@ model User {
   name           String
   email          String       @unique
   password       String
-<<<<<<< HEAD
   role           Role         @default(STUDENT)
-=======
-  role           String       @default("STUDENT")
->>>>>>> origin/develop
   status         String       @default("active")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt

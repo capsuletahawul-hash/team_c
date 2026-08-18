@@ -202,6 +202,107 @@ export const adminController = {
   /**
    * List all B2B contract / company-onboarding requests, for review
    */
+
+  /**
+   * List all orders for admin
+   */
+  async getOrders(_req: Request, res: Response) {
+    try {
+      const orders = await prisma.order.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          course: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: { orders },
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        error: "internal_server_error",
+      });
+    }
+  },
+
+  /**
+   * List all enrollments for admin
+   */
+  async getEnrollments(_req: Request, res: Response) {
+    try {
+      const enrollments = await prisma.enrollment.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          course: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      const now = new Date();
+
+      const enriched = enrollments.map((enrollment : any) => {
+        let accessStatus = "inactive";
+
+        if (
+          enrollment.accessStartsAt <= now &&
+          enrollment.accessEndsAt >= now
+        ) {
+          accessStatus = "active";
+        } else if (enrollment.accessStartsAt > now) {
+          accessStatus = "upcoming";
+        } else if (enrollment.accessEndsAt < now) {
+          accessStatus = "expired";
+        }
+
+        return {
+          ...enrollment,
+          accessStatus,
+        };
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: { enrollments: enriched },
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        error: "internal_server_error",
+      });
+    }
+  },
+
   async getContracts(_req: Request, res: Response) {
     try {
       const requests = await contractRepository.findAll();

@@ -1,15 +1,20 @@
-import { Router } from 'express';
-import { adminService } from '../services/adminService.js';
-import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
-import { prisma } from '../lib/prisma.js';
-import { adminController } from '../controllers/adminController.js';
+// src/routes/adminRoutes.ts
+//
+// Maps URL + method -> controller function. All routes here require a
+// valid JWT belonging to an Admin account (requireAuth + requireRole).
+
+import { Router } from "express";
+import { adminService } from "../services/adminService.js";
+import { adminController } from "../controllers/adminController.js";
+import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
+import { prisma } from "../lib/prisma.js";
 
 const router = Router();
 
-// حماية مسارات الأدمن
-router.use(requireAuth, requireRole('ADMIN'));
+// Admin routes require authentication and ADMIN role
+router.use(requireAuth, requireRole("ADMIN"));
 
-router.get('/stats', async (_req, res) => {
+router.get("/stats", async (_req, res) => {
   try {
     const stats = await adminService.getStats();
     res.json({ success: true, data: stats });
@@ -17,6 +22,7 @@ router.get('/stats', async (_req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
 
 router.get('/users', async (_req, res) => {
   try {

@@ -39,7 +39,9 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     const userId = decoded.id || decoded.userId || '';
 
     // التحقق من حالة حظر الحساب في قاعدة البيانات
-    const dbUser = await prisma.user.findUnique({ where: { id: userId }, select: { status: true } });
+    const dbUser = typeof prisma.user?.findUnique === 'function' 
+      ? await prisma.user.findUnique({ where: { id: userId }, select: { status: true } }).catch(() => null)
+      : null;
     if (dbUser && dbUser.status === 'suspended') {
       return res.status(403).json({ success: false, error: 'account_suspended' });
     }

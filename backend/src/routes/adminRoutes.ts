@@ -151,6 +151,34 @@ router.put('/tickets/:id/status', adminController.updateTicketStatus);
 // جلب الطلبات (Orders UI) - مربوط بمتحكم الأدمن
 router.get('/orders', adminController.getOrders);
 
+// تحديث حالة الطلب يدوياً (للحالات التي فشل فيها callback الدفع)
+router.patch('/orders/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body; // PAID | FAILED | PENDING
+    const allowed = ['PAID', 'FAILED', 'PENDING'];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ success: false, error: 'invalid_status' });
+    }
+    const order = await prisma.order.update({
+      where: { id },
+      data: { status },
+    });
+    // إذا تم تحديثه إلى PAID، تفعيل الوصول (غير فادح إذا كان الطالب مسجلاً مسبقاً)
+    if (status === 'PAID') {
+      try {
+        const { accessService } = await import('../services/accessService.js');
+        await accessService.grantAccess(order.userId, order.courseId);
+      } catch (accessErr: any) {
+        console.warn('[MARK PAID] grantAccess skipped:', accessErr.message);
+      }
+    }
+    res.json({ success: true, data: order });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // جلب الاشتراكات (Enrollments UI) - مربوط بمتحكم الأدمن
 router.get('/enrollments', adminController.getEnrollments);
 

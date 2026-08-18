@@ -2,19 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // استيراد دالة جلب بيانات المستخدم الحالي من ملف الخدمات المشترك
 import { getCurrentUser, BASE_URL } from '../services/api'; 
+// Import the default profile picture
+import defaultProfilePic from '../assets/profile.png';
 
-// Reusable Components[cite: 10]
+// Reusable Components
 import StudentNavbar from "../components/StudentNavbar.jsx";
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button.js';
 
-// Global Context[cite: 10]
+// Global Context
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 // ============================================================================
-// TYPES & INTERFACES[cite: 10]
+// TYPES & INTERFACES
 // ============================================================================
 
 interface Course {
@@ -52,7 +54,7 @@ interface StudentDashboardProps {
 }
 
 // ============================================================================
-// COMPONENT[cite: 10]
+// COMPONENT
 // ============================================================================
 
 function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
@@ -79,22 +81,21 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         // 1. جلب بيانات بروفايل الطالب الحالي من الباك إند
         const userResponse: any = await getCurrentUser();
         
-// 2. جلب دورات الطالب من الباك إند
-// ملاحظة: studentRoutes مرتبطة في server.ts بالمسار /api/student، و BASE_URL
-// المستورد من services/api.ts يتضمن /api بالفعل — لازم نستخدمه كما هو.
-const token = localStorage.getItem("user_token");
+        // 2. جلب دورات الطالب من الباك إند
+        // ملاحظة: studentRoutes مرتبطة في server.ts بالمسار /api/student، و BASE_URL
+        // المستورد من services/api.ts يتضمن /api بالفعل — لازم نستخدمه كما هو.
+        const token = localStorage.getItem("user_token");
 
-const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+        const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-const coursesData = await coursesRes.json().catch(() => []);
+        const coursesData = await coursesRes.json().catch(() => []);
 
-// لا يوجد API للإشعارات حالياً
-const notifsData: Notification[] = [];
-
+        // لا يوجد API للإشعارات حالياً
+        const notifsData: Notification[] = [];
 
         if (!isMounted) return;
 
@@ -128,7 +129,7 @@ const notifsData: Notification[] = [];
   const completedCourses = courses.filter(c => c.status === 'Completed');
   const unreadNotifications = notifications.filter(n => !n.isRead);
 
-  // Safe fallback calculation for profile name[cite: 10]
+  // Safe fallback calculation for profile name
   const firstName = profile?.fullName?.split(' ')[0] || l.hero.fallbackName;
 
   return (
@@ -142,9 +143,9 @@ const notifsData: Notification[] = [];
           </div>
         )}
 
-        {/* Hero Section[cite: 10] */}
-<div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-10 px-8"  >
-        <div className="max-w-7xl mx-auto relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-10 px-8"  >
+          <div className="max-w-7xl mx-auto relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <p className="text-capsule-gold text-xs font-bold uppercase tracking-wider mb-1">
                 {l.hero.badge}
@@ -157,13 +158,13 @@ const notifsData: Notification[] = [];
               </p>
             </div>
 
-            {/* Profile Avatar Button[cite: 10] */}
+            {/* Profile Avatar Button */}
             <button
               onClick={onNavigateToProfile}
               className={`flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-3 transition cursor-pointer ${t.dir === 'rtl' ? 'pl-5' : 'pr-5'}`}
             >
               <img
-                src={profile?.avatar || 'https://via.placeholder.com/150'}
+                src={profile?.avatar || defaultProfilePic}
                 alt="Profile Avatar"
                 className="w-12 h-12 rounded-full border-2 border-capsule-gold object-cover"
               />
@@ -176,8 +177,7 @@ const notifsData: Notification[] = [];
         </div>
 
         <div className="max-w-7xl mx-auto px-6 py-10">
-
-          {/* Quick Stats Cards[cite: 10] */}
+          {/* Quick Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
               <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.activeCourses}</p>
@@ -200,8 +200,7 @@ const notifsData: Notification[] = [];
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-            {/* Resume Learning Section[cite: 10] */}
+            {/* Resume Learning Section */}
             <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
               <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                 <h2 className="text-base font-bold text-capsule-navy">{l.resume.title}</h2>
@@ -225,7 +224,6 @@ const notifsData: Notification[] = [];
                   {courses.map((course) => (
                     <div key={course.id} className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
                       <div className="flex-1">
-                        {/* فحص ما إذا كان العنوان قادماً كمفتاح ترجمة أو كعنوان نصي مباشر من السيرفر */}
                         <p className="font-bold text-capsule-navy text-sm">
                           {l.mockData[course.titleKey] || (course as any).title}
                         </p>
@@ -243,25 +241,25 @@ const notifsData: Notification[] = [];
                       </div>
 
                       <Button
-  variant={
-    course.status === 'Completed' || course.status === 'Expired'
-      ? 'secondary'
-      : 'primary'
-  }
->
-  {course.status === 'Completed'
-    ? l.resume.certBtn
-    : course.status === 'Expired'
-      ? 'Locked'
-      : l.resume.continueBtn}
-</Button>
+                        variant={
+                          course.status === 'Completed' || course.status === 'Expired'
+                            ? 'secondary'
+                            : 'primary'
+                        }
+                      >
+                        {course.status === 'Completed'
+                          ? l.resume.certBtn
+                          : course.status === 'Expired'
+                            ? 'Locked'
+                            : l.resume.continueBtn}
+                      </Button>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Notifications Section[cite: 10] */}
+            {/* Notifications Section */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden h-fit">
               <div className="p-6 border-b border-gray-100 bg-gray-50">
                 <h2 className="text-base font-bold text-capsule-navy">{l.notifications.title}</h2>

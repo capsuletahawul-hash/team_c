@@ -18,7 +18,7 @@ function LoadingIndicator({ message, variant = 'spinner' }: LoadingIndicatorProp
   return (
     <div dir={t.dir} className="flex flex-col items-center justify-center p-8 font-sans">
       <div className="animate-spin rounded-full h-10 w-10 border-4 border-capsule-teal border-t-transparent mb-3"></div>
-      <p className="text-capsule-navy text-xs font-bold animate-pulse">
+      <p className="text-capsule-navy dark:text-sky-300 text-xs font-bold animate-pulse">
         {displayMessage}
       </p>
     </div>

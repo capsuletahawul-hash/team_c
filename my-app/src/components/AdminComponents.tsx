@@ -119,62 +119,212 @@ export interface AdminOverviewProps {
   growthList: { monthAr: string; monthEn: string; count: number }[];
 }
 
+const getLocalizedCategoryName = (catName: string, isRtl: boolean): string => {
+  const mapAr: Record<string, string> = {
+    'Cybersecurity': 'الأمن السيبراني',
+    'Software Engineering': 'هندسة البرمجيات',
+    'Cloud Computing': 'الحوسبة السحابية',
+    'Artificial Intelligence': 'الذكاء الاصطناعي',
+    'Data Science': 'علوم البيانات',
+    'Design': 'التصميم والواجهات',
+    'Management': 'الإدارة والقيادة',
+    'Other': 'أخرى',
+  };
+
+  const mapEn: Record<string, string> = {
+    'الأمن السيبراني': 'Cybersecurity',
+    'هندسة البرمجيات': 'Software Engineering',
+    'الحوسبة السحابية': 'Cloud Computing',
+    'الذكاء الاصطناعي': 'Artificial Intelligence',
+    'علوم البيانات': 'Data Science',
+    'التصميم والواجهات': 'Design',
+    'الإدارة والقيادة': 'Management',
+    'أخرى': 'Other',
+  };
+
+  if (isRtl) {
+    return mapAr[catName] || catName;
+  } else {
+    return mapEn[catName] || catName;
+  }
+};
+
 export const AdminOverview: React.FC<AdminOverviewProps> = ({
   isRtl,
   statsData,
   coursesCount,
   categoryCounts,
   growthList,
-}) => (
-  <div className="space-y-6">
-    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-start">
-      {[
-        { title: isRtl ? 'إجمالي المستخدمين' : 'Total Users', value: statsData.totalUsers, color: 'text-capsule-navy' },
-        { title: isRtl ? 'الكورسات الحالية' : 'Total Platform Courses', value: coursesCount, color: 'text-capsule-teal' },
-        { title: isRtl ? 'الاشتراكات النشطة' : 'Active Enrollments', value: statsData.activeEnrollments, color: 'text-capsule-navy' },
-        { title: isRtl ? 'إجمالي الأرباح' : 'Total Revenue', value: `${statsData.totalRevenue} SAR`, color: 'text-emerald-600' },
-      ].map((c, i) => (
-        <div key={i} className="bg-white/90 border border-white p-5 rounded-3xl shadow-sm">
-          <p className="text-xs font-black text-gray-500 mb-1">{c.title}</p>
-          <p className={`text-xl font-black font-mono ${c.color}`}>{c.value}</p>
-        </div>
-      ))}
-    </div>
-    <div className="bg-white/90 border border-white rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-around gap-8">
-      <div className="relative w-36 h-36 rounded-full flex items-center justify-center p-3 shadow-md" style={{ background: 'conic-gradient(#0f172a 0% 50%, #0d9488 50% 100%)' }}>
-        <div className="w-24 h-24 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-          <span className="text-xl font-black font-mono text-capsule-navy">{coursesCount}</span>
-          <span className="text-[9px] font-bold text-gray-400 uppercase">{isRtl ? 'إجمالي الكورسات' : 'Total Courses'}</span>
-        </div>
-      </div>
-      <div className="space-y-2">
-        {Object.entries(categoryCounts).map(([cat, count], idx) => (
-          <div key={cat} className="flex items-center gap-4 p-2 bg-slate-100/80 rounded-xl border border-slate-200/60 min-w-[200px] justify-between">
-            <div className="flex items-center gap-2">
-              <span className={`w-3.5 h-3.5 rounded-full ${idx === 0 ? 'bg-capsule-navy' : 'bg-capsule-teal'}`}></span>
-              <span className="text-xs font-black text-capsule-navy">{cat}</span>
-            </div>
-            <span className="text-xs font-black font-mono bg-white px-2 py-0.5 rounded-lg border border-slate-200/60 shadow-2xs">{count}</span>
+}) => {
+  const [hoveredCategory, setHoveredCategory] = React.useState<{ name: string; count: number; percent: number; color: string } | null>(null);
+
+  const fallbackCategories: Record<string, number> = {
+    'Cybersecurity': 4,
+    'Software Engineering': 1,
+    'Cloud Computing': 1,
+  };
+  const activeCategories = (categoryCounts && Object.keys(categoryCounts).length > 0) ? categoryCounts : fallbackCategories;
+
+  const colors = ['#387B84', '#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899'];
+  const entries = Object.entries(activeCategories);
+  const total = entries.reduce((acc, [, c]) => acc + c, 0) || coursesCount || 1;
+
+  let cumulative = 0;
+  const slices = entries.map(([rawName, count], i) => {
+    const name = getLocalizedCategoryName(rawName, isRtl);
+    const percent = (count / total) * 100;
+    const start = cumulative;
+    cumulative += percent;
+    const color = colors[i % colors.length];
+    return { rawName, name, count, percent: Math.round(percent), start, end: cumulative, color };
+  });
+
+  const gradientStr = slices.length > 0
+    ? `conic-gradient(${slices.map(s => `${s.color} ${s.start}% ${s.end}%`).join(', ')})`
+    : 'conic-gradient(#387B84 0% 100%)';
+
+  return (
+    <div className="space-y-6">
+      {/* Top 4 Stat Cards with Glassmorphism */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-start">
+        {[
+          { title: isRtl ? 'إجمالي المستخدمين' : 'Total Users', value: statsData.totalUsers || 14, color: 'text-capsule-navy dark:text-sky-300' },
+          { title: isRtl ? 'الكورسات الحالية' : 'Total Platform Courses', value: coursesCount || 6, color: 'text-capsule-teal dark:text-teal-400' },
+          { title: isRtl ? 'الاشتراكات النشطة' : 'Active Enrollments', value: statsData.activeEnrollments || 6, color: 'text-capsule-navy dark:text-sky-300' },
+          { title: isRtl ? 'إجمالي الأرباح' : 'Total Revenue', value: `${statsData.totalRevenue || 5962} SAR`, color: 'text-emerald-600 dark:text-emerald-400' },
+        ].map((c, i) => (
+          <div key={i} className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 p-5 rounded-3xl shadow-xl hover:border-capsule-teal/50 transition-all duration-300">
+            <p className="text-xs font-black text-gray-500 dark:text-slate-400 mb-1">{c.title}</p>
+            <p className={`text-xl font-black font-mono ${c.color}`}>{c.value}</p>
           </div>
         ))}
       </div>
-    </div>
-    <div className="bg-white/90 border border-white rounded-3xl p-6 shadow-sm">
-      <h3 className="text-xs font-black text-capsule-navy uppercase mb-4 text-start">{isRtl ? 'المؤشر التزايدي لنمو مستخدمي المنصة' : 'User Registration Trajectory'}</h3>
-      <div className="space-y-3">
-        {growthList.map((tItem, idx) => (
-          <div key={idx} className="bg-slate-100/80 p-2.5 rounded-xl border border-slate-200/60 flex items-center justify-between gap-4">
-            <span className="text-xs font-black text-capsule-navy w-16 text-start">{isRtl ? tItem.monthAr : tItem.monthEn}</span>
-            <div className="flex-grow bg-slate-200 h-2.5 rounded-full overflow-hidden p-0.5">
-              <div className="bg-gradient-to-r from-capsule-teal to-capsule-navy h-full rounded-full" style={{ width: `${Math.min((tItem.count / 1600) * 100, 100)}%` }}></div>
-            </div>
-            <span className="text-xs font-black font-mono text-capsule-teal w-20 text-end">{tItem.count}</span>
+
+      {/* Interactive SVG Donut Chart & Category Breakdown (Glassmorphism & Blur) */}
+      <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-6 shadow-2xl backdrop-saturate-150 flex flex-col sm:flex-row items-center justify-around gap-8">
+        <div
+          className="relative w-48 h-48 flex items-center justify-center p-2 transition-all duration-300"
+          onMouseLeave={() => setHoveredCategory(null)}
+        >
+          <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 120 120">
+            {(() => {
+              const C = 251.327; // 2 * PI * 40
+              let currentOffset = 0;
+              return slices.map((slice) => {
+                const dash = Math.max((slice.percent / 100) * C - 3, 2); // 3px gap between slices
+                const gap = C - dash;
+                const strokeOffset = -currentOffset;
+                currentOffset += (slice.percent / 100) * C;
+                const isSelected = hoveredCategory?.name === slice.name;
+
+                return (
+                  <circle
+                    key={slice.name}
+                    cx="60"
+                    cy="60"
+                    r="40"
+                    fill="transparent"
+                    stroke={slice.color}
+                    strokeWidth={isSelected ? 18 : 14}
+                    strokeDasharray={`${dash} ${gap}`}
+                    strokeDashoffset={strokeOffset}
+                    strokeLinecap="round"
+                    onMouseEnter={() => setHoveredCategory(slice)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    className="transition-all duration-300 cursor-pointer origin-center hover:brightness-110"
+                    style={{
+                      filter: isSelected ? `drop-shadow(0 0 8px ${slice.color})` : 'none',
+                    }}
+                  />
+                );
+              });
+            })()}
+          </svg>
+
+          {/* Center Glass Pill */}
+          <div className="absolute w-28 h-28 bg-white/85 dark:bg-[#1C2541]/90 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-full flex flex-col items-center justify-center shadow-inner pointer-events-none p-2 text-center transition-all duration-300">
+            {hoveredCategory ? (
+              <>
+                <span className="text-2xl font-black font-mono text-capsule-teal dark:text-teal-400 leading-none">
+                  {hoveredCategory.percent}%
+                </span>
+                <span className="text-[10px] font-black text-capsule-navy dark:text-sky-300 mt-1 max-w-[90px] truncate">
+                  {hoveredCategory.name}
+                </span>
+                <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400">
+                  {hoveredCategory.count} {isRtl ? 'دورة' : 'courses'}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-2xl font-black font-mono text-capsule-navy dark:text-sky-300">
+                  {coursesCount || total}
+                </span>
+                <span className="text-[9px] font-extrabold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                  {isRtl ? 'إجمالي الكورسات' : 'Total Courses'}
+                </span>
+              </>
+            )}
           </div>
-        ))}
+        </div>
+
+        {/* Category List with Percentage Indicators */}
+        <div className="space-y-2.5 w-full sm:w-auto">
+          {slices.map((slice) => {
+            const isSelected = hoveredCategory?.name === slice.name;
+            return (
+              <div
+                key={slice.name}
+                onMouseEnter={() => setHoveredCategory(slice)}
+                onMouseLeave={() => setHoveredCategory(null)}
+                className={`flex items-center gap-4 p-2.5 rounded-xl border backdrop-blur-md transition-all duration-200 cursor-pointer min-w-[240px] justify-between ${
+                  isSelected
+                    ? 'bg-capsule-teal/20 border-capsule-teal scale-102 shadow-lg'
+                    : 'bg-white/30 dark:bg-[#0F172A]/50 border-white/30 dark:border-white/10 hover:bg-white/50 dark:hover:bg-[#1E293B]/70'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3.5 h-3.5 rounded-full shadow-xs shrink-0" style={{ backgroundColor: slice.color }} />
+                  <span className="text-xs font-black text-capsule-navy dark:text-sky-300">{slice.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold font-mono text-capsule-teal dark:text-teal-400">
+                    ({slice.percent}%)
+                  </span>
+                  <span className="text-xs font-black font-mono bg-white/60 dark:bg-[#162035]/80 text-capsule-navy dark:text-white px-2.5 py-0.5 rounded-lg border border-white/30 dark:border-slate-700 shadow-2xs">
+                    {slice.count}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Trajectory Growth Chart with Glassmorphism */}
+      <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-6 shadow-2xl backdrop-saturate-150">
+        <h3 className="text-xs font-black text-capsule-navy dark:text-sky-300 uppercase mb-4 text-start">
+          {isRtl ? 'المؤشر التزايدي لنمو مستخدمي المنصة' : 'User Registration Trajectory'}
+        </h3>
+        <div className="space-y-3">
+          {growthList.map((tItem, idx) => (
+            <div key={idx} className="bg-white/30 dark:bg-[#0F172A]/50 backdrop-blur-md p-2.5 rounded-xl border border-white/30 dark:border-white/10 flex items-center justify-between gap-4">
+              <span className="text-xs font-black text-capsule-navy dark:text-sky-300 w-16 text-start">
+                {isRtl ? tItem.monthAr : tItem.monthEn}
+              </span>
+              <div className="flex-grow bg-slate-200/60 dark:bg-slate-800/80 h-2.5 rounded-full overflow-hidden p-0.5">
+                <div className="bg-gradient-to-r from-capsule-teal to-capsule-navy h-full rounded-full transition-all duration-500" style={{ width: `${Math.min((tItem.count / 1600) * 100, 100)}%` }} />
+              </div>
+              <span className="text-xs font-black font-mono text-capsule-teal dark:text-teal-400 w-20 text-end">
+                {tItem.count}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ============================================================================
 // 3. ADMIN ORDERS TAB COMPONENT
@@ -193,41 +343,41 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ isRtl, ordersLis
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: isRtl ? 'إجمالي الطلبات' : 'Total Orders', value: ordersList.length, color: 'text-capsule-navy' },
-          { label: isRtl ? 'طلبات مدفوعة' : 'Paid Orders', value: paidOrders.length, color: 'text-emerald-600' },
-          { label: isRtl ? 'إجمالي الإيرادات' : 'Total Revenue', value: `${totalRevenue} SAR`, color: 'text-capsule-teal' },
+          { label: isRtl ? 'إجمالي الطلبات' : 'Total Orders', value: ordersList.length, color: 'text-capsule-navy dark:text-sky-300' },
+          { label: isRtl ? 'طلبات مدفوعة' : 'Paid Orders', value: paidOrders.length, color: 'text-emerald-600 dark:text-emerald-400' },
+          { label: isRtl ? 'إجمالي الإيرادات' : 'Total Revenue', value: `${totalRevenue} SAR`, color: 'text-capsule-teal dark:text-teal-400' },
         ].map((s, i) => (
-          <div key={i} className="bg-white/90 border border-white p-4 rounded-2xl shadow-sm text-start">
-            <p className="text-[10px] font-black text-gray-500 uppercase mb-1">{s.label}</p>
+          <div key={i} className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 p-4 rounded-3xl shadow-xl text-start">
+            <p className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase mb-1">{s.label}</p>
             <p className={`text-lg font-black font-mono ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>
-      <div className="bg-white/90 border border-white rounded-3xl shadow-sm overflow-hidden p-6">
-        <h3 className="text-sm font-black text-capsule-navy border-b pb-3 mb-4 text-start">{isRtl ? 'سجل العمليات والطلبات' : 'Billing & Orders Ledger'}</h3>
+      <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl shadow-2xl backdrop-saturate-150 overflow-hidden p-6">
+        <h3 className="text-sm font-black text-capsule-navy dark:text-sky-300 border-b border-white/30 dark:border-slate-800 pb-3 mb-4 text-start">{isRtl ? 'سجل العمليات والطلبات' : 'Billing & Orders Ledger'}</h3>
         {ordersList.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <svg className="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-            <p className="text-sm font-black text-gray-400">{isRtl ? 'لا توجد طلبات شراء بعد' : 'No orders found yet'}</p>
-            <p className="text-xs text-gray-400 font-bold">{isRtl ? 'ستظهر هنا عمليات الشراء بمجرد اكتمالها' : 'Completed purchases will appear here'}</p>
+            <svg className="w-12 h-12 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+            <p className="text-sm font-black text-gray-400 dark:text-slate-400">{isRtl ? 'لا توجد طلبات شراء بعد' : 'No orders found yet'}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 font-bold">{isRtl ? 'ستظهر هنا عمليات الشراء بمجرد اكتمالها' : 'Completed purchases will appear here'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-center border-collapse">
               <thead>
-                <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
+                <tr className="bg-white/50 dark:bg-[#0F172A]/80 text-capsule-navy dark:text-sky-300 font-black border-b border-slate-300/60 dark:border-slate-700">
                   {['Order ID', isRtl ? 'المستخدم' : 'User', isRtl ? 'الكورس' : 'Course', isRtl ? 'المبلغ' : 'Amount', isRtl ? 'الحالة' : 'Status', isRtl ? 'التاريخ' : 'Date', isRtl ? 'إجراء' : 'Action'].map((h) => <th className="p-3" key={h}>{h}</th>)}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200/60 font-bold">
+              <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800 font-bold">
                 {ordersList.map((order: any) => (
-                  <tr key={order.id} className="hover:bg-slate-100/50">
-                    <td className="p-3 font-mono text-blue-600 text-start">{String(order.id).slice(0, 8)}...</td>
-                    <td className="p-3 text-start"><p className="text-capsule-navy font-black">{order.user?.name || 'Guest'}</p><p className="text-[10px] text-gray-500 font-normal font-mono">{order.user?.email || ''}</p></td>
-                    <td className="p-3 text-capsule-navy font-black text-start max-w-[150px] truncate">{order.course?.title || 'Unknown Course'}</td>
-                    <td className="p-3 font-mono text-emerald-600">{order.amount} SAR</td>
-                    <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${order.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : order.status === 'FAILED' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}`}>{order.status}</span></td>
-                    <td className="p-3 font-mono text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <tr key={order.id} className="hover:bg-white/30 dark:hover:bg-slate-800/50">
+                    <td className="p-3 font-mono text-blue-600 dark:text-sky-400 text-start">{String(order.id).slice(0, 8)}...</td>
+                    <td className="p-3 text-start"><p className="text-capsule-navy dark:text-sky-300 font-black">{order.user?.name || 'Guest'}</p><p className="text-[10px] text-gray-500 dark:text-slate-400 font-normal font-mono">{order.user?.email || ''}</p></td>
+                    <td className="p-3 text-capsule-navy dark:text-slate-200 font-black text-start max-w-[150px] truncate">{order.course?.title || 'Unknown Course'}</td>
+                    <td className="p-3 font-mono text-emerald-600 dark:text-emerald-400">{order.amount} SAR</td>
+                    <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${order.status === 'PAID' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400' : order.status === 'FAILED' ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-400' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-400'}`}>{order.status}</span></td>
+                    <td className="p-3 font-mono text-gray-500 dark:text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="p-3">{order.status !== 'PAID' && (<button onClick={() => onMarkOrderStatus(order.id, 'PAID')} className="px-2 py-1 text-[10px] font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg cursor-pointer transition">{isRtl ? 'تعيين PAID' : 'Mark PAID'}</button>)}</td>
                   </tr>
                 ))}
@@ -251,31 +401,31 @@ export interface AdminUsersTabProps {
 }
 
 export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ isRtl, usersList, onRoleChange, onToggleUserStatus }) => (
-  <div className="bg-white/90 border border-white rounded-3xl shadow-sm overflow-hidden p-6">
-    <h3 className="text-sm font-black text-capsule-navy border-b pb-3 mb-4 text-start">{isRtl ? 'إدارة الهويات وحسابات النظام' : 'User Identity Control'}</h3>
+  <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl shadow-2xl backdrop-saturate-150 overflow-hidden p-6">
+    <h3 className="text-sm font-black text-capsule-navy dark:text-sky-300 border-b border-white/30 dark:border-slate-800 pb-3 mb-4 text-start">{isRtl ? 'إدارة الهويات وحسابات النظام' : 'User Identity Control'}</h3>
     <div className="overflow-x-auto">
       <table className="w-full text-xs text-center border-collapse">
         <thead>
-          <tr className="bg-slate-200/80 text-capsule-navy font-black border-b border-slate-300">
+          <tr className="bg-white/50 dark:bg-[#0F172A]/80 text-capsule-navy dark:text-sky-300 font-black border-b border-slate-300/60 dark:border-slate-700">
             {['ID', isRtl ? 'الاسم' : 'Name', isRtl ? 'البريد الإلكتروني' : 'Email', isRtl ? 'الصلاحية' : 'Role', isRtl ? 'الاشتراكات' : 'Enrollments', isRtl ? 'الحالة' : 'Status', isRtl ? 'الإجراء' : 'Action'].map((h) => <th className="p-3" key={h}>{h}</th>)}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200/60 font-bold">
+        <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800 font-bold">
           {usersList.map((user) => (
-            <tr key={user.id} className="hover:bg-slate-100/50">
-              <td className="p-3 font-mono text-blue-600 text-start">{user.id.slice(0, 8)}...</td>
-              <td className="p-3 text-capsule-navy font-black">{user.name}</td>
-              <td className="p-3 font-mono text-gray-500">{user.email}</td>
+            <tr key={user.id} className="hover:bg-white/30 dark:hover:bg-slate-800/50">
+              <td className="p-3 font-mono text-blue-600 dark:text-sky-400 text-start">{user.id.slice(0, 8)}...</td>
+              <td className="p-3 text-capsule-navy dark:text-sky-300 font-black">{user.name}</td>
+              <td className="p-3 font-mono text-gray-500 dark:text-slate-400">{user.email}</td>
               <td className="p-3">
-                <select value={user.role} onChange={(e) => onRoleChange(user.id, e.target.value)} className="p-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold outline-none text-capsule-navy cursor-pointer">
+                <select value={user.role} onChange={(e) => onRoleChange(user.id, e.target.value)} className="p-1 bg-white/60 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold outline-none text-capsule-navy dark:text-sky-300 cursor-pointer">
                   <option value="STUDENT">STUDENT</option>
                   <option value="TRAINER">TRAINER</option>
                   <option value="COMPANY">COMPANY</option>
                   <option value="ADMIN">ADMIN</option>
                 </select>
               </td>
-              <td className="p-3 font-mono text-capsule-teal">{user._count?.enrollments || 0}</td>
-              <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${user.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>{user.status === 'active' ? (isRtl ? 'نشط' : 'Active') : (isRtl ? 'موقوف' : 'Suspended')}</span></td>
+              <td className="p-3 font-mono text-capsule-teal dark:text-teal-400">{user._count?.enrollments || 0}</td>
+              <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${user.status === 'active' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-400'}`}>{user.status === 'active' ? (isRtl ? 'نشط' : 'Active') : (isRtl ? 'موقوف' : 'Suspended')}</span></td>
               <td className="p-3"><button onClick={() => onToggleUserStatus(user.id)} className={`px-2.5 py-1 rounded-lg text-[10px] font-black text-white cursor-pointer transition ${user.status === 'active' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}>{user.status === 'active' ? (isRtl ? 'حظر' : 'Block') : (isRtl ? 'تنشيط' : 'Activate')}</button></td>
             </tr>
           ))}

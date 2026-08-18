@@ -3,53 +3,17 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+import lightLogo from "../assets/light_trans_logo.png";
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
 
-// ============================================================================
-// TYPES & INTERFACES
-// ============================================================================
-
-/**
- * Interface detailing structure for each navigation link.
- */
-interface NavLinkItem {
-  id: string;
-  label: string;
-  to: string;
-}
-
-/**
- * Prop interface for the general public Navbar component.
- */
-interface NavbarProps {
-  activePage?: string;
-  showAuthButtons?: boolean;
-  onSignIn?: () => void;
-  onSignUp?: () => void;
-}
-
-// ============================================================================
-// COMPONENT
-// ============================================================================
-
-/**
- * Navbar Component
- * 
- * Public-facing navigation system with translation controls, dark mode shell,
- * fully responsive mobile burger drawers, and conditional auth state layouts.
- */
+// ... inside Navbar component:
 function Navbar({ 
   activePage = 'dashboard', 
-  // showAuthButtons / onSignIn / onSignUp are deprecated: kept only so older
-  // pages that still pass them don't break. Real login state now comes from
-  // AuthContext, not from a prop each page has to remember to set correctly.
 }: NavbarProps): React.JSX.Element {
-  // Mobile drawer visible toggle state
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  
-  // Pull language metrics and context translation dictionaries
   const { t, lang, toggleLanguage } = useLanguage();
-
-  // Real, shared login state — same value on every page.
+  const { theme } = useTheme();
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -58,18 +22,17 @@ function Navbar({
     navigate('/');
   };
 
-  /**
-   * Statically mapped links matching your translatable global framework.
-   */
   const navLinks: NavLinkItem[] = [
     { id: "home", label: t.nav.home, to: "/" },
     { id: "courses", label: t.nav.courses, to: "/courses-overview" },
     { id: "bootcamps", label: t.nav.bootcamps, to: "/courses-overview" },
   ];
 
+  const currentLogo = theme === 'dark' ? lightLogo : logo;
+
   return (
     <nav
-      className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm transition-all"
+      className="sticky top-0 z-50 bg-white/90 dark:bg-[#0A0F1D]/90 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 shadow-sm transition-all"
       dir={t.dir}
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
@@ -79,11 +42,11 @@ function Navbar({
           {/* Logo Brand Frame */}
           <Link to="/" className="flex items-center gap-3 cursor-pointer">
             <img
-              src={logo}
+              src={currentLogo}
               alt="Capsula Tahawul Logo"
               className="w-12 h-12 object-contain"
             />
-            <span className="text-lg font-extrabold tracking-wide text-capsule-navy">
+            <span className="text-lg font-extrabold tracking-wide text-capsule-navy dark:text-white">
               {t.brand}
             </span>
           </Link>
@@ -124,10 +87,8 @@ function Navbar({
             {lang === 'ar' ? 'EN' : 'AR'}
           </button>
 
-          {/* Theme Toggle Placeholder */}
-          <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition">
-            🌙
-          </button>
+          {/* Day/Night Theme Toggle (UIverse strong-squid-82 CSS Button) */}
+          <ThemeToggle size="14px" />
 
           {/* Conditional authentication buttons framework — now based on real auth state */}
           {!isAuthenticated ? (

@@ -160,9 +160,18 @@ const ContractsApproval: React.FC<ContractsApprovalProps> = ({ isEmbedded = fals
 
   // Graceful handling of loading states
   if (loading) {
+    if (isEmbedded) {
+      return (
+        <div className="p-8 flex items-center justify-center">
+          <LoadingIndicator variant="table" message={l.loading} />
+        </div>
+      );
+    }
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <LoadingIndicator message={l.loading} />
+      <div className="min-h-screen flex flex-col justify-between bg-capsule-bg dark:bg-[#0A0F1D]">
+        <Navbar activePage="home" />
+        <LoadingIndicator variant="table" message={l.loading} />
+        <Footer />
       </div>
     );
   }
@@ -170,8 +179,8 @@ const ContractsApproval: React.FC<ContractsApprovalProps> = ({ isEmbedded = fals
   // Graceful handling of fetch failures to prevent blank UI or crashes
   if (loadError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <p className="text-sm font-semibold text-[#0D4C54]">
+      <div className="p-8 flex items-center justify-center bg-transparent">
+        <p className="text-sm font-semibold text-rose-500">
           {isRtl ? "تعذر تحميل طلبات الشركات." : "Unable to load company requests."}
         </p>
       </div>

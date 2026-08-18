@@ -399,16 +399,24 @@ function CourseRequirements({ ui, course }: { ui: UIStrings; course: TranslatedC
 }
 
 // ==========================================
-// ⚡ بطاقة الدفع الجانبية (Enrollment Card) وحجز المقعد
+// ⚡ بطاقة الدفع أو التسجيل الجانبية (Enrollment Card)
 // ==========================================
 function EnrollmentCard({ ui, course, isRTL }: { ui: UIStrings; course: TranslatedCourse; isRTL: boolean }) {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { isAuthenticated } = useAuth(); // Check real authentication state
   const enrollment = course.enrollment || { features: [], timer: "" };
   const isFree = course.price === 0;
 
-  // 🛒 دالة الدفع وحفظ بيانات الكورس في السلة والانتقال لصفحة الدفع
-  const handleEnroll = (): void => {
+  // Handles click behavior based on authentication
+  const handleAction = (): void => {
+    if (!isAuthenticated) {
+      // If user is not logged in, send them to sign up
+      navigate('/sign-up');
+      return;
+    }
+
+    // If logged in, proceed to cart/checkout flow
     const currentCart: { id: string | number; title: string; category: string; duration: string; price: number; }[] = JSON.parse(localStorage.getItem('cartItems') || '[]');
     const newCourse = { id: course.id || id || Date.now(), title: course.title, category: course.category, duration: course.duration || '—', price: course.price || 0 };
     if (!currentCart.some(item => item.id === newCourse.id)) {
@@ -435,9 +443,14 @@ function EnrollmentCard({ ui, course, isRTL }: { ui: UIStrings; course: Translat
         {(enrollment.features || []).map((f, idx) => <li key={idx} className="flex items-center gap-3 text-sm font-semibold text-capsule-navy/80"><CheckIcon className="w-5 h-5 text-capsule-teal" />{f}</li>)}
       </ul>
       
-      {/* زر حجز المقعد وبدء الدفع المباشر */}
-      <button onClick={handleEnroll} disabled={course.status === 'coming_soon' || course.status === 'completed'} className="w-full bg-gradient-to-r from-capsule-navy to-[#2B636B] text-white font-black py-4 rounded-xl shadow-lg hover:-translate-y-0.5 transition-all mb-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-        <SparklesIcon className="w-5 h-5 text-amber-400" />{ui.enrollBtn}
+      {/* Dynamic button: Shows "Sign Up Now" if logged out, or "Secure Your Spot" if logged in */}
+      <button 
+        onClick={handleAction} 
+        disabled={course.status === 'coming_soon' || course.status === 'completed'} 
+        className="w-full bg-gradient-to-r from-capsule-navy to-[#2B636B] text-white font-black py-4 rounded-xl shadow-lg hover:-translate-y-0.5 transition-all mb-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+      >
+        <SparklesIcon className="w-5 h-5 text-amber-400" />
+        {isAuthenticated ? ui.enrollBtn : (isRTL ? 'سجل الآن مجاناً' : 'Sign Up Now')}
       </button>
       
       {/* مؤقت العرض والتحذير قبل انتهاء الخصم */}

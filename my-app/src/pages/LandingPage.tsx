@@ -6,6 +6,7 @@ import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button';
+import { Link } from 'react-router-dom';
 // @ts-ignore 
 import heroImage from '../assets/light_trans_logo.png';
 // Import the global language context
@@ -28,7 +29,7 @@ interface PlatformOverview {
 }
 
 interface Course {
-  id: number;
+  id: string | number;
   category: string;
   title: string;
   title_en?: string;
@@ -36,6 +37,7 @@ interface Course {
   rating: number;
   price: number;
   students: number;
+  imageUrl?: string;
 }
 
 // --- API ENVELOPE TYPES ---
@@ -62,13 +64,23 @@ interface LandingPageProps {
   onNavigateToCompanyOnboarding: () => void;
 }
 
+// --- VISUAL ICONS & GRADIENTS (Matching CoursesOverview) ---
+const CARD_VISUALS = [
+  { icon: "⚛", gradient: "from-capsule-navy to-[#343A60]" },
+  { icon: "◐", gradient: "from-[#537E84] to-[#7FB1BC]" },
+  { icon: "🐍", gradient: "from-capsule-navy to-[#343A60]" },
+  { icon: "🛡", gradient: "from-capsule-navy to-[#0e2f3f]" },
+  { icon: "{ }", gradient: "from-capsule-navy to-[#343A60]" },
+  { icon: "▤", gradient: "from-capsule-teal to-capsule-navy" },
+  { icon: "◎", gradient: "from-capsule-dark-gold to-capsule-gold" },
+  { icon: "▦", gradient: "from-[#3E5F44] to-[#537E84]" }
+];
+
 // --- HELPER FETCH FUNCTION ---
 
 async function fetchRealCourses() {
   try {
-    // We fetch all courses once since the backend doesn't filter by category yet
     const url = `${BASE_URL}/courses/public`;
-
     const response = await fetch(url);
     const result = await response.json();
 
@@ -100,15 +112,12 @@ function LandingPage({
 
   const [overview, setOverview] = useState<PlatformOverview | null>(null);
   
-  // Master list of all courses fetched from the database
   const [allCourses, setAllCourses] = useState<Course[]>([]); 
-  // The currently visible list of courses
   const [courses, setCourses] = useState<Course[]>([]);
 
   const [activeCategoryKey, setActiveCategoryKey] = useState<string>(l.catalog.filterAll);
 
   const [loading, setLoading] = useState<boolean>(true);
-  // Kept for UI feedback even though filtering is instant now
   const [catalogLoading, setCatalogLoading] = useState<boolean>(false); 
   const [error, setError] = useState<string>('');
 
@@ -141,7 +150,6 @@ function LandingPage({
         else setError(l.errorPlatform);
 
         if (coursesRes.success) {
-          // Store in both the master list and the active display list
           setAllCourses(coursesRes.data.courses);
           setCourses(coursesRes.data.courses);
         }
@@ -157,28 +165,25 @@ function LandingPage({
     return () => { isMounted = false; };
   }, [lang, l.errorPlatform, l.errorNetwork]);
 
- const handleCategoryClick = (categoryKey: string) => {
+  const handleCategoryClick = (categoryKey: string) => {
     setActiveCategoryKey(categoryKey);
     setCatalogLoading(true);
 
-    // Filter instantly on the frontend using the master list
     setTimeout(() => {
       if (categoryKey === l.catalog.filterAll) {
         setCourses(allCourses);
       } else {
         const filtered = allCourses.filter(c => {
-          // If "Web Development" is clicked, allow both categories
           if (categoryKey === 'Web Development') {
             return c.category === 'Web Development' || c.category === 'Software Engineering';
           }
-          // Otherwise, require an exact match
           return c.category === categoryKey;
         });
         
         setCourses(filtered);
       }
       setCatalogLoading(false);
-    }, 150); // slight delay to let the UI feel natural
+    }, 150);
   };
 
   if (loading) {
@@ -316,35 +321,46 @@ function LandingPage({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {courses.map((course) => (
-              <div key={course.id} className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden hover:shadow-md transition">
-                <div className="h-32 bg-gradient-to-tr from-capsule-navy to-capsule-teal flex items-center justify-center text-white text-3xl">
-                  📘
-                </div>
-                <div className="p-5">
-                  <span className="text-[11px] font-bold text-capsule-teal bg-capsule-teal/10 px-2 py-1 rounded-md">
-                    {course.category}
-                  </span>
-                  <h3 className="font-bold text-capsule-navy text-sm mt-3 leading-snug">
-                    {getLocalizedValue(course.title, course.title_en)}
-                  </h3>
+            {courses.map((course, i) => {
+              const visual = CARD_VISUALS[i % CARD_VISUALS.length];
+              return (
+                <Link
+                  to={`/course-details/${course.id}`}
+                  key={course.id}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden hover:shadow-md transition block cursor-pointer"
+                >
+                  {course.imageUrl ? (
+                    <img src={course.imageUrl} alt={course.title} className="h-32 w-full object-cover" />
+                  ) : (
+                    <div className={`h-32 bg-gradient-to-br ${visual.gradient} flex items-center justify-center text-white text-3xl drop-shadow-md`}>
+                      <span>{visual.icon}</span>
+                    </div>
+                  )}
+                  <div className="p-5">
+                    <span className="text-[11px] font-bold text-capsule-teal bg-capsule-teal/10 px-2 py-1 rounded-md">
+                      {course.category}
+                    </span>
+                    <h3 className="font-bold text-capsule-navy text-sm mt-3 leading-snug">
+                      {getLocalizedValue(course.title, course.title_en)}
+                    </h3>
 
-                  <div className="flex items-center justify-between mt-4">
-                    <p className="text-xs text-gray-400 font-bold">{course.duration}</p>
-                    {course.rating > 0 && (
-                      <p className="text-xs font-bold text-capsule-dark-gold">⭐ {course.rating}</p>
-                    )}
-                  </div>
+                    <div className="flex items-center justify-between mt-4">
+                      <p className="text-xs text-gray-400 font-bold">{course.duration}</p>
+                      {course.rating > 0 && (
+                        <p className="text-xs font-bold text-capsule-dark-gold">⭐ {course.rating}</p>
+                      )}
+                    </div>
 
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                    <p className="font-black text-capsule-navy text-sm">
-                      {course.price === 0 ? l.catalog.free : `${course.price} ${lang === 'ar' ? 'ر.س' : 'SAR'}`}
-                    </p>
-                    <span className="text-xs font-bold text-gray-400">{course.students} {l.catalog.students}</span>
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                      <p className="font-black text-capsule-navy text-sm">
+                        {course.price === 0 ? l.catalog.free : `${course.price} ${lang === 'ar' ? 'ر.س' : 'SAR'}`}
+                      </p>
+                      <span className="text-xs font-bold text-gray-400">{course.students} {l.catalog.students}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>

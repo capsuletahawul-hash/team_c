@@ -1,82 +1,130 @@
-<img width="942" height="443" alt="image" src="https://github.com/user-attachments/assets/da69ad30-09e0-469d-823b-5571395b72e7" />
+<div align="center">
+  <img width="942" height="443" alt="Capsule Tahawul Platform" src="https://github.com/user-attachments/assets/da69ad30-09e0-469d-823b-5571395b72e7" />
 
-# Capsule Tahawul
+  # 🚀 كابسولة تحول | Capsule Tahawul
 
-A bilingual online training platform that connects students, trainers, and companies. The platform allows users to browse courses, enroll in training programs, manage profiles, and simulate secure online payments.
+  **منصة تدريبية إلكترونية متكاملة ثنائية اللغة تجمع بين الطلاب، المدربين، والشركات**  
+  *A comprehensive bilingual digital training platform connecting Students, Trainers, and Enterprise Clients.*
 
-## Features
+  [![Technologies](https://skillicons.dev/icons?i=react,ts,nodejs,express,postgres,prisma,tailwind,vite)](https://skillicons.dev)
 
-- User Authentication
-- Course Browsing
-- Course Details
-- Trainer Profiles
-- Shopping Cart
-- Payment Simulation
-- Contact Form
-- Arabic & English Support
-- Responsive Design
-- Mock API Integrati
+</div>
 
-## Technologies
-[![Technologies](https://skillicons.dev/icons?i=react,ts,html,css)](https://skillicons.dev)
-- React
-- TypeScript
-- Vite
-- React Router
-- Tailwind CSS
-- Context API
-- Mock API
+---
 
-  ## Folder Structure
-```src
+## 📖 عن المشروع | About the Project
+
+**كابسولة تحول (Capsule Tahawul)** هي منصة تعليمية رقمية متطورة توفر مسارات تعليمية ودورات تدريبية متخصصة في مجالات الهندسة والذكاء الاصطناعي والتكنولوجيا. توفر المنصة نظام إدارة صلاحيات متكامل (طلاب، مدربين، شركات، وأدمن)، مع دعم كامل للدفع الإلكتروني وتوليد الشهادات وإدارة اشتراكات الشركات B2B.
+
+---
+
+## ✨ المميزات الرئيسية | Core Features
+
+- 🌐 **دعم كامل للغتين (العربية والإنجليزية)**: واجهات ديناميكية متجاوبة بالكامل RTL/LTR.
+- 🔐 **نظام مصادقة وأمان متكامل (JWT Auth & Role-Based Access)**: أدوار مخصصة لكل من الطالب، المدرب، الشركة، والأدمن.
+- 🛒 **سلة تسوق ونظام طلبات (Order Management & Moyasar Payment)**: ربط كامل مع بوابة ميسر للدفع الإلكتروني وإدارة صلاحيات الوصول للدورات (120 يوماً).
+- 🏢 **لوحة التحكم للشركات (B2B Company Dashboard)**: طلب برامج تدريبية مخصصة وإدارة عقود التدريب المؤسسي.
+- 🤖 **مساعد الذكاء الاصطناعي للدورات (AI Course Assistant)**: الإجابة التفاعلية على استفسارات الطلاب حول الدورات والمناهج.
+- 📊 **لوحة تحكم الأدمن (Admin Panel)**: إدارة الحسابات، الموافقة على الدورات، وتتبع العمليات المالية.
+
+---
+
+## 🛠️ التقنيات المستخدمة | Tech Stack
+
+### Frontend (`my-app`)
+- **Framework**: React 18 + Vite
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + Heroicons
+- **State & Context**: Context API (Auth, Language, Theme)
+- **Routing**: React Router v6
+
+### Backend (`backend`)
+- **Runtime**: Node.js (ES Modules)
+- **Framework**: Express.js (v5)
+- **Database**: PostgreSQL
+- **ORM**: Prisma ORM (v6)
+- **Validation & Auth**: Zod, JWT, Bcrypt
+- **Testing**: Vitest
+
+---
+
+## 📁 الهيكل التنظيمي للمشروع | Project Structure
+
+```text
+team_c/
+├── backend/                  # السيرفر والـ API
+│   ├── prisma/               # مخطط قاعدة البيانات والنشر المبدئي (Schema & Seed)
+│   ├── src/
+│   │   ├── controllers/      # معالجات الطلبات (Auth, Orders, Admin, Courses, Payment)
+│   │   ├── middleware/       # مصادقة وإدارة الأخطاء (JWT Auth, Role Gate, Error Handler)
+│   │   ├── repositories/     # الطبقة الخاصة بقاعدة البيانات (Prisma Repositories)
+│   │   ├── services/         # المنطق البرمجي للخدمات (Order, Access, Email, Payment)
+│   │   └── tests/            # الاختبارات الآلية (Vitest Unit Tests)
+│   └── package.json
 │
-├── components
-├── pages
-├── context
-├── hooks
-├── mocks
-├── types
-├── assets
-└── App.tsx
+├── my-app/                   # تطبيق الواجهة الأمامية (React + Vite)
+│   ├── src/
+│   │   ├── components/       # المكونات المكررة والواجهات (Navbars, Footer, Modals)
+│   │   ├── context/          # سياق البيانات (AuthContext, LanguageContext)
+│   │   ├── pages/            # صفحات التطبيق (Landing, Dashboards, Cart, Payment, etc.)
+│   │   ├── services/         # استدعاءات API موحدة (api.ts)
+│   │   └── types/            # تعريفات TypeScript
+│   └── package.json
+│
+└── README.md
 ```
 
-## Installation
-```
-git clone <repository>
-cd my-app
+---
+
+## 🚀 تشغيل المشروع محلياً | Local Setup Guide
+
+### 1. إعداد السيرفر (Backend Setup)
+
+```bash
+cd backend
 npm install
+
+# إعداد متغيرات البيئة (.env)
+# DATABASE_URL="postgresql://user:password@localhost:5432/capsule_db"
+# JWT_SECRET="your_jwt_secret"
+
+# تطبيق الهجرة وإضافة البيانات الابتدائية لقاعدة البيانات
+npx prisma migrate dev
+npx prisma db seed
+
+# تشغيل السيرفر في وضع التطوير
 npm run dev
 ```
-## Team
 
-- Reem AbuAziz
-- Ali AL-Taleb
-- Mohammed ALqaffas
-- Lana ALqahtani
-- Youmna AbuDeeb
+### 2. إعداد الواجهة الأمامية (Frontend Setup)
 
-## MockAPI
-The project uses a mock API to simulate backend requests using asynchronous functions.
-## TypeScript
-TypeScript interfaces are centralized in the types folder to improve type safety and code maintainability.
-## Internationalization (i18n)
-The application supports both Arabic and English using Context API.
+```bash
+cd my-app
+npm install
 
-=======
-# React + Vite
+# تشغيل السيرفر المحلي
+npm run dev
+```
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### 3. تشغيل الاختبارات الآلية (Running Unit Tests)
 
-Currently, two official plugins are available:
+```bash
+cd backend
+npm test
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 👥 فريق العمل | Team Members
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Reem AbuAziz**
+- **Ali Al-Taleb**
+- **Mohammed Al-Qaffas**
+- **Lana Al-Qahtani**
+- **Youmna Abu-Deeb**
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
->>>>>>> fix/week3-company-dashboard
+<div align="center">
+  <sub>Capsule Tahawul Platform © 2026. Built with ❤️ by Team C.</sub>
+</div>

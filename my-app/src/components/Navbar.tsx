@@ -125,11 +125,12 @@ function Navbar({
           )}
         </div>
 
-        {/* Mobile Hamburger Button */}
-        <div className="md:hidden">
+        {/* Mobile Hamburger Button + Profile Menu */}
+        <div className="md:hidden flex items-center gap-2">
+          {isAuthenticated && <UserProfileMenu />}
           <button 
             onClick={() => setIsOpen(!isOpen)} 
-            className="text-capsule-navy focus:outline-none text-xl p-1 cursor-pointer"
+            className="text-capsule-navy dark:text-white focus:outline-none text-xl p-1 cursor-pointer"
           >
             {isOpen ? '✕' : '☰'}
           </button>
@@ -138,7 +139,14 @@ function Navbar({
 
       {/* Mobile Dropdown Menu Drawer */}
       {isOpen && (
-        <div className="md:hidden mt-4 bg-gray-50 rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 mx-6 mb-4">
+        <div className="md:hidden mt-4 bg-gray-50 dark:bg-[#111A2B] rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 dark:border-slate-800 mx-6 mb-4">
+          
+          {/* Mobile User Profile Section */}
+          {isAuthenticated && (
+            <div className="pb-3 border-b border-gray-200 dark:border-slate-800">
+              <UserProfileMenu />
+            </div>
+          )}
           
           {/* Language Toggle (Mobile) */}
           <button 

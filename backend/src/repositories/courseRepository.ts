@@ -93,7 +93,6 @@ export const courseRepository = {
     type CourseForAiContext = Prisma.CourseGetPayload<{ select: typeof select }>;
 
     const courses = await prisma.course.findMany({
-      where: { isVisible: true },
       select,
       take: limit,
       orderBy: { createdAt: "desc" },

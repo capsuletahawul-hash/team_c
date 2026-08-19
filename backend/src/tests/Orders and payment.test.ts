@@ -7,6 +7,12 @@ vi.mock('../repositories/courseRepository.js', () => ({
   },
 }));
 
+vi.mock('../repositories/userRepository.js', () => ({
+  userRepository: {
+    findById: vi.fn().mockImplementation((id: string) => Promise.resolve({ id, name: 'Test User' })),
+  },
+}));
+
 vi.mock('../repositories/orderRepository.js', () => ({
   orderRepository: {
     create: vi.fn(),

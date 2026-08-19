@@ -169,22 +169,68 @@ export default function CourseDetails() {
         <StudentNavbar activePage="courses" />
       )}
       <main className="flex-grow">
-        <CourseHero lang={lang} ui={ui} course={course} />
-        {course && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              {/* القسم الأيمن/الأيسر: تفاصيل الكورس، المنهج، المدرس، والمتطلبات */}
-              <div className="lg:col-span-2 space-y-8">
-                <CourseStats ui={ui} course={course} />
-                <CourseOverview ui={ui} course={course} />
-                <CourseCurriculum ui={ui} course={course} />
-                <CourseInstructor ui={ui} course={course} />
-                <CourseRequirements ui={ui} course={course} />
+        {status === 'loading' ? (
+          <>
+            <CourseHeroSkeleton />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2 space-y-8">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6 bg-white rounded-3xl border border-gray-100 shadow-sm">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <div className="skeleton-shimmer h-3 w-16 rounded-md" />
+                        <div className="skeleton-shimmer h-6 w-20 rounded-md" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                    <div className="skeleton-shimmer h-6 w-40 rounded-md" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="skeleton-shimmer h-5 w-full rounded-lg" />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                    <div className="skeleton-shimmer h-6 w-48 rounded-md" />
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="skeleton-shimmer h-16 w-full rounded-2xl" />
+                    ))}
+                  </div>
+                </div>
+                <div className="lg:sticky lg:top-24">
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl space-y-6">
+                    <div className="skeleton-shimmer h-40 w-full rounded-2xl" />
+                    <div className="skeleton-shimmer h-8 w-28 rounded-md" />
+                    <div className="skeleton-shimmer h-12 w-full rounded-xl" />
+                    <div className="space-y-2 pt-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="skeleton-shimmer h-4 w-full rounded-md" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-              {/* القسم الجانبي المثبت: بطاقة الدفع والانضمام للكورس */}
-              <div className="lg:sticky lg:top-24"><EnrollmentCard ui={ui} course={course} isRTL={isRTL} /></div>
             </div>
-          </div>
+          </>
+        ) : (
+          <>
+            <CourseHero lang={lang} ui={ui} course={course} />
+            {course && (
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                  <div className="lg:col-span-2 space-y-8">
+                    <CourseStats ui={ui} course={course} />
+                    <CourseOverview ui={ui} course={course} />
+                    <CourseCurriculum ui={ui} course={course} />
+                    <CourseInstructor ui={ui} course={course} />
+                    <CourseRequirements ui={ui} course={course} />
+                  </div>
+                  <div className="lg:sticky lg:top-24"><EnrollmentCard ui={ui} course={course} isRTL={isRTL} /></div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
       <Footer />
@@ -192,11 +238,28 @@ export default function CourseDetails() {
   );
 }
 
+function CourseHeroSkeleton() {
+  return (
+    <section className="relative w-full overflow-hidden bg-gradient-to-br from-[#164961] via-[#1a5570] to-[#2B636B] py-16 lg:py-24 text-white">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl space-y-5">
+        <div className="skeleton-shimmer h-6 w-28 rounded-full bg-white/20" />
+        <div className="skeleton-shimmer h-10 w-3/4 rounded-xl bg-white/20" />
+        <div className="skeleton-shimmer h-6 w-5/6 rounded-lg bg-white/20" />
+        <div className="flex items-center gap-3 pt-6 border-t border-white/10">
+          <div className="skeleton-shimmer h-12 w-36 rounded-xl bg-white/20" />
+          <div className="skeleton-shimmer h-12 w-36 rounded-xl bg-white/20" />
+          <div className="skeleton-shimmer h-12 w-36 rounded-xl bg-white/20" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ==========================================
 // 🎨 مكون الـ Hero (رأس الصفحة والبيانات الأساسية)
 // ==========================================
 function CourseHero({ ui, course }: { lang: 'ar' | 'en'; ui: UIStrings; course: TranslatedCourse | null }) {
-  if (!course) return <section className="w-full bg-gradient-to-br from-[#164961] via-[#1a5570] to-[#2B636B] py-24 text-white text-center">{ui.loading}</section>;
+  if (!course) return null;
   const ratingRounded = Math.round(course.rating || 0);
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-br from-[#164961] via-[#1a5570] to-[#2B636B] py-16 lg:py-24 text-white">

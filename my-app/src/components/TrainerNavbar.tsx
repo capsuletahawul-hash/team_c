@@ -51,6 +51,7 @@ function TrainerNavbar({
   
   // Extract contextual parameters for regional localization setups
   const { t, lang, toggleLanguage } = useLanguage();
+  const isRTL = t.dir === 'rtl';
   const { theme } = useTheme();
 
   const currentLogo = theme === 'dark' ? lightLogo : logo;
@@ -173,9 +174,13 @@ function TrainerNavbar({
         <div className="md:hidden flex items-center gap-2">
           {/* Mobile Shortcut to Cart */}
           <Link to="/cart" className="p-2 text-lg">🛒</Link>
+
+          {/* 👤 Mobile User Profile Dropdown Menu */}
+          {!showAuthButtons && <UserProfileMenu customRole="trainer" />}
+
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="text-capsule-navy focus:outline-none text-xl p-1 cursor-pointer"
+            className="text-capsule-navy dark:text-white focus:outline-none text-xl p-1 cursor-pointer"
           >
             {isOpen ? '✕' : '☰'}
           </button>
@@ -184,12 +189,19 @@ function TrainerNavbar({
 
       {/* Mobile Drawer Navigation Drawer Block */}
       {isOpen && (
-        <div className="md:hidden mt-4 bg-gray-50 rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 mx-6 mb-4">
+        <div className="md:hidden mt-4 bg-gray-50 dark:bg-[#111A2B] rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 dark:border-slate-800 mx-6 mb-4">
           
+          {/* Mobile User Profile Section */}
+          {!showAuthButtons && (
+            <div className="pb-3 border-b border-gray-200 dark:border-slate-800">
+              <UserProfileMenu customRole="trainer" />
+            </div>
+          )}
+
           {/* Mobile Specific Language Trigger */}
           <button 
             onClick={toggleLanguage}
-            className="self-start mb-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-extrabold text-xs px-4 py-2 rounded-full transition-all duration-200 cursor-pointer"
+            className="self-start mb-2 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 text-gray-800 dark:text-slate-100 font-extrabold text-xs px-4 py-2 rounded-full transition-all duration-200 cursor-pointer"
           >
             {lang === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
           </button>

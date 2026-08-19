@@ -15,6 +15,7 @@ function StudentNavbar({
 }: StudentNavbarProps) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { t, lang, toggleLanguage } = useLanguage();
+  const isRTL = t.dir === 'rtl';
   const { theme } = useTheme();
 
   const currentLogo = theme === 'dark' ? lightLogo : logo;
@@ -126,23 +127,34 @@ function StudentNavbar({
           )}
         </div>
 
-        {/* Mobile Hamburger Button */}
+        {/* Mobile Hamburger Button + User Profile Menu */}
         <div className="md:hidden flex items-center gap-2">
           {/* Mobile Shortcut to Cart */}
-          <Link to="/cart" className="p-2 text-lg">🛒</Link>
-          <button onClick={() => setIsOpen(!isOpen)} className="text-capsule-navy focus:outline-none text-xl p-1 cursor-pointer">
+          <Link to="/cart" className="p-2 text-lg" title={lang === "ar" ? "السلة" : "Cart"}>🛒</Link>
+
+          {/* 👤 Mobile User Profile Dropdown Menu */}
+          {!showAuthButtons && <UserProfileMenu customRole="student" />}
+
+          <button onClick={() => setIsOpen(!isOpen)} className="text-capsule-navy dark:text-white focus:outline-none text-xl p-1 cursor-pointer">
             {isOpen ? '✕' : '☰'}
           </button>
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu */}
+      {/* Mobile Dropdown Menu Drawer */}
       {isOpen && (
-        <div className="md:hidden mt-4 bg-gray-50 rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 mx-6 mb-4">
+        <div className="md:hidden mt-4 bg-gray-50 dark:bg-[#111A2B] rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 dark:border-slate-800 mx-6 mb-4">
+          {/* Mobile User Profile Section */}
+          {!showAuthButtons && (
+            <div className="pb-3 border-b border-gray-200 dark:border-slate-800">
+              <UserProfileMenu customRole="student" />
+            </div>
+          )}
+
           {/* Language Toggle (Mobile) */}
           <button 
             onClick={toggleLanguage}
-            className="self-start mb-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-extrabold text-xs px-4 py-2 rounded-full transition-all duration-200 cursor-pointer"
+            className="self-start mb-2 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 text-gray-800 dark:text-slate-100 font-extrabold text-xs px-4 py-2 rounded-full transition-all duration-200 cursor-pointer"
           >
             {lang === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
           </button>
@@ -155,7 +167,7 @@ function StudentNavbar({
               className={`p-2 rounded-lg ${
                 activePage === link.id
                   ? "bg-capsule-teal/10 text-capsule-teal"
-                  : "text-gray-600"
+                  : "text-gray-600 dark:text-slate-300"
               }`}
             >
               {link.label}

@@ -175,20 +175,7 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
   const heroArcAlign = isRtl ? "rotate-[-25deg]" : "rotate-[25deg]";
   const tableAlign = isRtl ? "text-right" : "text-left";
 
-  if (loading) {
-    if (isEmbedded) {
-      return <SkeletonLoader variant="table" dir={t.dir} />;
-    }
-    return (
-      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] flex flex-col" dir={t.dir}>
-        <Navbar activePage="home" />
-        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
-          <SkeletonLoader variant="table" dir={t.dir} />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+
 
   // Graceful handling of fetch failures to prevent blank UI or crashes
   if (loadError) {
@@ -246,7 +233,9 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200/60 font-bold">
-                {courses.length === 0 ? (
+                {loading ? (
+                  <tr><td colSpan={6} className="py-8"><SkeletonLoader variant="table" dir={t.dir} /></td></tr>
+                ) : courses.length === 0 ? (
                   <tr><td colSpan={6} className="py-12 text-center">
                     <p className="text-xs font-black text-gray-400">{isRtl ? 'لا توجد دورات معلقة للاعتماد' : 'No courses pending approval'}</p>
                   </td></tr>
@@ -255,20 +244,20 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
                     <td className="p-3 text-capsule-navy font-black">{course.title}</td>
                     <td className="p-3 text-gray-500">{course.trainer}</td>
                     <td className="p-3 text-gray-500">{course.category}</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-capsule-teal/10 text-capsule-teal border border-capsule-teal/20">
+                    <td className="p-3 align-middle whitespace-nowrap">
+                      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-extrabold whitespace-nowrap bg-capsule-teal/10 text-capsule-teal border border-capsule-teal/20">
                         {course.durationVal}{l.table.unitHours}
                       </span>
                     </td>
-                    <td className="p-3">
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                    <td className="p-3 align-middle whitespace-nowrap">
+                      <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-extrabold whitespace-nowrap ${
                         course.status === "approved"
-                          ? "text-emerald-600 bg-emerald-50"
+                          ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60"
                           : course.status === "rejected"
-                          ? "text-rose-600 bg-rose-50"
+                          ? "text-rose-600 bg-rose-50 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/60"
                           : course.status === "pending_deletion"
-                          ? "text-rose-700 bg-rose-100 border border-rose-300 font-extrabold animate-pulse"
-                          : "text-amber-600 bg-amber-50"
+                          ? "text-rose-700 bg-rose-100 dark:bg-rose-900/60 dark:text-rose-300 border border-rose-300 font-extrabold animate-pulse"
+                          : "text-amber-700 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60"
                       }`}>
                         {getStatusLabel(course.status)}
                       </span>

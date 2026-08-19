@@ -592,3 +592,48 @@ html.dark .mysr-form .mysr-submit-btn {
   padding: 0.85rem !important;
   font-size: 16px !important;
 }
+
+/* Landing Page Motion Keyframes */
+@keyframes floatAnimation {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1.5deg); }
+}
+
+@keyframes pulseGlowAnimation {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.1); }
+}
+
+.animate-float {
+  animation: floatAnimation 4.5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlowAnimation 3.5s ease-in-out infinite;
+}
+
+/* AgentX-inspired Tech Glow & Glass Utilities */
+.agentx-glow-card {
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.agentx-glow-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(0, 164, 153, 0.5), rgba(255, 211, 105, 0.4), rgba(45, 55, 102, 0.5));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.3;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.agentx-glow-card:hover::before {
+  opacity: 1;
+}

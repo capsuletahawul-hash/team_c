@@ -11,6 +11,7 @@ import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button.js';
+import CourseAssistant from "../components/CourseAssistant";
 
 // Global Context
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -198,6 +199,11 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
               </p>
             </div>
           </div>
+
+{/* AI Course Assistant */}
+<div className="mb-10">
+  <CourseAssistant />
+</div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Resume Learning Section */}

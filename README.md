@@ -1,35 +1,38 @@
-<div align="center">
-  <img width="942" height="443" alt="Capsule Tahawul Platform" src="https://github.com/user-attachments/assets/da69ad30-09e0-469d-823b-5571395b72e7" />
+<div align="center" style="background-color: #0A0F1D; padding: 40px 20px; border-radius: 16px;">
+  <img src="my-app/src/assets/light_trans_logo.png" width="180" alt="Capsule Tahawul Logo" />
+  
+  <h1 style="color: #ffffff; margin-top: 15px;">كابسولة تحول | Capsule Tahawul</h1>
+  
+  <p style="color: #94A3B8; font-weight: 500;">
+    منصة تدريبية إلكترونية متكاملة ثنائية اللغة تجمع بين الطلاب، المدربين، والشركات<br />
+    A comprehensive bilingual digital training platform connecting Students, Trainers, and Enterprise Clients.
+  </p>
 
-  # 🚀 كابسولة تحول | Capsule Tahawul
-
-  **منصة تدريبية إلكترونية متكاملة ثنائية اللغة تجمع بين الطلاب، المدربين، والشركات**  
-  *A comprehensive bilingual digital training platform connecting Students, Trainers, and Enterprise Clients.*
-
-  [![Technologies](https://skillicons.dev/icons?i=react,ts,nodejs,express,postgres,prisma,tailwind,vite)](https://skillicons.dev)
-
+  <p>
+    <a href="https://skillicons.dev"><img src="https://skillicons.dev/icons?i=react,ts,nodejs,express,postgres,prisma,tailwind,vite" alt="Technologies" /></a>
+  </p>
 </div>
 
 ---
 
-## 📖 عن المشروع | About the Project
+## عن المشروع | About the Project
 
 **كابسولة تحول (Capsule Tahawul)** هي منصة تعليمية رقمية متطورة توفر مسارات تعليمية ودورات تدريبية متخصصة في مجالات الهندسة والذكاء الاصطناعي والتكنولوجيا. توفر المنصة نظام إدارة صلاحيات متكامل (طلاب، مدربين، شركات، وأدمن)، مع دعم كامل للدفع الإلكتروني وتوليد الشهادات وإدارة اشتراكات الشركات B2B.
 
 ---
 
-## ✨ المميزات الرئيسية | Core Features
+## المميزات الرئيسية | Core Features
 
-- 🌐 **دعم كامل للغتين (العربية والإنجليزية)**: واجهات ديناميكية متجاوبة بالكامل RTL/LTR.
-- 🔐 **نظام مصادقة وأمان متكامل (JWT Auth & Role-Based Access)**: أدوار مخصصة لكل من الطالب، المدرب، الشركة، والأدمن.
-- 🛒 **سلة تسوق ونظام طلبات (Order Management & Moyasar Payment)**: ربط كامل مع بوابة ميسر للدفع الإلكتروني وإدارة صلاحيات الوصول للدورات (120 يوماً).
-- 🏢 **لوحة التحكم للشركات (B2B Company Dashboard)**: طلب برامج تدريبية مخصصة وإدارة عقود التدريب المؤسسي.
-- 🤖 **مساعد الذكاء الاصطناعي للدورات (AI Course Assistant)**: الإجابة التفاعلية على استفسارات الطلاب حول الدورات والمناهج.
-- 📊 **لوحة تحكم الأدمن (Admin Panel)**: إدارة الحسابات، الموافقة على الدورات، وتتبع العمليات المالية.
+- **دعم كامل للغتين (العربية والإنجليزية)**: واجهات ديناميكية متجاوبة بالكامل RTL/LTR.
+- **نظام مصادقة وأمان متكامل (JWT Auth & Role-Based Access)**: أدوار مخصصة لكل من الطالب، المدرب، الشركة، والأدمن.
+- **سلة تسوق ونظام طلبات (Order Management & Moyasar Payment)**: ربط كامل مع بوابة ميسر للدفع الإلكتروني وإدارة صلاحيات الوصول للدورات (120 يوماً).
+- **لوحة التحكم للشركات (B2B Company Dashboard)**: طلب برامج تدريبية مخصصة وإدارة عقود التدريب المؤسسي.
+- **مساعد الذكاء الاصطناعي للدورات (AI Course Assistant)**: الإجابة التفاعلية على استفسارات الطلاب حول الدورات والمناهج.
+- **لوحة تحكم الأدمن (Admin Panel)**: إدارة الحسابات، الموافقة على الدورات، وتتبع العمليات المالية.
 
 ---
 
-## 🛠️ التقنيات المستخدمة | Tech Stack
+## التقنيات المستخدمة | Tech Stack
 
 ### Frontend (`my-app`)
 - **Framework**: React 18 + Vite
@@ -48,7 +51,7 @@
 
 ---
 
-## 📁 الهيكل التنظيمي للمشروع | Project Structure
+## الهيكل التنظيمي للمشروع | Project Structure
 
 ```text
 team_c/
@@ -76,7 +79,7 @@ team_c/
 
 ---
 
-## 🚀 تشغيل المشروع محلياً | Local Setup Guide
+## تشغيل المشروع محلياً | Local Setup Guide
 
 ### 1. إعداد السيرفر (Backend Setup)
 
@@ -115,7 +118,7 @@ npm test
 
 ---
 
-## 👥 فريق العمل | Team Members
+## فريق العمل | Team Members
 
 - **Reem AbuAziz**
 - **Ali Al-Taleb**
@@ -126,5 +129,5 @@ npm test
 ---
 
 <div align="center">
-  <sub>Capsule Tahawul Platform © 2026. Built with ❤️ by Team C.</sub>
+  <sub>Capsule Tahawul Platform © 2026. Built by Team C.</sub>
 </div>

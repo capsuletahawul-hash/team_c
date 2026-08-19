@@ -322,14 +322,19 @@ async getPublicCourses(req: Request, res: Response) {
       50
     );
 
-    const { courses, total } = await courseRepository.findAll(
-      page,
-      limit
-    );
+    const { courses, total } = await courseRepository.findAll(page, limit);
+
+    const enrichedCourses = courses.map((course: any) => ({
+      ...course,
+      instructor: course.trainer?.name || "المدرب المعتمد",
+      instructorAr: course.trainer?.name || "المدرب المعتمد",
+      instructorEn: course.trainer?.name || "Certified Trainer",
+      trainerName: course.trainer?.name || "المدرب المعتمد",
+    }));
 
     return res.status(200).json({
       success: true,
-      courses,
+      courses: enrichedCourses,
       pagination: {
         page,
         limit,

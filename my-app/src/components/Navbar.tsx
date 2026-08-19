@@ -32,7 +32,7 @@ function Navbar({
 
   return (
     <nav
-      className="sticky top-0 z-50 bg-white/90 dark:bg-[#0A0F1D]/90 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 shadow-sm transition-all"
+      className="sticky top-0 z-50 bg-white/85 dark:bg-[#0A0F1D]/90 backdrop-blur-xl border-b border-gray-200/80 dark:border-slate-800/80 shadow-md transition-all duration-300"
       dir={t.dir}
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">

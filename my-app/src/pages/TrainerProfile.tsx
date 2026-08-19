@@ -275,7 +275,6 @@ const TrainerProfile: React.FC = () => {
                   />
                   <input 
                     type="text" 
-                    required 
                     value={draft.specialization || ""} 
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraft({ ...draft, specialization: e.target.value })} 
                     placeholder={l.data?.specialization || l.hero?.subtitle} 
@@ -291,7 +290,6 @@ const TrainerProfile: React.FC = () => {
                   />
                   <input 
                     type="text" 
-                    required 
                     value={draft.experienceVal || ""} 
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraft({ ...draft, experienceVal: e.target.value })} 
                     placeholder={l.profile?.experience} 
@@ -299,7 +297,6 @@ const TrainerProfile: React.FC = () => {
                   />
                 </div>
                 <textarea 
-                  required 
                   rows={3} 
                   value={draft.bio || ""} 
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDraft({ ...draft, bio: e.target.value })} 
@@ -321,38 +318,38 @@ const TrainerProfile: React.FC = () => {
 
           {/* Aggregate Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xs">
-              <p className="text-xs text-gray-400 font-bold">{l.stats.coursesCount}</p>
-              <h3 className="text-3xl font-black mt-2 text-capsule-navy">{publicCourses.length}</h3>
+            <div className="bg-white/70 dark:bg-[#162035]/70 backdrop-blur-xl rounded-3xl p-6 border border-white/60 dark:border-white/10 shadow-xl hover:-translate-y-1 transition-all">
+              <p className="text-xs text-gray-500 dark:text-slate-400 font-bold">{l.stats.coursesCount}</p>
+              <h3 className="text-3xl font-black mt-2 text-capsule-navy dark:text-white">{publicCourses.length}</h3>
             </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xs">
-              <p className="text-xs text-gray-400 font-bold">{l.stats.studentsCount}</p>
-              <h3 className="text-3xl font-black mt-2 text-capsule-teal">{trainer.students}</h3>
+            <div className="bg-white/70 dark:bg-[#162035]/70 backdrop-blur-xl rounded-3xl p-6 border border-white/60 dark:border-white/10 shadow-xl hover:-translate-y-1 transition-all">
+              <p className="text-xs text-gray-500 dark:text-slate-400 font-bold">{l.stats.studentsCount}</p>
+              <h3 className="text-3xl font-black mt-2 text-capsule-teal dark:text-teal-400">{trainer.students}</h3>
             </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xs">
-              <p className="text-xs text-gray-400 font-bold">{l.stats.rating}</p>
-              <h3 className="text-3xl font-black mt-2 text-capsule-dark-gold">⭐ {trainer.rating}</h3>
+            <div className="bg-white/70 dark:bg-[#162035]/70 backdrop-blur-xl rounded-3xl p-6 border border-white/60 dark:border-white/10 shadow-xl hover:-translate-y-1 transition-all">
+              <p className="text-xs text-gray-500 dark:text-slate-400 font-bold">{l.stats.rating}</p>
+              <h3 className="text-3xl font-black mt-2 text-amber-600 dark:text-amber-400 font-mono">⭐ {trainer.rating}</h3>
             </div>
           </div>
 
-          {/* Courses Table */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
-            <div className="p-6 border-b border-gray-100 bg-gray-50/70">
-              <h2 className="text-base font-bold text-capsule-navy">{l.table.cardTitle}</h2>
+          {/* Courses Table Glassmorphism */}
+          <div className="bg-white/70 dark:bg-[#162035]/70 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-white/40 dark:border-slate-800 bg-white/40 dark:bg-[#0F172A]/50">
+              <h2 className="text-base font-black text-capsule-navy dark:text-white">{l.table.cardTitle}</h2>
             </div>
             <div className="overflow-x-auto">
               <table className={`w-full border-collapse ${isRTL ? "text-right" : "text-left"}`}>
                 <thead>
-                  <tr className="bg-gray-100/50 text-xs font-bold text-gray-500 border-b border-gray-100">
+                  <tr className="bg-slate-100/60 dark:bg-slate-800/60 text-xs font-black text-slate-700 dark:text-slate-300 border-b border-white/40 dark:border-slate-800">
                     <th className="p-4">{l.table.colTitle}</th>
                     <th className="p-4">{l.table.colStudents}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 text-sm font-medium">
+                <tbody className="divide-y divide-white/30 dark:divide-slate-800 text-sm font-medium">
                   {publicCourses.map((c) => (
-                    <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="p-4 font-bold text-capsule-navy">{c.title}</td>
-                      <td className="p-4 text-gray-500">{c.students}</td>
+                    <tr key={c.id} className="hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors">
+                      <td className="p-4 font-black text-capsule-navy dark:text-white">{c.title}</td>
+                      <td className="p-4 font-mono font-bold text-slate-700 dark:text-slate-300">{c.students} {isRTL ? 'طالب' : 'students'}</td>
                     </tr>
                   ))}
                 </tbody>

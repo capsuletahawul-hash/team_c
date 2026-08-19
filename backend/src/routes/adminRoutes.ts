@@ -135,6 +135,8 @@ router.patch('/courses/:id/toggle-status', async (req, res) => {
 router.get('/courses', adminController.getCourses);
 router.put('/courses/:id/approve', adminController.approveCourse);
 router.put('/courses/:id/reject', adminController.rejectCourse);
+router.put('/courses/:id/approve-deletion', adminController.approveDeletion);
+router.put('/courses/:id/reject-deletion', adminController.rejectDeletion);
 
 // جلب كل الكورسات بشكل كامل لإدارة CRUD (منفصل عن صفحة الاعتماد)
 router.get('/courses/crud', async (_req, res) => {

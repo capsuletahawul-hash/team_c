@@ -185,15 +185,15 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top 4 Stat Cards with Glassmorphism */}
+      {/* Top 4 Stat Cards with Glassmorphism & Dark Mode Hover Effects */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-start">
         {[
-          { title: isRtl ? 'إجمالي المستخدمين' : 'Total Users', value: statsData.totalUsers || 14, color: 'text-capsule-navy dark:text-white' },
-          { title: isRtl ? 'الكورسات الحالية' : 'Total Platform Courses', value: coursesCount || 6, color: 'text-capsule-teal dark:text-teal-400' },
-          { title: isRtl ? 'الاشتراكات النشطة' : 'Active Enrollments', value: statsData.activeEnrollments || 6, color: 'text-capsule-navy dark:text-white' },
-          { title: isRtl ? 'إجمالي الأرباح' : 'Total Revenue', value: `${statsData.totalRevenue || 5962} SAR`, color: 'text-emerald-600 dark:text-emerald-400' },
+          { title: isRtl ? 'إجمالي المستخدمين' : 'Total Users', value: statsData.totalUsers || 14, color: 'text-capsule-navy dark:text-white', hoverBorder: 'dark:hover:border-sky-400/60 dark:hover:shadow-sky-500/10' },
+          { title: isRtl ? 'الكورسات الحالية' : 'Total Platform Courses', value: coursesCount || 6, color: 'text-capsule-teal dark:text-teal-400', hoverBorder: 'dark:hover:border-teal-400/60 dark:hover:shadow-teal-500/10' },
+          { title: isRtl ? 'الاشتراكات النشطة' : 'Active Enrollments', value: statsData.activeEnrollments || 6, color: 'text-capsule-navy dark:text-white', hoverBorder: 'dark:hover:border-indigo-400/60 dark:hover:shadow-indigo-500/10' },
+          { title: isRtl ? 'إجمالي الأرباح' : 'Total Revenue', value: `${statsData.totalRevenue || 5962} SAR`, color: 'text-emerald-600 dark:text-emerald-400', hoverBorder: 'dark:hover:border-emerald-400/60 dark:hover:shadow-emerald-500/10' },
         ].map((c, i) => (
-          <div key={i} className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 p-5 rounded-3xl shadow-xl hover:border-capsule-teal/50 transition-all duration-300">
+          <div key={i} className={`bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 p-5 rounded-3xl shadow-xl hover:border-capsule-teal/50 dark:hover:bg-[#1C2843]/80 ${c.hoverBorder} hover:-translate-y-1 transition-all duration-300 cursor-pointer`}>
             <p className="text-xs font-black text-gray-500 dark:text-slate-400 mb-1">{c.title}</p>
             <p className={`text-xl font-black font-mono ${c.color}`}>{c.value}</p>
           </div>

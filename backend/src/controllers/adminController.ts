@@ -12,10 +12,11 @@ import {
 } from "../validation/adminCourseValidation.js";
 
 // يحول حالة الدورة الداخلية إلى حالة الموافقة اللي تفهمها صفحة الأدمن
-function toApprovalStatus(status: TrainerCourse["status"]): "pending" | "approved" | "rejected" {
+function toApprovalStatus(status: TrainerCourse["status"]): "pending" | "approved" | "rejected" | "pending_deletion" {
   if (status === "rejected") return "rejected";
   if (status === "coming_soon") return "pending";
-  return "approved"; // available / pending_deletion — كورس سبق اعتماده
+  if (status === "pending_deletion") return "pending_deletion";
+  return "approved"; // available
 }
 
 export const adminController = {
@@ -121,6 +122,47 @@ export const adminController = {
     try {
       const courseId = String(req.params.id);
       const course = await trainerRepository.rejectCourse(courseId);
+
+      if (!course) {
+        return res.status(404).json({ success: false, error: "course_not_found" });
+      }
+
+      return res.status(200).json({ success: true, course });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Approve a course deletion request (permanently delete the course)
+   */
+  async approveDeletion(req: Request, res: Response) {
+    try {
+      const courseId = String(req.params.id);
+      const deleted = await adminService.deleteCourse(courseId);
+
+      if (!deleted) {
+        return res.status(404).json({ success: false, error: "course_not_found" });
+      }
+
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, error: "internal_server_error" });
+    }
+  },
+
+  /**
+   * Reject a course deletion request (keep course and restore status to 'available')
+   */
+  async rejectDeletion(req: Request, res: Response) {
+    try {
+      const courseId = String(req.params.id);
+      const course = await prisma.course.update({
+        where: { id: courseId },
+        data: { status: 'available' },
+      });
 
       if (!course) {
         return res.status(404).json({ success: false, error: "course_not_found" });

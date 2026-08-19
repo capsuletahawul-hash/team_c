@@ -178,6 +178,38 @@ export const COPY = {
         colStudents: "عدد الطلاب"
       }
     },
+    coursesApproval: {
+      hero: {
+        title: "اعتماد وتعديلات دورات المدربين",
+        subtitle: "مراجعة واعتماد الدورات الجديدة أو طلبات الحذف المقدمة من المدربين"
+      },
+      stats: {
+        total: "إجمالي الكورسات",
+        approved: "المعتمدة",
+        pending: "جديد (قيد الانتظار)",
+        deletionRequests: "طلبات الحذف"
+      },
+      table: {
+        cardTitle: "جدول طلبات واعتمادات الدورات",
+        colTitle: "اسم الدورة",
+        colTrainer: "المدرب",
+        colCategory: "التصنيف",
+        colDuration: "المدة",
+        colStatus: "الحالة",
+        colActions: "الإجراءات",
+        unitHours: " أسبوع",
+        actionApprove: "اعتماد",
+        actionReject: "رفض",
+        actionConfirmDelete: "تأكيد الحذف",
+        actionRejectDelete: "رفض الحذف",
+        statusApproved: "معتمد",
+        statusRejected: "مرفوض",
+        statusPendingDeletion: "طلب حذف",
+        approvedText: "معتمد",
+        rejectedText: "مرفوض",
+        pendingText: "قيد الانتظار"
+      }
+    },
     courseDetails: {
       loading: "جاري تحميل تفاصيل المعسكر والمناهج التقنية...",
       error: "فشل في تحميل بيانات الدورة المعروضة.",
@@ -726,6 +758,38 @@ export const COPY = {
         cardTitle: "Published Courses",
         colTitle: "Course Title",
         colStudents: "Students"
+      }
+    },
+    coursesApproval: {
+      hero: {
+        title: "Courses & Bootcamp Approvals",
+        subtitle: "Review, approve new courses or process deletion requests submitted by trainers"
+      },
+      stats: {
+        total: "Total Courses",
+        approved: "Approved",
+        pending: "New Pending",
+        deletionRequests: "Deletion Requests"
+      },
+      table: {
+        cardTitle: "Course Submissions & Deletion Requests",
+        colTitle: "Course Title",
+        colTrainer: "Trainer",
+        colCategory: "Category",
+        colDuration: "Duration",
+        colStatus: "Status",
+        colActions: "Actions",
+        unitHours: " Wks",
+        actionApprove: "Approve",
+        actionReject: "Reject",
+        actionConfirmDelete: "Approve Deletion",
+        actionRejectDelete: "Reject Deletion",
+        statusApproved: "Approved",
+        statusRejected: "Rejected",
+        statusPendingDeletion: "Deletion Requested",
+        approvedText: "Approved",
+        rejectedText: "Rejected",
+        pendingText: "Pending"
       }
     },
     courseDetails: {

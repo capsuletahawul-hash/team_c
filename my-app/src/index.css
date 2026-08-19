@@ -192,6 +192,47 @@ html.dark .badge-brand-gold {
 }
 
 /* ============================================================================
+   Light Mode Unified Glassmorphism Engine (Frosted Glass Theme)
+   ============================================================================ */
+html:not(.dark) body {
+  background-color: #F0F5F9;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(56, 123, 132, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(22, 73, 97, 0.1) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+html:not(.dark) .bg-white,
+html:not(.dark) section.bg-white,
+html:not(.dark) div.bg-white,
+html:not(.dark) article.bg-white {
+  background-color: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(22, 73, 97, 0.06) !important;
+}
+
+html:not(.dark) .bg-slate-50,
+html:not(.dark) .bg-gray-50,
+html:not(.dark) .bg-slate-100,
+html:not(.dark) .bg-slate-100\/80,
+html:not(.dark) .bg-slate-100\/50,
+html:not(.dark) .bg-gray-100 {
+  background-color: rgba(240, 245, 249, 0.65) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+html:not(.dark) nav {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ============================================================================
    Dark Mode Global Override Engine (Pure Crisp White Text Engine)
    ============================================================================ */
 

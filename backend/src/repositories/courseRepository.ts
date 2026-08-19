@@ -38,6 +38,16 @@ export const courseRepository = {
         orderBy: {
           createdAt: "desc",
         },
+        include: {
+          trainer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              trainerProfile: true,
+            },
+          },
+        },
       }),
       prisma.course.count(),
     ]);

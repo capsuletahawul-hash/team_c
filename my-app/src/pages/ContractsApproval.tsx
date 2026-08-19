@@ -424,21 +424,25 @@ const ContractsApproval: React.FC<ContractsApprovalProps> = ({ isEmbedded = fals
                       <tbody className="divide-y divide-gray-100 dark:divide-slate-800/60 text-sm font-medium">
                         {requests.map((req) => (
                           <tr key={req.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition">
-                            <td className="p-4 text-[#0D4C54] dark:text-white font-bold">{req.companyName}</td>
-                            <td className="p-4 text-gray-500 dark:text-slate-300">
+                            <td className="p-4 align-middle text-[#0D4C54] dark:text-white font-bold">{req.companyName}</td>
+                            <td className="p-4 align-middle text-gray-500 dark:text-slate-300">
                               <p>{req.contactPerson}</p>
                               <p dir="ltr" className="text-xs text-gray-400 dark:text-slate-400">{req.email}</p>
                             </td>
-                            <td className="p-4 text-gray-500 dark:text-slate-300">{req.trainingType}</td>
-                            <td className="p-4">
-                              <span className="px-2 py-1 rounded-md text-xs font-bold bg-teal-50 dark:bg-teal-950/60 text-[#00A499] dark:text-teal-300 border dark:border-teal-700/40">
+                            <td className="p-4 align-middle text-gray-500 dark:text-slate-300">{req.trainingType}</td>
+                            <td className="p-4 align-middle whitespace-nowrap">
+                              <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-50 dark:bg-teal-950/60 text-[#00A499] dark:text-teal-300 border border-teal-200/50 dark:border-teal-700/40">
                                 {req.trainees}
                               </span>
                             </td>
-                            <td className="p-4">
+                            <td className="p-4 align-middle whitespace-nowrap">
                               <span
-                                className={`text-xs font-bold ${
-                                  req.status === "approved" ? "text-emerald-600 dark:text-emerald-400" : req.status === "rejected" ? "text-red-600 dark:text-rose-400" : "text-[#EAB308] dark:text-amber-400"
+                                className={`inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap ${
+                                  req.status === "approved" 
+                                    ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800/60" 
+                                    : req.status === "rejected" 
+                                    ? "text-red-700 dark:text-rose-300 bg-red-50 dark:bg-rose-950/60 border border-red-200/60 dark:border-rose-800/60" 
+                                    : "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/60 dark:border-amber-800/60"
                                 }`}
                               >
                                 {getStatusLabel(req.status)}

@@ -72,8 +72,11 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
       // تحويل الرتبة إلى حروف صغيرة لتتوافق مع نظام الـ Dashboard الحالي
       const role = result.user.role.toLowerCase();
 
-      // تخزين التوكن الحقيقي القادم من الباك اند — بدونه أي طلب محمي لاحقاً يفشل بـ invalid_token
+      // تخزين التوكن والمعلومات الحقيقية القادمة من الباك اند
       login(role as any, result.token);
+      if (result.user?.name) sessionStorage.setItem("user_name", result.user.name);
+      if (result.user?.email) sessionStorage.setItem("user_email", result.user.email);
+      if (result.user?.avatar) sessionStorage.setItem("user_avatar", result.user.avatar);
 
       // التوجيه للوحة التحكم الصحيحة بناءً على نوع المستخدم
       if (role === "student") {

@@ -9,6 +9,7 @@ import defaultProfilePic from '../assets/profile.png';
 import StudentNavbar from "../components/StudentNavbar.jsx";
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
+import SkeletonLoader from '../components/SkeletonLoader';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button.js';
 import CourseAssistant from "../components/CourseAssistant";
@@ -120,8 +121,12 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-capsule-bg flex flex-col items-center justify-center">
-        <LoadingIndicator message={l.loading} />
+      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 flex flex-col font-sans" dir={t.dir}>
+        <StudentNavbar activePage="dashboard" />
+        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+          <SkeletonLoader variant="student-dashboard" dir={t.dir} />
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -134,7 +139,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
   const firstName = profile?.fullName?.split(' ')[0] || l.hero.fallbackName;
 
   return (
-    <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir}>
+    <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col transition-colors duration-300" dir={t.dir}>
       <StudentNavbar activePage="dashboard" />
 
       <main className="flex-grow">
@@ -145,7 +150,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         )}
 
         {/* Hero Section */}
-        <div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-10 px-8"  >
+        <div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-10 px-8">
           <div className="max-w-7xl mx-auto relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <p className="text-capsule-gold text-xs font-bold uppercase tracking-wider mb-1">
@@ -178,23 +183,23 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         </div>
 
         <div className="max-w-7xl mx-auto px-6 py-10">
-          {/* Quick Stats Cards */}
+          {/* Quick Stats Cards with 80% High Contrast */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.activeCourses}</p>
-              <p className="text-2xl font-black text-capsule-teal">{activeCourses.length}</p>
+            <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
+              <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.activeCourses}</p>
+              <p className="text-2xl font-black text-capsule-teal dark:text-teal-400">{activeCourses.length}</p>
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.completedCourses}</p>
-              <p className="text-2xl font-black text-emerald-600">{completedCourses.length}</p>
+            <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
+              <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.completedCourses}</p>
+              <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{completedCourses.length}</p>
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.unreadNotifs}</p>
-              <p className="text-2xl font-black text-capsule-dark-gold">{unreadNotifications.length}</p>
+            <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
+              <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.unreadNotifs}</p>
+              <p className="text-2xl font-black text-amber-500 dark:text-amber-400">{unreadNotifications.length}</p>
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.affiliation}</p>
-              <p className="text-base font-black text-capsule-navy mt-1 truncate">
+            <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
+              <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.affiliation}</p>
+              <p className="text-base font-black text-capsule-navy dark:text-white mt-1 truncate">
                 {profile?.companyAffiliation || l.stats.independent}
               </p>
             </div>

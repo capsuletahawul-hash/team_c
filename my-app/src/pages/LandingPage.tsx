@@ -4,6 +4,7 @@ import { BASE_URL } from '../services/api';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
+import SkeletonLoader from '../components/SkeletonLoader';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button';
 import { Link } from 'react-router-dom';
@@ -188,8 +189,12 @@ function LandingPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-capsule-bg flex flex-col items-center justify-center">
-        <LoadingIndicator message={l.loading} />
+      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col" dir={t.dir}>
+        <Navbar activePage="home" showAuthButtons onSignIn={onNavigateToLogin} onSignUp={onNavigateToRegister} />
+        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+          <SkeletonLoader variant="landing-page" dir={t.dir} />
+        </div>
+        <Footer />
       </div>
     );
   }

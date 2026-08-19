@@ -149,16 +149,26 @@ export default function TrainerDashboard() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-capsule-bg dark:bg-[#0A0F1D] flex items-center justify-center"><LoadingIndicator message={l.loading} /></div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col relative overflow-x-clip transition-colors duration-300" dir={t.dir}>
+        <TrainerNavbar activePage="dashboard" />
+        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+          <SkeletonLoader variant="trainer-dashboard" dir={t.dir} />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const borderSide = t.dir === 'rtl' ? 'border-r-4' : 'border-l-4';
 
   return (
-    <div className="min-h-screen bg-[#C9D6DF] dark:bg-[#0A0F1D] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col relative overflow-x-clip transition-colors duration-300" dir={t.dir}>
+    <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col relative overflow-x-clip transition-colors duration-300" dir={t.dir}>
       {/* Ambient Seamless Radial Glass Glows */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[5%] left-[20%] w-[500px] h-[500px] bg-capsule-teal/15 dark:bg-sky-500/10 rounded-full blur-[140px]" />
-        <div className="absolute bottom-[10%] right-[20%] w-[500px] h-[500px] bg-capsule-gold/15 dark:bg-indigo-500/10 rounded-full blur-[140px]" />
+        <div className="absolute top-[5%] left-[20%] w-[500px] h-[500px] bg-capsule-teal/10 dark:bg-sky-500/10 rounded-full blur-[140px]" />
+        <div className="absolute bottom-[10%] right-[20%] w-[500px] h-[500px] bg-capsule-gold/10 dark:bg-indigo-500/10 rounded-full blur-[140px]" />
       </div>
 
       <TrainerNavbar activePage="dashboard" />
@@ -166,9 +176,9 @@ export default function TrainerDashboard() {
       <main className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Stat Cards with Glassmorphism & Dark Mode Hover Effects */}
+          {/* Stat Cards with 80% High Contrast */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className={`bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl ${borderSide} border-capsule-teal hover:border-capsule-teal dark:hover:border-teal-400 dark:hover:bg-[#1C2843]/80 dark:hover:shadow-teal-500/10 hover:-translate-y-1 transition-all duration-300`}>
+            <div className={`bg-white dark:bg-[#18233C] p-6 rounded-3xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl ${borderSide} border-capsule-teal hover:border-capsule-teal dark:hover:border-teal-400 hover:-translate-y-1 transition-all duration-300`}>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-black text-slate-800 dark:text-slate-200">{lang === 'ar' ? 'صافي الأرباح المحققة الحالي' : 'Total Dynamic Net Payout'}</p>
                 <svg className="w-5 h-5 text-capsule-teal dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -176,7 +186,7 @@ export default function TrainerDashboard() {
               <h3 className="text-2xl font-black text-capsule-teal dark:text-teal-400 font-mono tracking-tight">{totalPayoutCollected} SAR</h3>
             </div>
 
-            <div className={`bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl ${borderSide} border-capsule-gold hover:border-capsule-gold dark:hover:border-amber-400 dark:hover:bg-[#1C2843]/80 dark:hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300`}>
+            <div className={`bg-white dark:bg-[#18233C] p-6 rounded-3xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl ${borderSide} border-capsule-gold hover:border-capsule-gold dark:hover:border-amber-400 hover:-translate-y-1 transition-all duration-300`}>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-black text-amber-700 dark:text-amber-400">{lang === 'ar' ? 'الطلاب بالدورات النشطة' : 'Active Course Students'}</p>
                 <svg className="w-5 h-5 text-amber-500 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
@@ -184,7 +194,7 @@ export default function TrainerDashboard() {
               <h3 className="text-2xl font-black text-capsule-navy dark:text-white font-mono tracking-tight">{totalStudentsEnrolled}</h3>
             </div>
 
-            <div className={`bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl ${borderSide} border-capsule-navy hover:border-capsule-navy dark:hover:border-sky-400 dark:hover:bg-[#1C2843]/80 dark:hover:shadow-sky-500/10 hover:-translate-y-1 transition-all duration-300`}>
+            <div className={`bg-white dark:bg-[#18233C] p-6 rounded-3xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl ${borderSide} border-capsule-navy hover:border-capsule-navy dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300`}>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-black text-capsule-navy dark:text-white">{l.stats.accountStatus}</p>
                 <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -193,8 +203,8 @@ export default function TrainerDashboard() {
             </div>
           </div>
 
-          {/* Density Breakdown Glassmorphism */}
-          <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-6 shadow-2xl backdrop-saturate-150 border-t-4 border-t-capsule-navy dark:hover:border-t-sky-400 dark:hover:bg-[#1C2843]/70 hover:-translate-y-0.5 transition-all duration-300">
+          {/* Density Breakdown High-Contrast Box */}
+          <div className="bg-white dark:bg-[#18233C] border-2 border-slate-300 dark:border-slate-700/80 rounded-3xl p-6 shadow-2xl border-t-4 border-t-capsule-navy dark:hover:border-t-sky-400 hover:-translate-y-0.5 transition-all duration-300">
             <div className="flex items-center gap-2 mb-4">
               <svg className="w-5 h-5 text-capsule-navy dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
               <h3 className="text-sm font-black text-capsule-navy dark:text-white">{lang === 'ar' ? 'مؤشرات الكثافة الاستيعابية وصافي الربح لكل دورة' : 'Course Density & Net Revenue Breakdown'}</h3>
@@ -290,18 +300,18 @@ export default function TrainerDashboard() {
           </div>
         </div>
 
-        {/* Right Form & Feedback Glassmorphism */}
+        {/* Right Form & Feedback High-Contrast Cards */}
         <div className="space-y-6">
           {coursesList.length > 0 && (
-            <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-white/30 dark:border-slate-800 pb-3">
+            <div className="bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <h2 className="text-sm font-black text-capsule-navy dark:text-white flex items-center gap-2">
                   <svg className="w-4 h-4 text-capsule-teal dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                   {lang === 'ar' ? 'دوراتي المنشورة النشطة' : 'My Active Published Bootcamps'}
                 </h2>
                 <span className="text-xs font-mono font-black text-capsule-teal bg-capsule-teal/10 px-2.5 py-0.5 rounded-full">{coursesList.length}</span>
               </div>
-              <div className="space-y-3 max-h-[220px] overflow-y-auto divide-y divide-white/20 dark:divide-slate-800">
+              <div className="space-y-3 max-h-[220px] overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800">
                 {coursesList.map((c) => (
                   <div key={c.id} className="pt-2.5 flex items-center justify-between gap-3 text-xs font-bold">
                     <div className="truncate max-w-[65%]">
@@ -317,7 +327,7 @@ export default function TrainerDashboard() {
             </div>
           )}
 
-          <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-6 shadow-2xl backdrop-saturate-150 border-t-4 border-t-capsule-navy h-fit">
+          <div className="bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl border-t-4 border-t-capsule-navy h-fit">
             <div className="flex items-center gap-2 border-b border-white/40 dark:border-slate-800 pb-3 mb-4">
               <svg className="w-5 h-5 text-capsule-navy dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               <h2 className="text-md font-black text-capsule-navy dark:text-white">{lang === 'ar' ? 'إنشاء وتفصيل دورة جديدة' : 'Create Detailed Course'}</h2>

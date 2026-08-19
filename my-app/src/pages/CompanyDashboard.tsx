@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+// API base URL — single source of truth, plus the real current-user fetch
+import { BASE_URL, getCurrentUser } from '../services/api';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import { 
@@ -32,6 +34,12 @@ interface EmployeeItem {
   id: number;
   name: string;
   progress: number;
+}
+
+// Real, logged-in company account details — fetched from /auth/me, never hardcoded
+interface CompanyProfile {
+  fullName: string;
+  email: string;
 }
 
 interface FormState {
@@ -129,12 +137,14 @@ export default function CompanyDashboard() {
     thEmpProgress: lang === 'ar' ? 'نسبة الإنجاز' : 'Completion Rate'
   };
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  const token = localStorage.getItem('user_token');
+  const token = sessionStorage.getItem('user_token');
 
   // إفراغ المصفوفات من البيانات الثابتة لانتظار البيانات الحية من السيرفر[cite: 9]
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [employees, setEmployees] = useState<EmployeeItem[]>([]);
+
+  // بيانات الشركة الحقيقية (الاسم والبريد) — تُجلب من السيرفر ولا تُكتب بشكل ثابت بالكود
+  const [profile, setProfile] = useState<CompanyProfile | null>(null);
 
   // UI Navigation & View Screen Switches
   const [activeTab, setActiveTab] = useState<'request' | 'tickets' | 'analytics'>('request');
@@ -163,10 +173,18 @@ export default function CompanyDashboard() {
         });
         const employeesData = await employeesRes.json().catch(() => []);
 
+        // جلب بيانات حساب الشركة الحقيقية (الاسم والبريد المسجّلين فعلياً عند التسجيل)
+        const userResponse: any = await getCurrentUser().catch(() => null);
+
         if (!isMounted) return;
 
         setTickets(Array.isArray(ticketsData) ? ticketsData : []);
         setEmployees(Array.isArray(employeesData) ? employeesData : []);
+
+        const rawUser = userResponse?.user || userResponse;
+        if (rawUser?.fullName || rawUser?.email) {
+          setProfile({ fullName: rawUser.fullName || '', email: rawUser.email || '' });
+        }
       } catch (err) {
         console.error('Failed to load company dashboard telemetry data', err);
       }
@@ -253,7 +271,10 @@ export default function CompanyDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
+    <div className="min-h-screen bg-slate-200/80 dark:bg-[#060A17] font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 selection:bg-[#00A499]/10" dir={t.dir}>
+      <div className={`absolute top-30 ${t.dir === 'rtl' ? 'right-12' : 'left-12'} w-[450px] h-[450px] bg-capsule-teal/15 rounded-full blur-[110px] pointer-events-none z-0`}></div>
+      <div className={`absolute top-[90%] ${t.dir === 'rtl' ? 'left-12' : 'right-12'} w-[400px] h-[400px] bg-capsule-gold/15 rounded-full blur-[110px] pointer-events-none z-0`}></div>
+
       <Navbar activePage="dashboard" />
 
       {showToast && (
@@ -263,20 +284,29 @@ export default function CompanyDashboard() {
         </div>
       )}
 
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#0D4C54] via-[#0A3A40] to-[#021E22] text-white pt-24 pb-16">
+      <div className="relative overflow-hidden bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white pt-24 pb-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,164,153,0.12),transparent_50%)]"></div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="inline-flex items-center gap-1.5 bg-[#00A499]/20 text-[#26FFE6] text-xs font-black px-3 py-1 rounded-full border border-[#00A499]/30 mb-4 tracking-wide uppercase">
             <BuildingOffice2Icon className="w-3.5 h-3.5" />
             {l.title}
           </div>
-          <h1 className="text-2xl md:text-4xl font-black tracking-tight mb-2">{l.title}</h1>
+          <h1 className="text-2xl md:text-4xl font-black tracking-tight mb-2">
+            {profile?.fullName
+              ? (lang === 'ar' ? `مرحباً، ${profile.fullName}` : `Welcome, ${profile.fullName}`)
+              : l.title}
+          </h1>
           <p className="text-slate-300 max-w-2xl text-xs md:text-sm font-semibold leading-relaxed">{l.subtitle}</p>
+          {profile?.email && (
+            <p dir="ltr" className="text-[#26FFE6] text-xs font-bold mt-2 inline-flex items-center gap-1.5">
+              📧 {profile.email}
+            </p>
+          )}
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="flex border-b border-slate-200/80 mb-8 gap-1 md:gap-2 overflow-x-auto">
+        <div className="flex border-b border-slate-300 dark:border-slate-700 mb-8 gap-1 md:gap-2 overflow-x-auto">
           <button onClick={() => setActiveTab('request')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'request' ? 'border-b-[#00A499] text-[#00A499]' : 'border-b-transparent text-slate-400 hover:text-slate-600'}`}>
             <PlusCircleIcon className="w-4 h-4 inline-block mx-1" />
             {l.tabRequest}
@@ -292,33 +322,33 @@ export default function CompanyDashboard() {
         </div>
 
         {activeTab === 'request' && (
-          <div className="max-w-3xl bg-white border border-slate-100 rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden">
+          <div className="max-w-3xl bg-white dark:bg-[#18233C] border-2 border-slate-300 dark:border-slate-700/80 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#00A499] to-[#0D4C54]"></div>
-            <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
               {l.formTitle}
             </h2>
 
             <form onSubmit={handleFormSubmit} className="space-y-5">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500">{l.progName}</label>
-                <input type="text" required value={form.program} onChange={(e) => setForm({...form, program: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{l.progName}</label>
+                <input type="text" required value={form.program} onChange={(e) => setForm({...form, program: e.target.value})} className="w-full bg-slate-50 dark:bg-[#0F172A] border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-[#00A499] transition-all" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500">{l.empCount}</label>
-                  <input type="number" required value={form.count} onChange={(e) => setForm({...form, count: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{l.empCount}</label>
+                  <input type="number" required value={form.count} onChange={(e) => setForm({...form, count: e.target.value})} className="w-full bg-slate-50 dark:bg-[#0F172A] border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-[#00A499] transition-all" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500">{l.budget}</label>
-                  <input type="number" required value={form.budget} onChange={(e) => setForm({...form, budget: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{l.budget}</label>
+                  <input type="number" required value={form.budget} onChange={(e) => setForm({...form, budget: e.target.value})} className="w-full bg-slate-50 dark:bg-[#0F172A] border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-[#00A499] transition-all" />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500">{l.domain}</label>
-                <select value={form.domain} onChange={(e) => setForm({...form, domain: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all cursor-pointer">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{l.domain}</label>
+                <select value={form.domain} onChange={(e) => setForm({...form, domain: e.target.value})} className="w-full bg-slate-50 dark:bg-[#0F172A] border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-[#00A499] transition-all cursor-pointer">
                   <option value="Cybersecurity">Cybersecurity</option>
                   <option value="Artificial Intelligence">Artificial Intelligence</option>
                   <option value="Cloud Computing">Cloud Computing</option>
@@ -327,11 +357,11 @@ export default function CompanyDashboard() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500">{l.rfpLabel}</label>
-                <div className="relative border-2 border-dashed border-slate-200 hover:border-[#00A499] bg-slate-50/50 rounded-2xl p-6 transition-all text-center cursor-pointer group">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{l.rfpLabel}</label>
+                <div className="relative border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-[#00A499] bg-slate-50 dark:bg-[#0F172A] rounded-2xl p-6 transition-all text-center cursor-pointer group">
                   <input type="file" onChange={handleFileUpload} accept=".pdf,.doc,.docx" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                  <DocumentArrowUpIcon className="w-8 h-8 mx-auto text-slate-300 group-hover:text-[#00A499] transition-colors mb-2" />
-                  <p className="text-xs font-bold text-slate-600">{uploadedFileName || l.rfpHint}</p>
+                  <DocumentArrowUpIcon className="w-8 h-8 mx-auto text-slate-400 group-hover:text-[#00A499] transition-colors mb-2" />
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{uploadedFileName || l.rfpHint}</p>
                 </div>
               </div>
 
@@ -345,9 +375,9 @@ export default function CompanyDashboard() {
         )}
 
         {activeTab === 'tickets' && (
-          <div className="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+          <div className="bg-white dark:bg-[#18233C] border-2 border-slate-300 dark:border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0F172A] flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
                 {l.tableTitle}
               </h2>
@@ -366,7 +396,7 @@ export default function CompanyDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-xs md:text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold bg-slate-50/20">
+                  <tr className="border-b border-slate-200 text-slate-400 text-xs font-bold bg-slate-50/20">
                     <th className={`p-4 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{l.thId}</th>
                     <th className={`p-4 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{l.thProgram}</th>
                     <th className="p-4 text-center">{l.thDate}</th>
@@ -374,7 +404,7 @@ export default function CompanyDashboard() {
                     <th className="p-4 text-center">{l.thAction}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
+                <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                   {filteredTickets.map((tkt) => (
                     <tr key={tkt.id} className="hover:bg-slate-50/40 transition-colors">
                       <td className="p-4 font-mono font-bold text-[#0D4C54]">{tkt.id}</td>

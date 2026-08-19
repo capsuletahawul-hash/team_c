@@ -4,8 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
-import { CapsuleMark, EyeIcon } from "../components/Icons";
+import { EyeIcon } from "../components/Icons";
+import logo from "../assets/light_trans_logo.png";
 import { useAuth } from "../context/AuthContext";
+import { loginUser } from "../mocks/mockApi";
+// import { CapsuleMark, EyeIcon } from "../components/Icons";
+// import { useAuth } from "../context/AuthContext";
+// API base URL — single source of truth
+import { BASE_URL } from "../services/api";
 // @ts-ignore: allow side-effect CSS import without type declarations
 import "../styles/auth.css";
 
@@ -32,7 +38,7 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.login;
@@ -66,8 +72,11 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
       // تحويل الرتبة إلى حروف صغيرة لتتوافق مع نظام الـ Dashboard الحالي
       const role = result.user.role.toLowerCase();
 
-      // تخزين التوكن الحقيقي القادم من الباك اند — بدونه أي طلب محمي لاحقاً يفشل بـ invalid_token
+      // تخزين التوكن والمعلومات الحقيقية القادمة من الباك اند
       login(role as any, result.token);
+      if (result.user?.name) sessionStorage.setItem("user_name", result.user.name);
+      if (result.user?.email) sessionStorage.setItem("user_email", result.user.email);
+      if (result.user?.avatar) sessionStorage.setItem("user_avatar", result.user.avatar);
 
       // التوجيه للوحة التحكم الصحيحة بناءً على نوع المستخدم
       if (role === "student") {
@@ -97,15 +106,13 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
             {lang === "ar" ? "EN" : "AR"}
           </button>
           <div className="auth-visual-inner">
-            <div className="auth-brand">
-              <CapsuleMark size={36} />
+            <div className="auth-brand" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"12px"}}>
+              <img
+                src={logo}
+                alt="Capsule Tahawul"
+                style={{width:"300px",height:"auto"}}
+              />
               <span>{t.brand}</span>
-            </div>
-            <div className="auth-art" aria-hidden="true">
-              <div className="capsule-big" />
-              <div className="capsule-small" />
-              <span className="spark spark-1">✦</span>
-              <span className="spark spark-2">✦</span>
             </div>
             <p className="auth-tagline">{t.tagline}</p>
           </div>
@@ -137,6 +144,8 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
 
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
+
+            {/* تم حذف زر تعبئة بيانات الأدمن السريع من هنا */}
 
             {/* عرض رسالة الخطأ في حال وجودها */}
             {errorMsg && (

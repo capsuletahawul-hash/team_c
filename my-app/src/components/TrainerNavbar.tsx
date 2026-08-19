@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
+import lightLogo from "../assets/light_trans_logo.png";
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
+import UserProfileMenu from './UserProfileMenu';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -47,31 +51,35 @@ function TrainerNavbar({
   
   // Extract contextual parameters for regional localization setups
   const { t, lang, toggleLanguage } = useLanguage();
+  const isRTL = t.dir === 'rtl';
+  const { theme } = useTheme();
+
+  const currentLogo = theme === 'dark' ? lightLogo : logo;
 
   /**
    * Safe localized application paths mapped specifically for the educator interface.
    */
   const navLinks: TrainerNavLink[] = [
     {
-      id: "dashboard",
+      id: "home",
       label: lang === "ar" ? "الرئيسية" : "Home",
-      to: "/trainer-dashboard",
+      to: "/",
     },
     {
       id: "courses",
       label: lang === "ar" ? "دوراتي" : "My Courses",
-      to: "#",
+      to: "/trainer-courses",
     },
     {
-      id: "profile",
-      label: lang === "ar" ? "ملفي الشخصي" : "My Profile",
-      to: "/trainer-profile",
+      id: "learn",
+      label: lang === "ar" ? "الدورات" : "Courses",
+      to: "/courses-overview",
     },
   ];
 
   return (
     <nav
-      className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm transition-all"
+      className="sticky top-0 z-50 bg-white/85 dark:bg-[#0A0F1D]/90 backdrop-blur-xl border-b border-gray-200/80 dark:border-slate-800/80 shadow-md transition-all duration-300"
       dir={t.dir}
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
@@ -81,11 +89,11 @@ function TrainerNavbar({
           {/* Main Home Branding Path */}
           <Link to="/trainer-dashboard" className="flex items-center gap-3 cursor-pointer">
             <img
-              src={logo}
+              src={currentLogo}
               alt="Capsula Tahawul Logo"
               className="w-12 h-12 object-contain"
             />
-            <span className="text-lg font-extrabold tracking-wide text-capsule-navy">
+            <span className="text-lg font-extrabold tracking-wide text-capsule-navy dark:text-white">
               {t.brand}
             </span>
           </Link>
@@ -117,7 +125,18 @@ function TrainerNavbar({
 
         {/* Desktop Actions Layout Panel */}
         <div className="hidden md:flex items-center gap-4 px-4">
-          
+
+          {/* 🛒 رابط السلة */}
+          <Link
+            to="/cart"
+            className={`w-10 h-10 flex items-center justify-center rounded-full transition ${
+              activePage === 'shopping-cart' ? 'bg-capsule-teal/10 text-capsule-teal' : 'hover:bg-gray-100 text-gray-700'
+            }`}
+            title={lang === "ar" ? "السلة" : "Cart"}
+          >
+            🛒
+          </Link>
+
           {/* Desktop Language Toggle Button */}
           <button 
             onClick={toggleLanguage}
@@ -126,10 +145,8 @@ function TrainerNavbar({
             {lang === 'ar' ? 'EN' : 'AR'}
           </button>
 
-          {/* Theme State Switch Placeholder */}
-          <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition">
-            🌙
-          </button>
+          {/* Day/Night Theme Toggle (UIverse strong-squid-82 CSS Button) */}
+          <ThemeToggle size="14px" />
 
           {/* Conditional layout switching based on public login settings context */}
           {showAuthButtons ? (
@@ -149,20 +166,21 @@ function TrainerNavbar({
               </button>
             </div>
           ) : (
-            <Link
-              to="/sign-in"
-              className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300"
-            >
-              {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
-            </Link>
+            <UserProfileMenu customRole="trainer" />
           )}
         </div>
 
         {/* Mobile View Toggle Triggers */}
-        <div className="md:hidden">
-          <button 
-            onClick={() => setIsOpen(!isOpen)} 
-            className="text-capsule-navy focus:outline-none text-xl p-1 cursor-pointer"
+        <div className="md:hidden flex items-center gap-2">
+          {/* Mobile Shortcut to Cart */}
+          <Link to="/cart" className="p-2 text-lg">🛒</Link>
+
+          {/* 👤 Mobile User Profile Dropdown Menu */}
+          {!showAuthButtons && <UserProfileMenu customRole="trainer" />}
+
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-capsule-navy dark:text-white focus:outline-none text-xl p-1 cursor-pointer"
           >
             {isOpen ? '✕' : '☰'}
           </button>
@@ -171,12 +189,19 @@ function TrainerNavbar({
 
       {/* Mobile Drawer Navigation Drawer Block */}
       {isOpen && (
-        <div className="md:hidden mt-4 bg-gray-50 rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 mx-6 mb-4">
+        <div className="md:hidden mt-4 bg-gray-50 dark:bg-[#111A2B] rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 dark:border-slate-800 mx-6 mb-4">
           
+          {/* Mobile User Profile Section */}
+          {!showAuthButtons && (
+            <div className="pb-3 border-b border-gray-200 dark:border-slate-800">
+              <UserProfileMenu customRole="trainer" />
+            </div>
+          )}
+
           {/* Mobile Specific Language Trigger */}
           <button 
             onClick={toggleLanguage}
-            className="self-start mb-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-extrabold text-xs px-4 py-2 rounded-full transition-all duration-200 cursor-pointer"
+            className="self-start mb-2 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 text-gray-800 dark:text-slate-100 font-extrabold text-xs px-4 py-2 rounded-full transition-all duration-200 cursor-pointer"
           >
             {lang === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
           </button>

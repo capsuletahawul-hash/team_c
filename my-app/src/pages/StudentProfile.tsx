@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // استيراد دالة جلب بيانات المستخدم الحالي من ملف الخدمات الأساسي
-import { getCurrentUser } from '../services/api'; 
+import { getCurrentUser, BASE_URL } from '../services/api'; 
+// Import the default profile picture
+import defaultProfilePic from '../assets/profile.png';
 
-// Reusable Components[cite: 11]
+// Reusable Components
 import StudentNavbar from "../components/StudentNavbar.js";
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
+import SkeletonLoader from '../components/SkeletonLoader';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button.js';
 
-// Global Context[cite: 11]
+// Global Context
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 // ============================================================================
-// TYPES & INTERFACES[cite: 11]
+// TYPES & INTERFACES
 // ============================================================================
 
 interface Profile {
@@ -56,7 +59,7 @@ interface StudentProfileProps {
 type SaveState = 'idle' | 'saving' | 'saved';
 
 // ============================================================================
-// COMPONENT[cite: 11]
+// COMPONENT
 // ============================================================================
 
 function StudentProfile({ onBack }: StudentProfileProps) {
@@ -71,8 +74,10 @@ function StudentProfile({ onBack }: StudentProfileProps) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [saveState, setSaveState] = useState<SaveState>('idle');
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  const token = localStorage.getItem('user_token');
+  // 1. Reference for the hidden file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const token = sessionStorage.getItem('user_token');
 
   useEffect(() => {
     let isMounted = true;
@@ -81,11 +86,9 @@ function StudentProfile({ onBack }: StudentProfileProps) {
       try {
         setLoading(true);
         
-        // 1. جلب بيانات المستخدم الأساسية من الباك إند
-        const userResponse :any = await getCurrentUser();
+        const userResponse: any = await getCurrentUser();
         const profileData = userResponse.user || userResponse;
 
-        // 2. جلب الدورات المشتراة من الباك إند
         const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -118,19 +121,39 @@ function StudentProfile({ onBack }: StudentProfileProps) {
     setFormValues(prev => ({ ...prev, [field]: value }));
   };
 
+  // 2. The function that converts your file into a Base64 string automatically
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (max 2MB to prevent Prisma payload errors)
+    if (file.size > 2 * 1024 * 1024) {
+      setFieldErrors(prev => ({ ...prev, avatar: 'حجم الصورة يجب أن لا يتجاوز 2 ميغابايت' }));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        handleChange('avatar', reader.result); // Saves the Base64 string to formValues.avatar
+        setFieldErrors(prev => ({ ...prev, avatar: undefined }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = async () => {
     setSaveState('saving');
     setFieldErrors({});
 
     try {
-      // إرسال البيانات المحدثة إلى الباك إند مباشرة
       const response = await fetch(`${BASE_URL}/student/profile/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formValues)
+        body: JSON.stringify(formValues) // Sends the Base64 string directly to Prisma
       });
 
       const result = await response.json().catch(() => ({}));
@@ -164,8 +187,12 @@ function StudentProfile({ onBack }: StudentProfileProps) {
 
   if (loading || !profile) {
     return (
-      <div className="min-h-screen bg-capsule-bg flex flex-col items-center justify-center">
-        <LoadingIndicator message={l.loading} />
+      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans flex flex-col" dir={t.dir}>
+        <StudentNavbar activePage="profile" />
+        <div className="flex-grow max-w-5xl mx-auto px-6 py-10 w-full">
+          <SkeletonLoader variant="student-profile" dir={t.dir} />
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -192,17 +219,29 @@ function StudentProfile({ onBack }: StudentProfileProps) {
             </div>
           )}
 
-          {/* Main Header Card[cite: 11] */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
-            <div className="bg-capsule-gradient h-28"></div>
+            <div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-10 px-8"></div>
 
             <div className="px-8 pb-8">
               <div className="flex flex-col sm:flex-row sm:items-end gap-6 -mt-12">
-                <img
-                  src={formValues.avatar || profile.avatar || 'https://via.placeholder.com/150'}
-                  alt="Profile Avatar"
-                  className="w-24 h-24 rounded-2xl border-4 border-white shadow-md object-cover bg-white"
-                />
+                
+                {/* 3. The large profile image - updates instantly when a new file is chosen */}
+                <div className="relative group">
+                  <img
+                    src={formValues.avatar || profile.avatar || defaultProfilePic}
+                    alt="Profile Avatar"
+                    className="w-24 h-24 rounded-2xl border-4 border-white shadow-md object-cover bg-white"
+                  />
+                  {isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute inset-0 bg-black/40 text-white rounded-2xl flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    >
+                      تغيير الصورة
+                    </button>
+                  )}
+                </div>
 
                 <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 sm:pt-0">
                   <div className={t.dir === 'rtl' ? 'text-right' : 'text-left'}>
@@ -220,7 +259,6 @@ function StudentProfile({ onBack }: StudentProfileProps) {
                 </div>
               </div>
 
-              {/* Quick Badges[cite: 11] */}
               <div className="flex flex-wrap gap-2 mt-6">
                 <span className="bg-capsule-teal/10 text-capsule-teal text-xs font-bold px-3 py-1.5 rounded-full">
                   {profile.role === 'Student' ? l.roles.student : profile.role}
@@ -235,12 +273,20 @@ function StudentProfile({ onBack }: StudentProfileProps) {
                 </span>
               </div>
 
-              {/* Edit Form[cite: 11] */}
               {isEditing && (
                 <div className="mt-8 border-t border-gray-100 pt-6">
                   <h2 className="text-sm font-bold text-capsule-navy mb-4">{l.editSectionTitle}</h2>
 
                   {fieldErrors.global && <ErrorMessage message={fieldErrors.global} />}
+
+                  {/* 4. The Hidden File Input */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
@@ -256,15 +302,25 @@ function StudentProfile({ onBack }: StudentProfileProps) {
                       )}
                     </div>
 
+                    {/* 5. The new UI Button replacing the URL text input */}
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-2">{l.inputs.avatar}</label>
-                      <input
-                        type="text"
-                        value={formValues.avatar}
-                        onChange={(e) => handleChange('avatar', e.target.value)}
-                        className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-capsule-teal"
-                        dir="ltr"
-                      />
+                      <label className="block text-xs font-bold text-gray-500 mb-2">صورة الحساب الشخصي</label>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-capsule-navy text-xs font-bold rounded-xl transition cursor-pointer"
+                        >
+                          اختيار ملف من جهازك...
+                        </button>
+                        {/* Shows a checkmark if a file was selected */}
+                        {formValues.avatar && formValues.avatar !== profile.avatar && (
+                          <span className="text-xs text-emerald-600 font-bold">تم اختيار صورة جديدة ✓</span>
+                        )}
+                      </div>
+                      {fieldErrors.avatar && (
+                        <p className="text-xs font-bold text-red-500 mt-1">{fieldErrors.avatar}</p>
+                      )}
                     </div>
                   </div>
 
@@ -279,7 +335,6 @@ function StudentProfile({ onBack }: StudentProfileProps) {
             </div>
           </div>
 
-          {/* Academic Progress Summary[cite: 11] */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
               <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.active}</p>

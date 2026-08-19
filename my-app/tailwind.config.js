@@ -8,17 +8,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        capsule: {
-          navy: "#164961",
-          teal: "#387B84",
-          gold: "#FFD369",
-          darkGold: "#D19E22",
-          background: "#F0F5F9",
-          border: "#C9D6DF",
-          footer: "#2D3766",
-        },
-
-      },
+  capsule: {
+    navy: "#164961",
+    teal: "#387B84",
+    gold: "#FFD369",
+    darkGold: "#D19E22",
+    background: "#F0F5F9",
+    border: "#C9D6DF",
+    footer: "#7FB1BC", // اللون الرئيسي
+  },
+},
 
       fontFamily: {
         sans: ["Inter", "sans-serif"],

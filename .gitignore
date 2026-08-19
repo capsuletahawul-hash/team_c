@@ -25,3 +25,8 @@ dist-ssr
 
 # Keep local secrets private
 .env
+
+# AI Agent folders
+.agents/
+.claude/
+.windsurf/

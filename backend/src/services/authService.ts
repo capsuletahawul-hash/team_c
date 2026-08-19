@@ -1,35 +1,33 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
-import {
-  RegisterInput,
-  LoginInput,
-} from "../validation/authValidation.js";
-
+import { RegisterInput, LoginInput } from "../validation/authValidation.js";
 import { userRepository } from "../repositories/userRepository.js";
+import { prisma } from "../lib/prisma.js";
 
 export const authService = {
-  /**
-   * Register
-   */
   async register(input: RegisterInput) {
     const existingUser = await userRepository.findByEmail(input.email);
 
     if (existingUser) {
-      return {
-        success: false,
-        error: "Email already registered",
-      };
+      return { success: false, error: "Email already registered" };
     }
 
     const hashedPassword = await bcrypt.hash(input.password, 10);
+
+    // تحديد رتبة المستخدم الحقيقية من المخلات أو البريد الإلكتروني
+    let userRole = (input.role || "STUDENT").toUpperCase();
+    if (input.email.toLowerCase().includes("company")) {
+      userRole = "COMPANY";
+    }
 
     const newUser = await userRepository.create({
       name: input.name,
       email: input.email,
       password: hashedPassword,
-      role: input.role,
+      role: userRole as any,
     });
+
+    const secret = process.env.JWT_SECRET || "fallback-secret-key";
 
     const token = jwt.sign(
       {
@@ -37,10 +35,8 @@ export const authService = {
         email: newUser.email,
         role: newUser.role,
       },
-      process.env.JWT_SECRET || "fallback-secret-key",
-      {
-        expiresIn: "7d",
-      }
+      secret,
+      { expiresIn: "7d" }
     );
 
     return {
@@ -55,30 +51,36 @@ export const authService = {
     };
   },
 
-  /**
-   * Login
-   */
   async login(input: LoginInput) {
-    const user = await userRepository.findByEmail(input.email);
+    let user = await userRepository.findByEmail(input.email);
 
     if (!user) {
-      return {
-        success: false,
-        error: "Invalid email or password",
-      };
+      return { success: false, error: "Invalid email or password" };
     }
 
-    const passwordMatch = await bcrypt.compare(
-      input.password,
-      user.password
-    );
+    if (user.status === "suspended") {
+      return { success: false, error: "Your account has been suspended" };
+    }
+
+    const passwordMatch = await bcrypt.compare(input.password, user.password);
 
     if (!passwordMatch) {
-      return {
-        success: false,
-        error: "Invalid email or password",
-      };
+      return { success: false, error: "Invalid email or password" };
     }
+
+    // إصلاح تلقائي وحفظ رتبة الشركة في قاعدة البيانات إذا كان الإيميل يحتوي على company
+    if (input.email.toLowerCase().includes("company") && String(user.role).toUpperCase() !== "COMPANY") {
+      try {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { role: "COMPANY" as any },
+        });
+      } catch (e) {
+        user = { ...user, role: "COMPANY" as any };
+      }
+    }
+
+    const secret = process.env.JWT_SECRET || "fallback-secret-key";
 
     const token = jwt.sign(
       {
@@ -86,10 +88,8 @@ export const authService = {
         email: user.email,
         role: user.role,
       },
-      process.env.JWT_SECRET || "fallback-secret-key",
-      {
-        expiresIn: "7d",
-      }
+      secret,
+      { expiresIn: "7d" }
     );
 
     return {

@@ -14,6 +14,7 @@ const router = Router();
 
 router.post("/register", authLimiter, authController.register);
 router.post("/login", authLimiter, authController.login);
+router.post("/forgot-password", authLimiter, authController.forgotPassword);
 
 // Protected route — requires a valid, verified JWT. Exists so the Postman
 // test table's "Protected route (any)" requirement (Handbook Section 11)

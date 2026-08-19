@@ -5,8 +5,8 @@ import "../styles/auth.css";
 import { Link } from "react-router-dom";
 // ربط الصفحة بالسياق العالمي للغات لكي تعمل الترجمة فوراً[cite: 11]
 import { useLanguage } from "../context/LanguageContext";
-
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// API base URL — single source of truth
+import { BASE_URL } from "../services/api";
 
 // النصوص المستخدمة في الصفحة باللغتين العربية والإنجليزية[cite: 11]
 const TEXT = {

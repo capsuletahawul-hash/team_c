@@ -146,7 +146,7 @@ export const COPY = {
       textSelection: "اختيارك الحالي هو: ",
       contactTitle: "الاستشارة المباشرة وإرسال رسالة",
       contactSub: "هل لديك استفسار حول تدريب مخصص للشركات? أرسل رسالة مباشرة إلى صندوق المدرب.",
-      msgSuccess: "✨ تم إرسال استفسارك بنجاح إلى المدرب!",
+      msgSuccess: "تم إرسال استفسارك بنجاح إلى المدرب!",
       labelName: "الاسم الكامل",
       labelEmail: "البريد الإلكتروني للاستجابة",
       labelMsg: "تفاصيل رسالتك أو استشارتك",
@@ -176,6 +176,38 @@ export const COPY = {
         cardTitle: "الدورات المنشورة",
         colTitle: "اسم الدورة",
         colStudents: "عدد الطلاب"
+      }
+    },
+    coursesApproval: {
+      hero: {
+        title: "اعتماد وتعديلات دورات المدربين",
+        subtitle: "مراجعة واعتماد الدورات الجديدة أو طلبات الحذف المقدمة من المدربين"
+      },
+      stats: {
+        total: "إجمالي الكورسات",
+        approved: "المعتمدة",
+        pending: "جديد (قيد الانتظار)",
+        deletionRequests: "طلبات الحذف"
+      },
+      table: {
+        cardTitle: "جدول طلبات واعتمادات الدورات",
+        colTitle: "اسم الدورة",
+        colTrainer: "المدرب",
+        colCategory: "التصنيف",
+        colDuration: "المدة",
+        colStatus: "الحالة",
+        colActions: "الإجراءات",
+        unitHours: " أسبوع",
+        actionApprove: "اعتماد",
+        actionReject: "رفض",
+        actionConfirmDelete: "تأكيد الحذف",
+        actionRejectDelete: "رفض الحذف",
+        statusApproved: "معتمد",
+        statusRejected: "مرفوض",
+        statusPendingDeletion: "طلب حذف",
+        approvedText: "معتمد",
+        rejectedText: "مرفوض",
+        pendingText: "قيد الانتظار"
       }
     },
     courseDetails: {
@@ -322,6 +354,36 @@ export const COPY = {
         rejectedText: "مرفوض"
       }
     },
+    contractsApproval: {
+      loading: "جاري تحميل طلبات الشركات...",
+      hero: {
+        title: "اعتماد طلبات الشركات",
+        subtitle: "مراجعة طلبات الشراكة والتدريب المؤسسي المقدمة من الشركات واعتمادها أو رفضها."
+      },
+      stats: {
+        total: "إجمالي الطلبات",
+        approved: "الطلبات المعتمدة",
+        pending: "بانتظار المراجعة"
+      },
+      table: {
+        cardTitle: "قائمة طلبات الشركات",
+        colCompany: "اسم الشركة",
+        colContact: "جهة الاتصال",
+        colTrainingType: "نوع التدريب",
+        colTrainees: "عدد المتدربين",
+        colStatus: "الحالة",
+        colActions: "الإجراءات",
+        actionApprove: "اعتماد",
+        actionReject: "رفض",
+        statusApproved: "تم الاعتماد",
+        statusRejected: "تم الرفض"
+      },
+      data: {
+        approvedText: "معتمد",
+        pendingText: "بانتظار المراجعة",
+        rejectedText: "مرفوض"
+      }
+    },
     contactPage: {
       title: "تواصل معنا الآن",
       subtitle: "نحن هنا لمساعدتك في قيادة تحولك الرقمي وبناء مسيرتك التقنية الفعالة والناجحة.",
@@ -419,7 +481,7 @@ export const COPY = {
         badge: "لوحة الطالب",
         fallbackName: "طالب",
         welcomePrefix: "مرحباً",
-        welcomeSuffix: "👋",
+        welcomeSuffix: "",
         subtitle: "تابع دوراتك وتقدمك وإشعاراتك من مكان واحد.",
         viewProfile: "عرض الملف الشخصي"
       },
@@ -487,7 +549,7 @@ export const COPY = {
         submitBtn: "إنشاء الدورة"
       },
       messages: {
-        valErrorLength: "يجب أن يكون الوصف 20 حرفًا على الأقل.",
+        valErrorLength: "يجب أن تكون المتطلبات 20 حرفًا على الأقل.",
         successPrefix: "تم إنشاء الطلب بنجاح. رقم التذكرة: ",
         genericError: "حدث خطأ، حاول مرة أخرى."
       }
@@ -666,7 +728,7 @@ export const COPY = {
       textSelection: "Your current selection: ",
       contactTitle: "Direct Consultation & Message",
       contactSub: "Have a corporate training inquiry? Drop a message directly to the trainer.",
-      msgSuccess: "✨ Your inquiry has been dispatched successfully!",
+      msgSuccess: "Your inquiry has been dispatched successfully!",
       labelName: "Full Name",
       labelEmail: "Email Address",
       labelMsg: "Your Message",
@@ -696,6 +758,38 @@ export const COPY = {
         cardTitle: "Published Courses",
         colTitle: "Course Title",
         colStudents: "Students"
+      }
+    },
+    coursesApproval: {
+      hero: {
+        title: "Courses & Bootcamp Approvals",
+        subtitle: "Review, approve new courses or process deletion requests submitted by trainers"
+      },
+      stats: {
+        total: "Total Courses",
+        approved: "Approved",
+        pending: "New Pending",
+        deletionRequests: "Deletion Requests"
+      },
+      table: {
+        cardTitle: "Course Submissions & Deletion Requests",
+        colTitle: "Course Title",
+        colTrainer: "Trainer",
+        colCategory: "Category",
+        colDuration: "Duration",
+        colStatus: "Status",
+        colActions: "Actions",
+        unitHours: " Wks",
+        actionApprove: "Approve",
+        actionReject: "Reject",
+        actionConfirmDelete: "Approve Deletion",
+        actionRejectDelete: "Reject Deletion",
+        statusApproved: "Approved",
+        statusRejected: "Rejected",
+        statusPendingDeletion: "Deletion Requested",
+        approvedText: "Approved",
+        rejectedText: "Rejected",
+        pendingText: "Pending"
       }
     },
     courseDetails: {
@@ -842,6 +936,36 @@ export const COPY = {
         rejectedText: "Rejected"
       }
     },
+    contractsApproval: {
+      loading: "Loading contract requests...",
+      hero: {
+        title: "Contract Requests Approval",
+        subtitle: "Review B2B partnership and corporate training requests submitted by companies and approve or reject them."
+      },
+      stats: {
+        total: "Total Requests",
+        approved: "Approved",
+        pending: "Pending"
+      },
+      table: {
+        cardTitle: "Company Requests List",
+        colCompany: "Company Name",
+        colContact: "Contact",
+        colTrainingType: "Training Type",
+        colTrainees: "Trainees",
+        colStatus: "Status",
+        colActions: "Actions",
+        actionApprove: "Approve",
+        actionReject: "Reject",
+        statusApproved: "Approved",
+        statusRejected: "Rejected"
+      },
+      data: {
+        approvedText: "Approved",
+        pendingText: "Pending",
+        rejectedText: "Rejected"
+      }
+    },
     contactPage: {
       title: "Get in Touch",
       subtitle: "We are here to help you deploy your digital shift. Reach out anytime.",
@@ -939,7 +1063,7 @@ export const COPY = {
         badge: "Student Dashboard",
         fallbackName: "Student",
         welcomePrefix: "Welcome",
-        welcomeSuffix: "👋",
+        welcomeSuffix: "",
         subtitle: "Track your courses, progress and notifications in one place.",
         viewProfile: "View Profile"
       },

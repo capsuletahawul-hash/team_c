@@ -46,8 +46,20 @@ export const loginSchema = z.object({
 });
 
 // =========================
+// Forgot Password Validation
+// =========================
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email({
+    message:
+      "صيغة البريد الإلكتروني غير صحيحة / Invalid email format",
+  }),
+});
+
+// =========================
 // Types
 // =========================
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

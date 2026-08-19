@@ -3,53 +3,19 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+import lightLogo from "../assets/light_trans_logo.png";
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
+import UserProfileMenu from './UserProfileMenu';
 
-// ============================================================================
-// TYPES & INTERFACES
-// ============================================================================
-
-/**
- * Interface detailing structure for each navigation link.
- */
-interface NavLinkItem {
-  id: string;
-  label: string;
-  to: string;
-}
-
-/**
- * Prop interface for the general public Navbar component.
- */
-interface NavbarProps {
-  activePage?: string;
-  showAuthButtons?: boolean;
-  onSignIn?: () => void;
-  onSignUp?: () => void;
-}
-
-// ============================================================================
-// COMPONENT
-// ============================================================================
-
-/**
- * Navbar Component
- * 
- * Public-facing navigation system with translation controls, dark mode shell,
- * fully responsive mobile burger drawers, and conditional auth state layouts.
- */
+// ... inside Navbar component:
 function Navbar({ 
   activePage = 'dashboard', 
-  // showAuthButtons / onSignIn / onSignUp are deprecated: kept only so older
-  // pages that still pass them don't break. Real login state now comes from
-  // AuthContext, not from a prop each page has to remember to set correctly.
 }: NavbarProps): React.JSX.Element {
-  // Mobile drawer visible toggle state
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  
-  // Pull language metrics and context translation dictionaries
   const { t, lang, toggleLanguage } = useLanguage();
-
-  // Real, shared login state — same value on every page.
+  const isRTL = t.dir === 'rtl';
+  const { theme } = useTheme();
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -58,18 +24,17 @@ function Navbar({
     navigate('/');
   };
 
-  /**
-   * Statically mapped links matching your translatable global framework.
-   */
   const navLinks: NavLinkItem[] = [
     { id: "home", label: t.nav.home, to: "/" },
     { id: "courses", label: t.nav.courses, to: "/courses-overview" },
     { id: "bootcamps", label: t.nav.bootcamps, to: "/courses-overview" },
   ];
 
+  const currentLogo = theme === 'dark' ? lightLogo : logo;
+
   return (
     <nav
-      className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm transition-all"
+      className="sticky top-0 z-50 bg-white/85 dark:bg-[#0A0F1D]/90 backdrop-blur-xl border-b border-gray-200/80 dark:border-slate-800/80 shadow-md transition-all duration-300"
       dir={t.dir}
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
@@ -79,11 +44,11 @@ function Navbar({
           {/* Logo Brand Frame */}
           <Link to="/" className="flex items-center gap-3 cursor-pointer">
             <img
-              src={logo}
+              src={currentLogo}
               alt="Capsula Tahawul Logo"
               className="w-12 h-12 object-contain"
             />
-            <span className="text-lg font-extrabold tracking-wide text-capsule-navy">
+            <span className="text-lg font-extrabold tracking-wide text-capsule-navy dark:text-white">
               {t.brand}
             </span>
           </Link>
@@ -124,43 +89,48 @@ function Navbar({
             {lang === 'ar' ? 'EN' : 'AR'}
           </button>
 
-          {/* Theme Toggle Placeholder */}
-          <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition">
-            🌙
-          </button>
+          {/* Day/Night Theme Toggle (UIverse strong-squid-82 CSS Button) */}
+          <ThemeToggle size="14px" />
 
           {/* Conditional authentication buttons framework — now based on real auth state */}
           {!isAuthenticated ? (
             <div className="flex items-center gap-3">
               <Link
                 to="/sign-in"
-                className="px-4 h-8 rounded-full border border-capsule-navy text-capsule-navy font-semibold hover:bg-capsule-navy hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer"
+                className="px-4 h-8 rounded-full border border-capsule-navy text-capsule-navy dark:border-sky-400 dark:text-sky-400 font-semibold hover:bg-capsule-navy hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer text-xs"
               >
                 {t.tabs.login}
               </Link>
 
               <Link
                 to="/sign-up"
-                className="px-4 h-8 rounded-full bg-gradient-to-r from-capsule-teal to-capsule-navy text-white font-semibold shadow-md hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer"
+                className="px-4 h-8 rounded-full bg-gradient-to-r from-capsule-teal to-capsule-navy text-white font-semibold shadow-md hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer text-xs"
               >
                 {t.tabs.signup}
               </Link>
             </div>
           ) : (
-            <button
-              onClick={handleLogout}
-              className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300 cursor-pointer"
-            >
-              {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/cart"
+                className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-capsule-teal/20 text-gray-700 dark:text-sky-300 font-bold flex items-center justify-center transition-all cursor-pointer border border-gray-200 dark:border-white/10 shadow-xs"
+                title={lang === 'ar' ? 'السلة' : 'Cart'}
+              >
+                🛒
+              </Link>
+
+              {/* 👤 Modern Profile Menu with Avatar, Name, Role Badge, and Dashboard Links */}
+              <UserProfileMenu />
+            </div>
           )}
         </div>
 
-        {/* Mobile Hamburger Button */}
-        <div className="md:hidden">
+        {/* Mobile Hamburger Button + Profile Menu */}
+        <div className="md:hidden flex items-center gap-2">
+          {isAuthenticated && <UserProfileMenu />}
           <button 
             onClick={() => setIsOpen(!isOpen)} 
-            className="text-capsule-navy focus:outline-none text-xl p-1 cursor-pointer"
+            className="text-capsule-navy dark:text-white focus:outline-none text-xl p-1 cursor-pointer"
           >
             {isOpen ? '✕' : '☰'}
           </button>
@@ -169,7 +139,14 @@ function Navbar({
 
       {/* Mobile Dropdown Menu Drawer */}
       {isOpen && (
-        <div className="md:hidden mt-4 bg-gray-50 rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 mx-6 mb-4">
+        <div className="md:hidden mt-4 bg-gray-50 dark:bg-[#111A2B] rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 dark:border-slate-800 mx-6 mb-4">
+          
+          {/* Mobile User Profile Section */}
+          {isAuthenticated && (
+            <div className="pb-3 border-b border-gray-200 dark:border-slate-800">
+              <UserProfileMenu />
+            </div>
+          )}
           
           {/* Language Toggle (Mobile) */}
           <button 

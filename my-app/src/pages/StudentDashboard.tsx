@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 // استيراد دالة جلب بيانات المستخدم الحالي من ملف الخدمات المشترك
-import { getCurrentUser } from '../services/api'; 
+import { getCurrentUser, BASE_URL } from '../services/api'; 
+// Import the default profile picture
+import defaultProfilePic from '../assets/profile.png';
 
-// Reusable Components[cite: 10]
+// Reusable Components
 import StudentNavbar from "../components/StudentNavbar.jsx";
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
+import SkeletonLoader from '../components/SkeletonLoader';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button.js';
+import CourseAssistant from "../components/CourseAssistant";
 
-// Global Context[cite: 10]
+// Global Context
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 // ============================================================================
-// TYPES & INTERFACES[cite: 10]
+// TYPES & INTERFACES
 // ============================================================================
 
 interface Course {
@@ -22,7 +27,9 @@ interface Course {
   catKey: string;
   durKey: string;
   progress: number;
-  status: 'Active' | 'Completed';
+  status: 'Active' | 'Completed' | 'Expired';
+  accessStartsAt?: string;
+  accessEndsAt?: string;
 }
 
 interface Notification {
@@ -49,7 +56,7 @@ interface StudentDashboardProps {
 }
 
 // ============================================================================
-// COMPONENT[cite: 10]
+// COMPONENT
 // ============================================================================
 
 function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
@@ -73,20 +80,24 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         setLoading(true);
         setError('');
 
-        // 1. جلب بيانات بروفايل الطالب الحالي من الباك إند
-        const userResponse :any = await getCurrentUser();
-        
-        // 2. جلب دورات الطالب وإشعاراته من السيرفر (تحديث المسارات بناءً على إعدادات الباك إند لديك)
-        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-        const token = localStorage.getItem('user_token');
-const coursesData: Course[] = [];
-const notifsData: Notification[] = [];
+        const token = sessionStorage.getItem("user_token");
+
+        const [userResponse, coursesData] = await Promise.all([
+          getCurrentUser() as Promise<any>,
+          fetch(`${BASE_URL}/student/courses/purchased`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }).then((r) => r.json().catch(() => [])),
+        ]);
+
+        const notifsData: Notification[] = [];
+
         if (!isMounted) return;
 
-        // تعيين البيانات القادمة من السيرفر في الـ State لقراءتها ديناميكياً[cite: 10]
-        setProfile(userResponse.user || userResponse); 
+        setProfile(userResponse.user || userResponse);
         setCourses(Array.isArray(coursesData) ? coursesData : []);
-        setNotifications(Array.isArray(notifsData) ? notifsData : []);
+        setNotifications(notifsData);
 
       } catch (err: any) {
         if (!isMounted) return;
@@ -101,23 +112,17 @@ const notifsData: Notification[] = [];
     return () => { isMounted = false; };
   }, [lang, l.errorProfile, l.errorNetwork]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-capsule-bg flex flex-col items-center justify-center">
-        <LoadingIndicator message={l.loading} />
-      </div>
-    );
-  }
 
-  const activeCourses = courses.filter(c => c.status !== 'Completed');
+
+  const activeCourses = courses.filter(c => c.status === 'Active');
   const completedCourses = courses.filter(c => c.status === 'Completed');
   const unreadNotifications = notifications.filter(n => !n.isRead);
 
-  // Safe fallback calculation for profile name[cite: 10]
+  // Safe fallback calculation for profile name
   const firstName = profile?.fullName?.split(' ')[0] || l.hero.fallbackName;
 
   return (
-    <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir}>
+    <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col transition-colors duration-300" dir={t.dir}>
       <StudentNavbar activePage="dashboard" />
 
       <main className="flex-grow">
@@ -127,8 +132,8 @@ const notifsData: Notification[] = [];
           </div>
         )}
 
-        {/* Hero Section[cite: 10] */}
-        <div className="relative bg-capsule-gradient text-white py-10 px-8 overflow-hidden shadow-inner">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-10 px-8">
           <div className="max-w-7xl mx-auto relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <p className="text-capsule-gold text-xs font-bold uppercase tracking-wider mb-1">
@@ -142,13 +147,13 @@ const notifsData: Notification[] = [];
               </p>
             </div>
 
-            {/* Profile Avatar Button[cite: 10] */}
+            {/* Profile Avatar Button */}
             <button
               onClick={onNavigateToProfile}
               className={`flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-3 transition cursor-pointer ${t.dir === 'rtl' ? 'pl-5' : 'pr-5'}`}
             >
               <img
-                src={profile?.avatar || 'https://via.placeholder.com/150'}
+                src={profile?.avatar || defaultProfilePic}
                 alt="Profile Avatar"
                 className="w-12 h-12 rounded-full border-2 border-capsule-gold object-cover"
               />
@@ -161,38 +166,54 @@ const notifsData: Notification[] = [];
         </div>
 
         <div className="max-w-7xl mx-auto px-6 py-10">
-
-          {/* Quick Stats Cards[cite: 10] */}
+          {/* Quick Stats Cards with 80% High Contrast */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.activeCourses}</p>
-              <p className="text-2xl font-black text-capsule-teal">{activeCourses.length}</p>
+            <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
+              <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.activeCourses}</p>
+              {loading ? <div className="skeleton-shimmer h-7 w-12 rounded-md mt-1" /> : <p className="text-2xl font-black text-capsule-teal dark:text-teal-400">{activeCourses.length}</p>}
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.completedCourses}</p>
-              <p className="text-2xl font-black text-emerald-600">{completedCourses.length}</p>
+            <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
+              <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.completedCourses}</p>
+              {loading ? <div className="skeleton-shimmer h-7 w-12 rounded-md mt-1" /> : <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{completedCourses.length}</p>}
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.unreadNotifs}</p>
-              <p className="text-2xl font-black text-capsule-dark-gold">{unreadNotifications.length}</p>
+            <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
+              <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.unreadNotifs}</p>
+              {loading ? <div className="skeleton-shimmer h-7 w-12 rounded-md mt-1" /> : <p className="text-2xl font-black text-amber-500 dark:text-amber-400">{unreadNotifications.length}</p>}
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.affiliation}</p>
-              <p className="text-base font-black text-capsule-navy mt-1 truncate">
-                {profile?.companyAffiliation || l.stats.independent}
-              </p>
+            <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
+              <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.affiliation}</p>
+              {loading ? <div className="skeleton-shimmer h-7 w-28 rounded-md mt-1" /> : (
+                <p className="text-base font-black text-capsule-navy dark:text-white mt-1 truncate">
+                  {profile?.companyAffiliation || l.stats.independent}
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+{/* AI Course Assistant */}
+<div className="mb-10">
+  <CourseAssistant />
+</div>
 
-            {/* Resume Learning Section[cite: 10] */}
-            <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
-              <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-                <h2 className="text-base font-bold text-capsule-navy">{l.resume.title}</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Resume Learning Section */}
+            <div className="lg:col-span-2 bg-white dark:bg-[#18233C] border border-gray-100 dark:border-slate-700 rounded-2xl shadow-xs overflow-hidden">
+              <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 flex items-center justify-between">
+                <h2 className="text-base font-bold text-capsule-navy dark:text-white">{l.resume.title}</h2>
+                <Link
+                  to="/my-courses"
+                  className="text-xs font-bold text-capsule-teal dark:text-teal-400 hover:underline"
+                >
+                  {t.dir === 'rtl' ? 'عرض جميع دوراتي ←' : 'View all my courses →'}
+                </Link>
               </div>
 
-              {courses.length === 0 ? (
+              {loading ? (
+                <div className="p-6 space-y-4">
+                  <div className="skeleton-shimmer h-16 w-full rounded-xl" />
+                  <div className="skeleton-shimmer h-16 w-full rounded-xl" />
+                </div>
+              ) : courses.length === 0 ? (
                 <div className="p-10 text-center">
                   <p className="text-sm font-bold text-gray-400">{l.resume.empty}</p>
                   <div className="mt-4 inline-block">
@@ -204,7 +225,6 @@ const notifsData: Notification[] = [];
                   {courses.map((course) => (
                     <div key={course.id} className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
                       <div className="flex-1">
-                        {/* فحص ما إذا كان العنوان قادماً كمفتاح ترجمة أو كعنوان نصي مباشر من السيرفر */}
                         <p className="font-bold text-capsule-navy text-sm">
                           {l.mockData[course.titleKey] || (course as any).title}
                         </p>
@@ -212,17 +232,27 @@ const notifsData: Notification[] = [];
                           {l.mockData[course.catKey] || (course as any).category} · {l.mockData[course.durKey] || (course as any).duration}
                         </p>
 
-                        <div className="w-full bg-gray-100 rounded-full h-2 mt-3 overflow-hidden">
+                        <div className="w-full bg-gray-100 dark:bg-slate-800/80 border border-slate-200/40 dark:border-white/10 rounded-full h-2.5 mt-3 overflow-hidden shadow-inner">
                           <div
-                            className="bg-capsule-teal h-2 rounded-full transition-all"
+                            className="bg-capsule-teal dark:bg-gradient-to-r dark:from-teal-400 dark:to-emerald-400 h-full rounded-full transition-all shadow-xs"
                             style={{ width: `${course.progress}%` }}
                           ></div>
                         </div>
-                        <p className="text-xs font-bold text-gray-400 mt-1">{course.progress}% {l.resume.completedProgress}</p>
+                        <p className="text-xs font-black text-gray-400 dark:text-slate-300 mt-1.5">{course.progress}% {l.resume.completedProgress}</p>
                       </div>
 
-                      <Button variant={course.status === 'Completed' ? 'secondary' : 'primary'}>
-                        {course.status === 'Completed' ? l.resume.certBtn : l.resume.continueBtn}
+                      <Button
+                        variant={
+                          course.status === 'Completed' || course.status === 'Expired'
+                            ? 'secondary'
+                            : 'primary'
+                        }
+                      >
+                        {course.status === 'Completed'
+                          ? l.resume.certBtn
+                          : course.status === 'Expired'
+                            ? 'Locked'
+                            : l.resume.continueBtn}
                       </Button>
                     </div>
                   ))}
@@ -230,7 +260,7 @@ const notifsData: Notification[] = [];
               )}
             </div>
 
-            {/* Notifications Section[cite: 10] */}
+            {/* Notifications Section */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden h-fit">
               <div className="p-6 border-b border-gray-100 bg-gray-50">
                 <h2 className="text-base font-bold text-capsule-navy">{l.notifications.title}</h2>

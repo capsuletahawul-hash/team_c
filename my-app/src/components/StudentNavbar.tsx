@@ -2,27 +2,9 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
-
-// ============================================================================
-// TYPES & INTERFACES
-// ============================================================================
-
-interface NavLinkItem {
-  id: string;
-  label: string;
-  to: string;
-}
-
-interface StudentNavbarProps {
-  activePage?: string;
-  showAuthButtons?: boolean;
-  onSignIn?: () => void;
-  onSignUp?: () => void;
-}
-
-// ============================================================================
-// COMPONENT
-// ============================================================================
+import lightLogo from "../assets/light_trans_logo.png";
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
 
 function StudentNavbar({ 
   activePage = 'dashboard', 
@@ -32,6 +14,9 @@ function StudentNavbar({
 }: StudentNavbarProps) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { t, lang, toggleLanguage } = useLanguage();
+  const { theme } = useTheme();
+
+  const currentLogo = theme === 'dark' ? lightLogo : logo;
 
   const navLinks: NavLinkItem[] = [
     {
@@ -72,11 +57,11 @@ function StudentNavbar({
         <div className="flex items-center gap-12">
           <Link to="/student-dashboard" className="flex items-center gap-3 cursor-pointer">
             <img
-              src={logo}
+              src={currentLogo}
               alt="Capsula Tahawul Logo"
               className="w-12 h-12 object-contain"
             />
-            <span className="text-lg font-extrabold tracking-wide text-capsule-navy">
+            <span className="text-lg font-extrabold tracking-wide text-capsule-navy dark:text-white">
               {t.brand}
             </span>
           </Link>
@@ -120,9 +105,8 @@ function StudentNavbar({
             🛒
           </Link>
 
-          <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition">
-            🌙
-          </button>
+          {/* Day/Night Theme Toggle (UIverse strong-squid-82 CSS Button) */}
+          <ThemeToggle size="14px" />
           
           {/* Language Toggle (Desktop) */}
           <button 

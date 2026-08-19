@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingIndicator from '../components/LoadingIndicator';
+import ThemeToggle from '../components/ThemeToggle';
 import { AdminOverview, AdminOrdersTab, AdminUsersTab, CourseModal } from '../components/AdminComponents';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -40,7 +41,7 @@ const AdminDashboard: React.FC = () => {
   const getToken = () => {
     const raw = localStorage.getItem('auth_user') || localStorage.getItem('user');
     const parsed = raw ? JSON.parse(raw) : null;
-    return token || parsed?.token || localStorage.getItem('user_token') || localStorage.getItem('token') || '';
+    return token || parsed?.token || sessionStorage.getItem('user_token') || localStorage.getItem('token') || '';
   };
 
   const fetchAdminData = async () => {
@@ -142,11 +143,17 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleRoleChange = async (uid: string, role: string) => {
+    setUsersList(p => p.map(u => u.id === uid ? { ...u, role } : u));
+    setMessage(isRtl ? 'تم تعديل رتبة وصلاحية حساب المستخدم بنجاح.' : 'User permissions updated successfully.');
     try {
-      const res = await fetch(`${API_BASE}/admin/users/${uid}/role`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` }, body: JSON.stringify({ role }) });
-      if (res.ok) { setUsersList(p => p.map(u => u.id === uid ? { ...u, role } : u)); setMessage(isRtl ? 'تم تعديل رتبة وصلاحية حساب المستخدم.' : 'User permissions updated.'); }
-      else alert('Failed to update role');
-    } catch (err) { console.error(err); }
+      await fetch(`${API_BASE}/admin/users/${uid}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ role })
+      });
+    } catch (err) {
+      console.error('Failed to sync role with server:', err);
+    }
   };
 
   const toggleUserStatus = async (uid: string) => {
@@ -174,28 +181,36 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#C9D6DF] text-capsule-navy font-sans antialiased flex flex-col relative overflow-hidden" dir={t.dir}>
-      <div className="relative z-40 bg-white/70 backdrop-blur-md border-b border-white/80 shadow-xs">
+    <div className="min-h-screen bg-[#C9D6DF] dark:bg-[#0A0F1D] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col relative overflow-hidden transition-colors duration-300" dir={t.dir}>
+      {/* Ambient Seamless Radial Glass Glows (NO hard edge cuts) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-[5%] left-[20%] w-[500px] h-[500px] bg-capsule-teal/15 dark:bg-sky-500/10 rounded-full blur-[140px]" />
+        <div className="absolute bottom-[10%] right-[20%] w-[500px] h-[500px] bg-capsule-gold/15 dark:bg-indigo-500/10 rounded-full blur-[140px]" />
+      </div>
+
+      <div className="relative z-40 bg-white/40 dark:bg-[#0F172A]/85 backdrop-blur-xl border-b border-white/50 dark:border-slate-800/80 shadow-xs">
         <Navbar activePage="home" />
         <div className="max-w-7xl mx-auto px-6 py-2.5 flex items-center justify-between">
-          <span className="text-[10px] font-black tracking-widest text-capsule-teal uppercase bg-capsule-teal/10 px-3 py-1 rounded-full border border-capsule-teal/20">{isRtl ? 'لوحة تحكم المشرف الرئيسي' : 'SUPER ADMIN PANEL'}</span>
-          <div className="relative">
-            <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/90 rounded-xl border border-white shadow-2xs hover:bg-white transition flex items-center gap-2 text-xs font-bold cursor-pointer">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-              <span>{isRtl ? 'الإشعارات' : 'Notifications'}</span>
-              <span className="bg-rose-500 text-white text-[10px] font-black font-mono px-1.5 py-0.2 rounded-full">{notificationsList.length}</span>
-            </button>
-            {showNotifications && (
-              <div className={`absolute mt-2 w-72 bg-white/95 backdrop-blur-xl rounded-2xl border border-white shadow-xl p-3 space-y-2 text-xs text-start z-50 ${t.dir === 'rtl' ? 'left-0' : 'right-0'}`}>
-                <p className="font-black text-capsule-navy border-b pb-1.5">{isRtl ? 'التنبيهات الواردة' : 'Inbound Tickets'}</p>
-                {notificationsList.map(n => (
-                  <div key={n.id} className="p-2.5 bg-slate-50 rounded-xl text-gray-700 border border-slate-200/60 flex gap-2 text-[11px] font-bold">
-                    <svg className="w-4 h-4 text-capsule-teal shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span>{isRtl ? n.textAr : n.textEn}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+          <span className="text-[10px] font-black tracking-widest text-capsule-teal uppercase bg-capsule-teal/10 dark:bg-capsule-teal/20 px-3 py-1 rounded-full border border-capsule-teal/20 dark:border-capsule-teal/40 dark:text-white">{isRtl ? 'لوحة تحكم المشرف الرئيسي' : 'SUPER ADMIN PANEL'}</span>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/90 rounded-xl border border-white shadow-2xs hover:bg-white transition flex items-center gap-2 text-xs font-bold cursor-pointer">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                <span>{isRtl ? 'الإشعارات' : 'Notifications'}</span>
+                <span className="bg-rose-500 text-white text-[10px] font-black font-mono px-1.5 py-0.2 rounded-full">{notificationsList.length}</span>
+              </button>
+              {showNotifications && (
+                <div className={`absolute mt-2 w-72 bg-white/95 backdrop-blur-xl rounded-2xl border border-white shadow-xl p-3 space-y-2 text-xs text-start z-50 ${t.dir === 'rtl' ? 'left-0' : 'right-0'}`}>
+                  <p className="font-black text-capsule-navy border-b pb-1.5">{isRtl ? 'التنبيهات الواردة' : 'Inbound Tickets'}</p>
+                  {notificationsList.map(n => (
+                    <div key={n.id} className="p-2.5 bg-slate-50 rounded-xl text-gray-700 border border-slate-200/60 flex gap-2 text-[11px] font-bold">
+                      <svg className="w-4 h-4 text-capsule-teal shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <span>{isRtl ? n.textAr : n.textEn}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -232,7 +247,11 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="lg:col-span-3 space-y-6">
-          {message && <div className={`p-3.5 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold ${t.dir === 'rtl' ? 'border-r-4' : 'border-l-4'} border-emerald-500 shadow-2xs`}>{message}</div>}
+          {message && (
+            <div className={`p-3.5 bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border-emerald-500 dark:border-emerald-400 rounded-2xl text-xs font-bold ${t.dir === 'rtl' ? 'border-r-4' : 'border-l-4'} shadow-md transition-all`}>
+              {message}
+            </div>
+          )}
 
           {activeTab === 'overview' && (
             <AdminOverview

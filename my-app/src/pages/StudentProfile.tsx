@@ -76,7 +76,7 @@ function StudentProfile({ onBack }: StudentProfileProps) {
   // 1. Reference for the hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const token = localStorage.getItem('user_token');
+  const token = sessionStorage.getItem('user_token');
 
   useEffect(() => {
     let isMounted = true;

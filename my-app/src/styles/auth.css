@@ -372,3 +372,65 @@
 .rule-dot.valid {
   background: #16a34a;
 }
+
+/* ============================================================================
+   Dark Mode Overrides for Auth Pages (SignIn / SignUp)
+   ============================================================================ */
+html.dark .auth-root {
+  background: #0B132B !important;
+}
+
+html.dark .auth-shell {
+  background: #1C2541 !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .auth-form-wrap h2 {
+  color: #38BDF8 !important;
+}
+
+html.dark .field label {
+  color: #E2E8F0 !important;
+}
+
+html.dark .field input {
+  background: #0F172A !important;
+  color: #F8FAFC !important;
+  border-color: #334155 !important;
+}
+
+html.dark .auth-subtitle,
+html.dark .checkbox,
+html.dark .switch-line {
+  color: #94A3B8 !important;
+}
+
+html.dark .auth-tabs button {
+  color: #94A3B8 !important;
+}
+
+html.dark .auth-tabs button.is-active {
+  color: #38BDF8 !important;
+}
+
+html.dark .role-pills button,
+html.dark .social-btn {
+  background: #0F172A !important;
+  color: #F8FAFC !important;
+  border-color: #334155 !important;
+}
+
+html.dark .role-pills button.is-active {
+  background: #387B84 !important;
+  border-color: #387B84 !important;
+  color: #FFF !important;
+}
+
+html.dark .auth-visual {
+  background: linear-gradient(
+    to top right,
+    #151B38,
+    #0C2B3B,
+    #1B444A
+  ) !important;
+}

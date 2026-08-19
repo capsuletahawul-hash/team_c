@@ -128,7 +128,7 @@ const CARD_VISUALS = [
   { icon: "🛡", gradient: "from-capsule-navy to-[#0e2f3f]" },
   { icon: "{ }", gradient: "from-capsule-navy to-[#343A60]" },
   { icon: "▤", gradient: "from-capsule-teal to-capsule-navy" },
-  { icon: "◎", gradient: "from-capsule-dark-gold to-capsule-gold" },
+  { icon: "◎", gradient: "from-capsule-navy to-capsule-teal" },
   { icon: "▦", gradient: "from-[#3E5F44] to-[#537E84]" }
 ];
 
@@ -157,24 +157,24 @@ async function fetchRealCourses() {
 
 // --- COMPONENT START ---
 
-function LandingPage({ 
-  onNavigateToRegister, 
-  onNavigateToLogin, 
-  onNavigateToTrainerOnboarding, 
-  onNavigateToCompanyOnboarding 
+function LandingPage({
+  onNavigateToRegister,
+  onNavigateToLogin,
+  onNavigateToTrainerOnboarding,
+  onNavigateToCompanyOnboarding
 }: LandingPageProps) {
   const { t, lang } = useLanguage();
-  const l = t.platformOverview; 
+  const l = t.platformOverview;
 
   const [overview, setOverview] = useState<PlatformOverview | null>(null);
-  
-  const [allCourses, setAllCourses] = useState<Course[]>([]); 
+
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
 
   const [activeCategoryKey, setActiveCategoryKey] = useState<string>(l.catalog.filterAll);
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [catalogLoading, setCatalogLoading] = useState<boolean>(false); 
+  const [catalogLoading, setCatalogLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
   const CATEGORIES = [
@@ -235,24 +235,14 @@ function LandingPage({
           }
           return c.category === categoryKey;
         });
-        
+
         setCourses(filtered);
       }
       setCatalogLoading(false);
     }, 150);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col" dir={t.dir}>
-        <Navbar activePage="home" showAuthButtons onSignIn={onNavigateToLogin} onSignUp={onNavigateToRegister} />
-        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
-          <SkeletonLoader variant="landing-page" dir={t.dir} />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased" dir={t.dir}>
@@ -385,11 +375,10 @@ function LandingPage({
               <button
                 key={category.key}
                 onClick={() => handleCategoryClick(category.key)}
-                className={`px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer active:scale-95 ${
-                  activeCategoryKey === category.key
+                className={`px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer active:scale-95 ${activeCategoryKey === category.key
                     ? 'bg-capsule-teal text-white shadow-lg scale-105'
                     : 'bg-white dark:bg-[#18233C] text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800'
-                }`}
+                  }`}
               >
                 {category.label}
               </button>
@@ -397,8 +386,20 @@ function LandingPage({
           </div>
         </ScrollReveal>
 
-        {catalogLoading ? (
-          <LoadingIndicator message={l.catalogLoading} />
+        {catalogLoading || loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="bg-white dark:bg-[#18233C] rounded-3xl border border-slate-200 dark:border-slate-700/80 p-4 space-y-4 shadow-md">
+                <div className="skeleton-shimmer h-36 w-full rounded-2xl" />
+                <div className="skeleton-shimmer h-4 w-24 rounded-md" />
+                <div className="skeleton-shimmer h-5 w-3/4 rounded-md" />
+                <div className="flex justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <div className="skeleton-shimmer h-5 w-16 rounded-md" />
+                  <div className="skeleton-shimmer h-4 w-20 rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : courses.length === 0 ? (
           <div className="bg-white dark:bg-[#18233C] border border-gray-200 dark:border-slate-700 rounded-3xl p-10 text-center shadow-xl">
             <p className="text-sm font-bold text-gray-400 dark:text-slate-400">{l.catalog.empty}</p>
@@ -413,14 +414,17 @@ function LandingPage({
                     to={`/course-details/${course.id}`}
                     className="agentx-glow-card bg-white dark:bg-[#18233C] rounded-3xl border-2 border-slate-200/80 dark:border-slate-700/80 shadow-xl overflow-hidden hover:-translate-y-2.5 hover:shadow-2xl transition-all duration-300 block cursor-pointer group h-full"
                   >
-                    {course.imageUrl ? (
+                    {course.imageUrl && (course.imageUrl.startsWith('http') || course.imageUrl.startsWith('/') || course.imageUrl.startsWith('data:')) ? (
                       <div className="overflow-hidden h-36 relative">
                         <ImageWithSkeleton
                           src={course.imageUrl}
-                          alt={course.title}
+                          alt=""
                           className="h-full w-full object-cover group-hover:scale-108 transition-transform duration-500"
                           containerClassName="w-full h-36 overflow-hidden"
                           skeletonClassName="w-full h-36"
+                          onError={(e: any) => {
+                            e.currentTarget.parentElement.style.display = 'none';
+                          }}
                         />
                       </div>
                     ) : (

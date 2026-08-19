@@ -51,6 +51,7 @@ function TrainerNavbar({
   
   // Extract contextual parameters for regional localization setups
   const { t, lang, toggleLanguage } = useLanguage();
+  const isRTL = t.dir === 'rtl';
   const { theme } = useTheme();
 
   const currentLogo = theme === 'dark' ? lightLogo : logo;

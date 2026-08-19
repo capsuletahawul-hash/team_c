@@ -8,6 +8,7 @@ import Footer from '../components/Footer';
 import Button from '../components/Button';
 import LoadingIndicator from '../components/LoadingIndicator';
 import ErrorMessage from '../components/ErrorMessage';
+import SkeletonLoader from '../components/SkeletonLoader';
 // Global Context
 import { useLanguage } from '../context/LanguageContext';
 // API base URL — single source of truth
@@ -293,13 +294,7 @@ function TrainerCourses(): React.JSX.Element {
     return 'bg-gray-100 text-gray-600';
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-capsule-bg flex flex-col items-center justify-center">
-        <LoadingIndicator message={isRTL ? 'جاري تحميل دوراتك...' : 'Loading your courses...'} />
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir}>
@@ -534,18 +529,44 @@ function TrainerCourses(): React.JSX.Element {
           )}
 
           {/* Course Cards */}
-          {filteredCourses.length > 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="bg-white rounded-3xl border border-gray-100 p-4 space-y-4 shadow-xs">
+                  <div className="skeleton-shimmer h-32 w-full rounded-2xl" />
+                  <div className="skeleton-shimmer h-4 w-24 rounded-md" />
+                  <div className="skeleton-shimmer h-5 w-3/4 rounded-md" />
+                  <div className="flex justify-between pt-4 border-t border-gray-100">
+                    <div className="skeleton-shimmer h-5 w-16 rounded-md" />
+                    <div className="skeleton-shimmer h-4 w-20 rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredCourses.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {filteredCourses.map((course) => (
                 <article
                   key={course.id}
                   className="bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-all duration-200"
                 >
-                  <div className="h-[130px] relative flex items-center justify-center bg-gradient-to-br from-capsule-navy to-[#343A60] overflow-hidden">
-                    {course.thumbnail ? (
-                      <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+                  <div className="h-[130px] relative flex items-center justify-center bg-gradient-to-br from-capsule-navy via-[#1e3a5f] to-capsule-teal overflow-hidden">
+                    {course.thumbnail && (course.thumbnail.startsWith('http') || course.thumbnail.startsWith('/') || course.thumbnail.startsWith('data:')) ? (
+                      <ImageWithSkeleton
+                        src={course.thumbnail}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        containerClassName="w-full h-full overflow-hidden"
+                        skeletonClassName="w-full h-full"
+                        onError={(e: any) => {
+                          e.currentTarget.parentElement.style.display = 'none';
+                        }}
+                      />
                     ) : (
-                      <span className="text-[32px] text-white/90">📚</span>
+                      <div className="flex flex-col items-center justify-center text-white/90 gap-1">
+                        <span className="text-3xl font-black drop-shadow-md">🎓</span>
+                        <span className="text-[10px] font-extrabold text-capsule-gold uppercase tracking-wider">كبسولة تحول</span>
+                      </div>
                     )}
                     <span
                       className={`absolute top-2.5 ${

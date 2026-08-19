@@ -159,25 +159,7 @@ const ContractsApproval: React.FC<ContractsApprovalProps> = ({ isEmbedded = fals
   const heroArcAlign = isRtl ? "rotate-[-25deg]" : "rotate-[25deg]";
   const tableAlign = isRtl ? "text-right" : "text-left";
 
-  // Graceful handling of loading states
-  if (loading) {
-    if (isEmbedded) {
-      return (
-        <div className="w-full py-2">
-          <SkeletonLoader variant="table" dir={t.dir} />
-        </div>
-      );
-    }
-    return (
-      <div className="min-h-screen flex flex-col justify-between bg-slate-200/80 dark:bg-[#030611]">
-        <Navbar activePage="home" />
-        <div className="max-w-7xl mx-auto px-6 py-6 w-full">
-          <SkeletonLoader variant="table" dir={t.dir} />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+
 
   // Graceful handling of fetch failures to prevent blank UI or crashes
   if (loadError) {
@@ -234,7 +216,9 @@ const ContractsApproval: React.FC<ContractsApprovalProps> = ({ isEmbedded = fals
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800 font-bold">
-                    {requests.map((req) => (
+                    {loading ? (
+                      <tr><td colSpan={7} className="py-8"><SkeletonLoader variant="table" dir={t.dir} /></td></tr>
+                    ) : requests.map((req) => (
                       <tr key={req.id} className="hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition">
                         <td className="p-3 font-mono text-capsule-teal dark:text-sky-400">{req.id.slice(0, 8)}...</td>
                         <td className="p-3 text-gray-700 dark:text-white font-bold">{req.companyName}</td>

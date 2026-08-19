@@ -14,6 +14,7 @@ function Navbar({
 }: NavbarProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { t, lang, toggleLanguage } = useLanguage();
+  const isRTL = t.dir === 'rtl';
   const { theme } = useTheme();
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();

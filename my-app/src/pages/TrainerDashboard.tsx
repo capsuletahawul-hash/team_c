@@ -149,17 +149,7 @@ export default function TrainerDashboard() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col relative overflow-x-clip transition-colors duration-300" dir={t.dir}>
-        <TrainerNavbar activePage="dashboard" />
-        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
-          <SkeletonLoader variant="trainer-dashboard" dir={t.dir} />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+
 
   const borderSide = t.dir === 'rtl' ? 'border-r-4' : 'border-l-4';
 
@@ -183,7 +173,7 @@ export default function TrainerDashboard() {
                 <p className="text-xs font-black text-slate-800 dark:text-slate-200">{lang === 'ar' ? 'صافي الأرباح المحققة الحالي' : 'Total Dynamic Net Payout'}</p>
                 <svg className="w-5 h-5 text-capsule-teal dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
-              <h3 className="text-2xl font-black text-capsule-teal dark:text-teal-400 font-mono tracking-tight">{totalPayoutCollected} SAR</h3>
+              {loading ? <div className="skeleton-shimmer h-7 w-24 rounded-md mt-1" /> : <h3 className="text-2xl font-black text-capsule-teal dark:text-teal-400 font-mono tracking-tight">{totalPayoutCollected} SAR</h3>}
             </div>
 
             <div className={`bg-white dark:bg-[#18233C] p-6 rounded-3xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl ${borderSide} border-capsule-gold hover:border-capsule-gold dark:hover:border-amber-400 hover:-translate-y-1 transition-all duration-300`}>
@@ -191,7 +181,7 @@ export default function TrainerDashboard() {
                 <p className="text-xs font-black text-amber-700 dark:text-amber-400">{lang === 'ar' ? 'الطلاب بالدورات النشطة' : 'Active Course Students'}</p>
                 <svg className="w-5 h-5 text-amber-500 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               </div>
-              <h3 className="text-2xl font-black text-capsule-navy dark:text-white font-mono tracking-tight">{totalStudentsEnrolled}</h3>
+              {loading ? <div className="skeleton-shimmer h-7 w-12 rounded-md mt-1" /> : <h3 className="text-2xl font-black text-capsule-navy dark:text-white font-mono tracking-tight">{totalStudentsEnrolled}</h3>}
             </div>
 
             <div className={`bg-white dark:bg-[#18233C] p-6 rounded-3xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl ${borderSide} border-capsule-navy hover:border-capsule-navy dark:hover:border-sky-400 hover:-translate-y-1 transition-all duration-300`}>
@@ -210,7 +200,12 @@ export default function TrainerDashboard() {
               <h3 className="text-sm font-black text-capsule-navy dark:text-white">{lang === 'ar' ? 'مؤشرات الكثافة الاستيعابية وصافي الربح لكل دورة' : 'Course Density & Net Revenue Breakdown'}</h3>
             </div>
             <div className="space-y-3.5 pt-1">
-              {coursesList.map((course) => {
+              {loading ? (
+                <div className="space-y-3">
+                  <div className="skeleton-shimmer h-12 w-full rounded-2xl" />
+                  <div className="skeleton-shimmer h-12 w-full rounded-2xl" />
+                </div>
+              ) : coursesList.map((course) => {
                 const count = Number(course.students || 0);
                 const maxCap = Number(course.maxStudents) || 30;
                 const fillWidth = count <= 0 ? '0%' : `${Math.min(Math.max(Math.round((count / maxCap) * 100), 14), 100)}%`;
@@ -255,7 +250,13 @@ export default function TrainerDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-bold text-center">
-                  {coursesList.map((course) => (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="py-8">
+                        <SkeletonLoader variant="table" dir={t.dir} />
+                      </td>
+                    </tr>
+                  ) : coursesList.map((course) => (
                     <tr key={course.id} className="hover:bg-white/40 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="py-3.5 px-2.5 text-start font-black text-capsule-navy dark:text-white truncate max-w-[140px]">{course.title}</td>
                       <td className="py-3.5 px-2.5 font-mono text-slate-900 dark:text-slate-200 font-black">{course.price} SAR</td>

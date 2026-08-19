@@ -112,17 +112,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
     return () => { isMounted = false; };
   }, [lang, l.errorProfile, l.errorNetwork]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 flex flex-col font-sans" dir={t.dir}>
-        <StudentNavbar activePage="dashboard" />
-        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
-          <SkeletonLoader variant="student-dashboard" dir={t.dir} />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+
 
   const activeCourses = courses.filter(c => c.status === 'Active');
   const completedCourses = courses.filter(c => c.status === 'Completed');
@@ -180,21 +170,23 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
             <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
               <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.activeCourses}</p>
-              <p className="text-2xl font-black text-capsule-teal dark:text-teal-400">{activeCourses.length}</p>
+              {loading ? <div className="skeleton-shimmer h-7 w-12 rounded-md mt-1" /> : <p className="text-2xl font-black text-capsule-teal dark:text-teal-400">{activeCourses.length}</p>}
             </div>
             <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
               <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.completedCourses}</p>
-              <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{completedCourses.length}</p>
+              {loading ? <div className="skeleton-shimmer h-7 w-12 rounded-md mt-1" /> : <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{completedCourses.length}</p>}
             </div>
             <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
               <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.unreadNotifs}</p>
-              <p className="text-2xl font-black text-amber-500 dark:text-amber-400">{unreadNotifications.length}</p>
+              {loading ? <div className="skeleton-shimmer h-7 w-12 rounded-md mt-1" /> : <p className="text-2xl font-black text-amber-500 dark:text-amber-400">{unreadNotifications.length}</p>}
             </div>
             <div className="bg-white dark:bg-[#18233C] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-2xl">
               <p className="text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">{l.stats.affiliation}</p>
-              <p className="text-base font-black text-capsule-navy dark:text-white mt-1 truncate">
-                {profile?.companyAffiliation || l.stats.independent}
-              </p>
+              {loading ? <div className="skeleton-shimmer h-7 w-28 rounded-md mt-1" /> : (
+                <p className="text-base font-black text-capsule-navy dark:text-white mt-1 truncate">
+                  {profile?.companyAffiliation || l.stats.independent}
+                </p>
+              )}
             </div>
           </div>
 
@@ -205,18 +197,23 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Resume Learning Section */}
-            <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
-              <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-                <h2 className="text-base font-bold text-capsule-navy">{l.resume.title}</h2>
+            <div className="lg:col-span-2 bg-white dark:bg-[#18233C] border border-gray-100 dark:border-slate-700 rounded-2xl shadow-xs overflow-hidden">
+              <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 flex items-center justify-between">
+                <h2 className="text-base font-bold text-capsule-navy dark:text-white">{l.resume.title}</h2>
                 <Link
                   to="/my-courses"
-                  className="text-xs font-bold text-capsule-teal hover:underline"
+                  className="text-xs font-bold text-capsule-teal dark:text-teal-400 hover:underline"
                 >
                   {t.dir === 'rtl' ? 'عرض جميع دوراتي ←' : 'View all my courses →'}
                 </Link>
               </div>
 
-              {courses.length === 0 ? (
+              {loading ? (
+                <div className="p-6 space-y-4">
+                  <div className="skeleton-shimmer h-16 w-full rounded-xl" />
+                  <div className="skeleton-shimmer h-16 w-full rounded-xl" />
+                </div>
+              ) : courses.length === 0 ? (
                 <div className="p-10 text-center">
                   <p className="text-sm font-bold text-gray-400">{l.resume.empty}</p>
                   <div className="mt-4 inline-block">

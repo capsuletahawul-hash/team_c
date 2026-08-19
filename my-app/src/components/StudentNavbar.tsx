@@ -15,6 +15,7 @@ function StudentNavbar({
 }: StudentNavbarProps) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { t, lang, toggleLanguage } = useLanguage();
+  const isRTL = t.dir === 'rtl';
   const { theme } = useTheme();
 
   const currentLogo = theme === 'dark' ? lightLogo : logo;

@@ -1,4 +1,5 @@
 import React from 'react';
+import SkeletonLoader from './SkeletonLoader';
 import { UserPermission } from '../pages/AdminDashboard';
 
 // ============================================================================
@@ -117,6 +118,7 @@ export interface AdminOverviewProps {
   coursesCount: number;
   categoryCounts: Record<string, number>;
   growthList: { monthAr: string; monthEn: string; count: number }[];
+  loading?: boolean;
 }
 
 const getLocalizedCategoryName = (catName: string, isRtl: boolean): string => {
@@ -155,6 +157,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   coursesCount,
   categoryCounts,
   growthList,
+  loading,
 }) => {
   const [hoveredCategory, setHoveredCategory] = React.useState<{ name: string; count: number; percent: number; color: string } | null>(null);
 
@@ -179,10 +182,6 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
     return { rawName, name, count, percent: Math.round(percent), start, end: cumulative, color };
   });
 
-  const gradientStr = slices.length > 0
-    ? `conic-gradient(${slices.map(s => `${s.color} ${s.start}% ${s.end}%`).join(', ')})`
-    : 'conic-gradient(#387B84 0% 100%)';
-
   return (
     <div className="space-y-6">
       {/* Top 4 Stat Cards with Glassmorphism & Dark Mode Hover Effects */}
@@ -193,9 +192,9 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           { title: isRtl ? 'الاشتراكات النشطة' : 'Active Enrollments', value: statsData.activeEnrollments || 6, color: 'text-capsule-navy dark:text-white', hoverBorder: 'dark:hover:border-indigo-400/60 dark:hover:shadow-indigo-500/10' },
           { title: isRtl ? 'إجمالي الأرباح' : 'Total Revenue', value: `${statsData.totalRevenue || 5962} SAR`, color: 'text-emerald-600 dark:text-emerald-400', hoverBorder: 'dark:hover:border-emerald-400/60 dark:hover:shadow-emerald-500/10' },
         ].map((c, i) => (
-          <div key={i} className={`bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 p-5 rounded-3xl shadow-xl hover:border-capsule-teal/50 dark:hover:bg-[#1C2843]/80 ${c.hoverBorder} hover:-translate-y-1 transition-all duration-300 cursor-pointer`}>
-            <p className="text-xs font-black text-gray-500 dark:text-slate-400 mb-1">{c.title}</p>
-            <p className={`text-xl font-black font-mono ${c.color}`}>{c.value}</p>
+          <div key={i} className={`bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 p-5 rounded-3xl shadow-xl backdrop-saturate-150 transition-all duration-300 ${c.hoverBorder}`}>
+            <p className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">{c.title}</p>
+            {loading ? <div className="skeleton-shimmer h-7 w-16 rounded-md mt-1" /> : <p className={`text-2xl font-black font-mono tracking-tight ${c.color}`}>{c.value}</p>}
           </div>
         ))}
       </div>
@@ -307,7 +306,17 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           {isRtl ? 'المؤشر التزايدي لنمو مستخدمي المنصة' : 'User Registration Trajectory'}
         </h3>
         <div className="space-y-3">
-          {growthList.map((tItem, idx) => (
+          {loading ? (
+            [1, 2, 3, 4].map((n) => (
+              <div key={n} className="bg-white/30 dark:bg-[#0F172A]/50 p-2.5 rounded-xl border border-white/30 dark:border-white/10 flex items-center justify-between gap-4">
+                <div className="skeleton-shimmer h-4 w-12 rounded-md" />
+                <div className="flex-grow bg-slate-200/60 dark:bg-slate-800/80 h-2.5 rounded-full overflow-hidden p-0.5">
+                  <div className="skeleton-shimmer h-full w-2/3 rounded-full" />
+                </div>
+                <div className="skeleton-shimmer h-4 w-12 rounded-md" />
+              </div>
+            ))
+          ) : growthList.map((tItem, idx) => (
             <div key={idx} className="bg-white/30 dark:bg-[#0F172A]/50 backdrop-blur-md p-2.5 rounded-xl border border-white/30 dark:border-white/10 flex items-center justify-between gap-4">
               <span className="text-xs font-black text-capsule-navy dark:text-white w-16 text-start">
                 {isRtl ? tItem.monthAr : tItem.monthEn}
@@ -332,10 +341,11 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 export interface AdminOrdersTabProps {
   isRtl: boolean;
   ordersList: any[];
+  loading?: boolean;
   onMarkOrderStatus: (orderId: string, status: 'PAID' | 'FAILED') => void;
 }
 
-export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ isRtl, ordersList, onMarkOrderStatus }) => {
+export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ isRtl, ordersList, loading, onMarkOrderStatus }) => {
   const paidOrders = ordersList.filter((o: any) => o.status === 'PAID');
   const totalRevenue = paidOrders.reduce((s: number, o: any) => s + (o.amount || 0), 0);
 
@@ -349,13 +359,15 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ isRtl, ordersLis
         ].map((s, i) => (
           <div key={i} className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 p-4 rounded-3xl shadow-xl text-start">
             <p className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase mb-1">{s.label}</p>
-            <p className={`text-lg font-black font-mono ${s.color}`}>{s.value}</p>
+            {loading ? <div className="skeleton-shimmer h-6 w-16 rounded-md" /> : <p className={`text-lg font-black font-mono ${s.color}`}>{s.value}</p>}
           </div>
         ))}
       </div>
       <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl shadow-2xl backdrop-saturate-150 overflow-hidden p-6">
         <h3 className="text-sm font-black text-capsule-navy dark:text-white border-b border-white/30 dark:border-slate-800 pb-3 mb-4 text-start">{isRtl ? 'سجل العمليات والطلبات' : 'Billing & Orders Ledger'}</h3>
-        {ordersList.length === 0 ? (
+        {loading ? (
+          <div className="py-4"><SkeletonLoader variant="table" dir={isRtl ? 'rtl' : 'ltr'} /></div>
+        ) : ordersList.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
             <svg className="w-12 h-12 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
             <p className="text-sm font-black text-gray-400 dark:text-slate-400">{isRtl ? 'لا توجد طلبات شراء بعد' : 'No orders found yet'}</p>
@@ -396,11 +408,12 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ isRtl, ordersLis
 export interface AdminUsersTabProps {
   isRtl: boolean;
   usersList: UserPermission[];
+  loading?: boolean;
   onRoleChange: (uid: string, role: string) => void;
   onToggleUserStatus: (uid: string) => void;
 }
 
-export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ isRtl, usersList, onRoleChange, onToggleUserStatus }) => (
+export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ isRtl, usersList, loading, onRoleChange, onToggleUserStatus }) => (
   <div className="bg-white/40 dark:bg-[#162035]/60 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl shadow-2xl backdrop-saturate-150 overflow-hidden p-6">
     <h3 className="text-sm font-black text-capsule-navy dark:text-white border-b border-white/30 dark:border-slate-800 pb-3 mb-4 text-start">{isRtl ? 'إدارة الهويات وحسابات النظام' : 'User Identity Control'}</h3>
     <div className="overflow-x-auto">
@@ -411,7 +424,9 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ isRtl, usersList, 
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800 font-bold">
-          {usersList.map((user) => (
+          {loading ? (
+            <tr><td colSpan={7} className="py-8"><SkeletonLoader variant="table" dir={isRtl ? 'rtl' : 'ltr'} /></td></tr>
+          ) : usersList.map((user) => (
             <tr key={user.id} className="hover:bg-white/30 dark:hover:bg-slate-800/50">
               <td className="p-3 font-mono text-blue-600 dark:text-sky-400 text-start">{user.id.slice(0, 8)}...</td>
               <td className="p-3 text-capsule-navy dark:text-white font-black">{user.name}</td>

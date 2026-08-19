@@ -175,20 +175,7 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
   const heroArcAlign = isRtl ? "rotate-[-25deg]" : "rotate-[25deg]";
   const tableAlign = isRtl ? "text-right" : "text-left";
 
-  if (loading) {
-    if (isEmbedded) {
-      return <SkeletonLoader variant="table" dir={t.dir} />;
-    }
-    return (
-      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] flex flex-col" dir={t.dir}>
-        <Navbar activePage="home" />
-        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
-          <SkeletonLoader variant="table" dir={t.dir} />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+
 
   // Graceful handling of fetch failures to prevent blank UI or crashes
   if (loadError) {
@@ -246,7 +233,9 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200/60 font-bold">
-                {courses.length === 0 ? (
+                {loading ? (
+                  <tr><td colSpan={6} className="py-8"><SkeletonLoader variant="table" dir={t.dir} /></td></tr>
+                ) : courses.length === 0 ? (
                   <tr><td colSpan={6} className="py-12 text-center">
                     <p className="text-xs font-black text-gray-400">{isRtl ? 'لا توجد دورات معلقة للاعتماد' : 'No courses pending approval'}</p>
                   </td></tr>

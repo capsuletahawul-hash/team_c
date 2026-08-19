@@ -207,3 +207,22 @@ export async function updateAdminTicketStatus(id: string, status: "review" | "is
     body: JSON.stringify({ status }),
   });
 }
+
+// =======================
+// AI Course Assistant
+// =======================
+
+export async function askAboutCourses(question: string) {
+  return apiFetch<{
+    success: boolean;
+    data?: {
+      answer: string;
+    };
+    error?: string;
+  }>("/ai/ask", {
+    method: "POST",
+    body: JSON.stringify({
+      question,
+    }),
+  });
+}

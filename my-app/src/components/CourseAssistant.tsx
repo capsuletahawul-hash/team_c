@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { askAboutCourses } from "../services/api";
+import { useLanguage } from "../context/LanguageContext";
 
 const answerCache = new Map<string, string>();
 
@@ -8,6 +9,7 @@ function normalizeQuestion(question: string) {
 }
 
 export default function CourseAssistant() {
+  const { lang } = useLanguage();
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
@@ -16,35 +18,42 @@ export default function CourseAssistant() {
   const handleAsk = async () => {
     const normalizedQuestion = normalizeQuestion(question);
 
-if (!normalizedQuestion) {
-  setError("Please enter a question.");
-  return;
-}
+    if (!normalizedQuestion) {
+      setError(lang === 'ar' ? "يرجى كتابة سؤالك أولاً." : "Please enter a question.");
+      return;
+    }
 
-const cachedAnswer = answerCache.get(normalizedQuestion);
+    const cachedAnswer = answerCache.get(normalizedQuestion);
 
-if (cachedAnswer) {
-  setAnswer(cachedAnswer);
-  setError("");
-  return;
-}
+    if (cachedAnswer) {
+      setAnswer(cachedAnswer);
+      setError("");
+      return;
+    }
 
-setLoading(true);
+    setLoading(true);
     setError("");
     setAnswer("");
 
     try {
-      const response = await askAboutCourses(normalizedQuestion);
+      const response: any = await askAboutCourses(normalizedQuestion);
 
       if (!response.success || !response.data?.answer) {
-  setError(response.error || "Unable to get an answer.");
-  return;
-}
+        setError(response.error || (lang === 'ar' ? "تعذر الحصول على إجابة من المساعد الذكي." : "Unable to get an answer."));
+        return;
+      }
 
-answerCache.set(normalizedQuestion, response.data.answer);
-setAnswer(response.data.answer);
+      const raw = response.data.answer;
+      const formattedAnswer = typeof raw === 'string' 
+        ? raw 
+        : (typeof raw === 'object' && raw !== null && 'answer' in raw 
+            ? String(raw.answer) 
+            : JSON.stringify(raw));
+
+      answerCache.set(normalizedQuestion, formattedAnswer);
+      setAnswer(formattedAnswer);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(lang === 'ar' ? "حدث خطأ أثناء التواصل مع خادم الذكاء الاصطناعي. يرجى المحاولة مرة أخرى." : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

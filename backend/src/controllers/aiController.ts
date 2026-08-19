@@ -17,12 +17,13 @@ export const askAboutCourses = async (req: Request, res: Response) => {
 
         const { question } = validation.data;
 
-        const answer = await aiService.askAboutCourses(question);
+        const result = await aiService.askAboutCourses(question);
 
         return res.status(200).json({
             success: true,
             data: {
-                answer,
+                answer: typeof result === 'object' && result !== null && 'answer' in result ? result.answer : result,
+                grounded: typeof result === 'object' && result !== null && 'grounded' in result ? result.grounded : true,
             },
         });
     } catch (error: any) {

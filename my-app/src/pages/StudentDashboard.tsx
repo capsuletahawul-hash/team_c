@@ -80,28 +80,21 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         setLoading(true);
         setError('');
 
-        // 1. جلب بيانات بروفايل الطالب الحالي من الباك إند
-        const userResponse: any = await getCurrentUser();
-        
-        // 2. جلب دورات الطالب من الباك إند
-        // ملاحظة: studentRoutes مرتبطة في server.ts بالمسار /api/student، و BASE_URL
-        // المستورد من services/api.ts يتضمن /api بالفعل — لازم نستخدمه كما هو.
         const token = sessionStorage.getItem("user_token");
 
-        const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const [userResponse, coursesData] = await Promise.all([
+          getCurrentUser() as Promise<any>,
+          fetch(`${BASE_URL}/student/courses/purchased`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }).then((r) => r.json().catch(() => [])),
+        ]);
 
-        const coursesData = await coursesRes.json().catch(() => []);
-
-        // لا يوجد API للإشعارات حالياً
         const notifsData: Notification[] = [];
 
         if (!isMounted) return;
 
-        // تعيين البيانات القادمة من السيرفر في الـ State لقراءتها ديناميكياً
         setProfile(userResponse.user || userResponse);
         setCourses(Array.isArray(coursesData) ? coursesData : []);
         setNotifications(notifsData);

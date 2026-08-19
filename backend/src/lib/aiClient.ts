@@ -65,48 +65,53 @@ export async function complete(
     throw new Error('ai_not_configured');
   }
 
-  try {
-    const response = await aiHttp.post('/chat/completions', {
-      model: options.model || AI_MODEL,
-      messages,
-      max_tokens: options.maxTokens ?? 500,
-      temperature: options.temperature ?? 0.3,
-    });
+  const candidateModels = [
+    options.model || process.env.AI_MODEL || 'meta-llama/llama-3.3-70b-instruct:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'google/gemini-2.0-flash-lite-preview-02-05:free',
+    'openai/gpt-4o-mini',
+    'deepseek/deepseek-chat',
+    'qwen/qwen-2.5-coder-32b-instruct'
+  ];
 
-    const choice = response.data?.choices?.[0];
-    const content = choice?.message?.content;
+  let lastError: any = null;
 
-    // Defensive: even the "shape" of a successful HTTP response isn't
-    // guaranteed. If OpenRouter's payload doesn't look like we expect,
-    // treat it as a provider problem rather than handing undefined
-    // upstream (Handbook Ch. 08 — never trust it blindly).
-    if (typeof content !== 'string') {
-      console.error('[AI CLIENT] unexpected response shape:', response.data);
-      throw new Error('ai_provider_error');
+  for (const modelCandidate of candidateModels) {
+    try {
+      const response = await aiHttp.post('/chat/completions', {
+        model: modelCandidate,
+        messages,
+        max_tokens: options.maxTokens ?? 500,
+        temperature: options.temperature ?? 0.3,
+      });
+
+      const choice = response.data?.choices?.[0];
+      const content = choice?.message?.content;
+
+      if (typeof content !== 'string') {
+        console.error(`[AI CLIENT] Model ${modelCandidate} returned unexpected response shape:`, response.data);
+        continue;
+      }
+
+      const usage = response.data?.usage || {};
+
+      return {
+        content,
+        usage: {
+          promptTokens: usage.prompt_tokens ?? 0,
+          completionTokens: usage.completion_tokens ?? 0,
+          totalTokens: usage.total_tokens ?? 0,
+        },
+        raw: response.data,
+      };
+    } catch (err: any) {
+      lastError = err;
+      const status = err?.response?.status || err?.response?.data?.error?.code;
+      const message = err?.response?.data?.error?.message || err.message;
+      console.warn(`[AI CLIENT WARN] Model '${modelCandidate}' failed (HTTP ${status}: ${message}). Trying next fallback model...`);
     }
-
-    const usage = response.data?.usage || {};
-
-    return {
-      content,
-      usage: {
-        promptTokens: usage.prompt_tokens ?? 0,
-        completionTokens: usage.completion_tokens ?? 0,
-        totalTokens: usage.total_tokens ?? 0,
-      },
-      raw: response.data,
-    };
-  } catch (err: any) {
-    if (err instanceof Error && err.message === 'ai_provider_error') {
-      throw err;
-    }
-
-    if (err.code === 'ECONNABORTED') {
-      console.error('[AI CLIENT] request timed out after', AI_REQUEST_TIMEOUT_MS, 'ms');
-      throw new Error('ai_timeout');
-    }
-
-    console.error('[AI CLIENT ERROR]:', err?.response?.data || err.message);
-    throw new Error('ai_provider_error');
   }
+
+  console.error('[AI CLIENT ERROR]: All candidate models failed.', lastError?.response?.data || lastError?.message);
+  throw new Error('ai_provider_error');
 }

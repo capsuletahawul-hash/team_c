@@ -244,8 +244,8 @@ const ContractsApproval: React.FC<ContractsApprovalProps> = ({ isEmbedded = fals
                         </td>
                         <td className="p-3 text-gray-500 dark:text-slate-300">{req.trainingType}</td>
                         <td className="p-3 text-gray-500 dark:text-slate-300">{req.trainees}</td>
-                        <td className="p-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
+                        <td className="p-3 align-middle whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-black whitespace-nowrap ${
                             req.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : req.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'
                           }`}>
                             {getStatusLabel(req.status)}
@@ -303,9 +303,9 @@ const ContractsApproval: React.FC<ContractsApprovalProps> = ({ isEmbedded = fals
                         </td>
                         <td className="p-3 text-gray-500 dark:text-slate-300">{tkt.count}</td>
                         <td className="p-3 text-gray-500 dark:text-slate-300 font-mono">{tkt.budget.toLocaleString()} {isRtl ? "ر.س" : "SAR"}</td>
-                        <td className="p-3">
-                          <span className={`text-[10px] font-black ${
-                            tkt.status === "approved" ? "text-emerald-600 dark:text-emerald-400" : tkt.status === "issued" ? "text-indigo-600 dark:text-sky-400" : "text-amber-500 dark:text-amber-400"
+                        <td className="p-3 align-middle whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-[10px] font-black whitespace-nowrap ${
+                            tkt.status === "approved" ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-300" : tkt.status === "issued" ? "text-indigo-600 bg-indigo-50 dark:bg-sky-950/60 dark:text-sky-300" : "text-amber-600 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300"
                           }`}>
                             {getTicketStatusLabel(tkt.status)}
                           </span>

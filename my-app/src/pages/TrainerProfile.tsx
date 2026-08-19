@@ -200,46 +200,36 @@ const TrainerProfile: React.FC = () => {
 
   const publicCourses = courses.filter((c) => c.status === "published");
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans flex flex-col" dir={t.dir}>
-        <TrainerNavbar activePage="profile" />
-        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
-          <SkeletonLoader variant="trainer-profile" dir={t.dir} />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (loadError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-capsule-bg">
-        <p className="text-sm font-semibold text-capsule-navy">
-          {isRTL ? "تعذر تحميل بيانات المدرب." : "Unable to load trainer profile."}
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div dir={t.dir} className="min-h-screen bg-capsule-bg flex flex-col font-sans text-capsule-navy antialiased">
-<TrainerNavbar
-  activePage="profile"
-  onSignIn={() => {}}
-  onSignUp={() => {}}
-/>
+    <div dir={t.dir} className="min-h-screen bg-slate-200/80 dark:bg-[#030611] flex flex-col font-sans text-capsule-navy dark:text-slate-100 antialiased">
+      <TrainerNavbar
+        activePage="profile"
+        onSignIn={() => {}}
+        onSignUp={() => {}}
+      />
       
       <main className="flex-grow">
-        {/* Banner Title */}
-<div className="relative bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-14 px-8 overflow-hidden shadow-inner">          <div className="max-w-7xl mx-auto relative z-10">
+        {/* Banner Title — Renders immediately */}
+        <div className="relative bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-14 px-8 overflow-hidden shadow-inner">
+          <div className="max-w-7xl mx-auto relative z-10">
             <h1 className="text-3xl font-extrabold text-white">{l.hero.title}</h1>
             <p className="text-sm text-gray-200 mt-2">{l.hero.subtitle}</p>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="bg-white rounded-2xl shadow-xs border border-gray-100 p-8 mb-8">
+          {loading ? (
+            /* Inline Skeleton Loader while fetching backend data */
+            <SkeletonLoader variant="trainer-profile" dir={t.dir} />
+          ) : loadError ? (
+            <div className="p-8 text-center bg-white dark:bg-[#18233C] rounded-3xl border border-slate-300 dark:border-slate-700 shadow-xl">
+              <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">
+                {isRTL ? "تعذر تحميل بيانات المدرب من الخادم." : "Unable to load trainer profile from server."}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-white dark:bg-[#18233C] rounded-3xl shadow-2xl border-2 border-slate-300 dark:border-slate-700/80 p-8 mb-8">
             {!isEditing ? (
               /* Public read-only profile layout view */
               <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
@@ -361,6 +351,8 @@ const TrainerProfile: React.FC = () => {
               </table>
             </div>
           </div>
+        </>
+      )}
         </div>
       </main>
 

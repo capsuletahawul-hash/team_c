@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingIndicator from '../components/LoadingIndicator';
+import SkeletonLoader from '../components/SkeletonLoader';
 import ThemeToggle from '../components/ThemeToggle';
 import { AdminOverview, AdminOrdersTab, AdminUsersTab, CourseModal } from '../components/AdminComponents';
 import { useLanguage } from '../context/LanguageContext';
@@ -188,16 +189,18 @@ const AdminDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#C9D6DF] text-capsule-navy font-sans flex flex-col relative overflow-hidden" dir={t.dir}>
+      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans flex flex-col relative overflow-hidden" dir={t.dir}>
         <Navbar activePage="home" />
-        <LoadingIndicator variant="dashboard" />
+        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+          <SkeletonLoader variant="dashboard" dir={t.dir} />
+        </div>
         <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#C9D6DF] dark:bg-[#0A0F1D] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col relative overflow-x-clip transition-colors duration-300" dir={t.dir}>
+    <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col relative overflow-x-clip transition-colors duration-300" dir={t.dir}>
       {/* Ambient Seamless Radial Glass Glows (NO hard edge cuts) */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-[5%] left-[20%] w-[500px] h-[500px] bg-capsule-teal/15 dark:bg-sky-500/10 rounded-full blur-[140px]" />

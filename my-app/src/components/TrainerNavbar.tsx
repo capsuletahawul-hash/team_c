@@ -5,6 +5,7 @@ import logo from "../assets/logo.png";
 import lightLogo from "../assets/light_trans_logo.png";
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '../context/ThemeContext';
+import UserProfileMenu from './UserProfileMenu';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -59,9 +60,9 @@ function TrainerNavbar({
    */
   const navLinks: TrainerNavLink[] = [
     {
-      id: "dashboard",
+      id: "home",
       label: lang === "ar" ? "الرئيسية" : "Home",
-      to: "/trainer-dashboard",
+      to: "/",
     },
     {
       id: "courses",
@@ -71,12 +72,7 @@ function TrainerNavbar({
     {
       id: "learn",
       label: lang === "ar" ? "الدورات" : "Courses",
-      to: "/trainer-courses-catalog",
-    },
-    {
-      id: "profile",
-      label: lang === "ar" ? "ملفي الشخصي" : "My Profile",
-      to: "/trainer-profile",
+      to: "/courses-overview",
     },
   ];
 
@@ -169,12 +165,7 @@ function TrainerNavbar({
               </button>
             </div>
           ) : (
-            <Link
-              to="/sign-in"
-              className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300"
-            >
-              {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
-            </Link>
+            <UserProfileMenu customRole="trainer" />
           )}
         </div>
 

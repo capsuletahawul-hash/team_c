@@ -5,6 +5,7 @@ import logo from "../assets/logo.png";
 import lightLogo from "../assets/light_trans_logo.png";
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '../context/ThemeContext';
+import UserProfileMenu from './UserProfileMenu';
 
 function StudentNavbar({ 
   activePage = 'dashboard', 
@@ -22,12 +23,12 @@ function StudentNavbar({
     {
       id: "home",
       label: lang === "ar" ? "الرئيسية" : "Home",
-      to: "/student-dashboard",
+      to: "/",
     },
     {
       id: "courses",
       label: lang === "ar" ? "الدورات" : "Courses",
-      to: "/student-courses-overview",
+      to: "/courses-overview",
     },
     {
       id: "my-courses",
@@ -37,12 +38,7 @@ function StudentNavbar({
     {
       id: "bootcamps",
       label: lang === "ar" ? "المعسكرات" : "Bootcamps",
-      to: "#",
-    },
-    {
-      id: "profile",
-      label: lang === "ar" ? "الملف الشخصي" : "Profile",
-      to: "/student-profile",
+      to: "/courses-overview",
     },
   ];
 
@@ -126,12 +122,7 @@ function StudentNavbar({
               </button>
             </div>
           ) : (
-            <Link
-              to="/sign-in"
-              className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300"
-            >
-              {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
-            </Link>
+            <UserProfileMenu customRole="student" />
           )}
         </div>
 

@@ -136,6 +136,7 @@ const user = await userRepository.findById(authUser.userId);
         success: true,
         user: {
           id: user.id,
+          name: user.name,
           fullName: user.name,
           email: user.email,
           role: user.role,

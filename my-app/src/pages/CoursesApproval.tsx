@@ -382,24 +382,24 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
                 <tbody className="divide-y divide-gray-100 text-sm font-medium">
                   {courses.map((course) => (
                     <tr key={course.id} className="hover:bg-gray-50/50 transition">
-                      <td className="p-4 text-[#0D4C54] font-bold">{course.title}</td>
-                      <td className="p-4 text-gray-500">{course.trainer}</td>
-                      <td className="p-4 text-gray-500">{course.category}</td>
-                      <td className="p-4">
-                        <span className="px-2 py-1 rounded-md text-xs font-bold bg-teal-50 text-[#00A499]">
+                      <td className="p-4 align-middle text-slate-900 dark:text-white font-bold">{course.title}</td>
+                      <td className="p-4 align-middle text-gray-600 dark:text-slate-300">{course.trainer}</td>
+                      <td className="p-4 align-middle text-gray-600 dark:text-slate-300">{course.category}</td>
+                      <td className="p-4 align-middle whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-extrabold bg-teal-50 dark:bg-teal-950/60 text-[#00A499] dark:text-teal-300 border border-teal-200/50 dark:border-teal-700/50 whitespace-nowrap">
                           {course.durationVal}{l.table.unitHours}
                         </span>
                       </td>
-                      <td className="p-4">
+                      <td className="p-4 align-middle whitespace-nowrap">
                         <span
-                          className={`text-xs font-bold px-2 py-1 rounded-lg ${
+                          className={`inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-extrabold whitespace-nowrap ${
                             course.status === "approved"
-                              ? "text-emerald-600 bg-emerald-50"
+                              ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800/60"
                               : course.status === "rejected"
-                              ? "text-red-600 bg-red-50"
+                              ? "text-red-700 dark:text-rose-300 bg-red-50 dark:bg-rose-950/60 border border-red-200/60 dark:border-rose-800/60"
                               : course.status === "pending_deletion"
-                              ? "text-rose-700 bg-rose-100 border border-rose-300 font-extrabold animate-pulse"
-                              : "text-[#EAB308] bg-amber-50"
+                              ? "text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-900/60 border border-rose-300 dark:border-rose-700 animate-pulse"
+                              : "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/60 dark:border-amber-800/60"
                           }`}
                         >
                           {getStatusLabel(course.status)}

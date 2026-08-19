@@ -6,6 +6,7 @@ import logo from "../assets/logo.png";
 import lightLogo from "../assets/light_trans_logo.png";
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '../context/ThemeContext';
+import UserProfileMenu from './UserProfileMenu';
 
 // ... inside Navbar component:
 function Navbar({ 
@@ -117,12 +118,8 @@ function Navbar({
                 🛒
               </Link>
 
-              <button
-                onClick={handleLogout}
-                className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300 cursor-pointer text-xs"
-              >
-                {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
-              </button>
+              {/* 👤 Modern Profile Menu with Avatar, Name, Role Badge, and Dashboard Links */}
+              <UserProfileMenu />
             </div>
           )}
         </div>

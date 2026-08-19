@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
 import LoadingIndicator from "../components/LoadingIndicator";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
@@ -176,12 +177,14 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
 
   if (loading) {
     if (isEmbedded) {
-      return <LoadingIndicator variant="table" />;
+      return <SkeletonLoader variant="table" dir={t.dir} />;
     }
     return (
-      <div className="min-h-screen bg-[#C9D6DF] flex flex-col" dir={t.dir}>
+      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] flex flex-col" dir={t.dir}>
         <Navbar activePage="home" />
-        <LoadingIndicator variant="table" />
+        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+          <SkeletonLoader variant="table" dir={t.dir} />
+        </div>
         <Footer />
       </div>
     );

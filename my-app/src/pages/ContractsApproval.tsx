@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
 import LoadingIndicator from "../components/LoadingIndicator";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
@@ -163,15 +164,15 @@ const ContractsApproval: React.FC<ContractsApprovalProps> = ({ isEmbedded = fals
     if (isEmbedded) {
       return (
         <div className="w-full py-2">
-          <LoadingIndicator variant="table" message={l.loading} />
+          <SkeletonLoader variant="table" dir={t.dir} />
         </div>
       );
     }
     return (
-      <div className="min-h-screen flex flex-col justify-between bg-[#C9D6DF] dark:bg-[#0A0F1D]">
+      <div className="min-h-screen flex flex-col justify-between bg-slate-200/80 dark:bg-[#030611]">
         <Navbar activePage="home" />
         <div className="max-w-7xl mx-auto px-6 py-6 w-full">
-          <LoadingIndicator variant="table" message={l.loading} />
+          <SkeletonLoader variant="table" dir={t.dir} />
         </div>
         <Footer />
       </div>

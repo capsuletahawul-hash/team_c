@@ -8,6 +8,7 @@ import defaultProfilePic from '../assets/profile.png';
 import StudentNavbar from "../components/StudentNavbar.js";
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
+import SkeletonLoader from '../components/SkeletonLoader';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button.js';
 
@@ -186,8 +187,12 @@ function StudentProfile({ onBack }: StudentProfileProps) {
 
   if (loading || !profile) {
     return (
-      <div className="min-h-screen bg-capsule-bg flex flex-col items-center justify-center">
-        <LoadingIndicator message={l.loading} />
+      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans flex flex-col" dir={t.dir}>
+        <StudentNavbar activePage="profile" />
+        <div className="flex-grow max-w-5xl mx-auto px-6 py-10 w-full">
+          <SkeletonLoader variant="student-profile" dir={t.dir} />
+        </div>
+        <Footer />
       </div>
     );
   }

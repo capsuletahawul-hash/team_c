@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface SkeletonLoaderProps {
-  variant?: 'dashboard' | 'trainer-dashboard' | 'student-dashboard' | 'landing-page' | 'table' | 'cards' | 'form' | 'page';
+  variant?: 'dashboard' | 'trainer-dashboard' | 'student-dashboard' | 'trainer-profile' | 'student-profile' | 'landing-page' | 'table' | 'cards' | 'form' | 'page';
   count?: number;
   dir?: 'rtl' | 'ltr';
 }
@@ -220,6 +220,73 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'trainer-profile') {
+    return (
+      <div className="w-full font-sans" dir={dir}>
+        {/* Banner Title Skeleton */}
+        <div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-14 px-8 rounded-3xl mb-8 shadow-xl space-y-3">
+          <Shimmer className="h-8 w-64 rounded-xl bg-white/30" />
+          <Shimmer className="h-4 w-96 rounded-lg bg-white/20" />
+        </div>
+
+        {/* Profile Details Card Skeleton */}
+        <div className="bg-white dark:bg-[#18233C] border-2 border-slate-300 dark:border-slate-700/80 rounded-3xl p-8 shadow-2xl space-y-6">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+            <Shimmer className="w-28 h-28 rounded-full shrink-0" />
+            <div className="flex-1 space-y-3 w-full">
+              <Shimmer className="h-7 w-56 rounded-xl" />
+              <Shimmer className="h-4 w-40 rounded" />
+              <Shimmer className="h-3.5 w-48 rounded" />
+              <Shimmer className="h-3.5 w-36 rounded" />
+              <Shimmer className="h-16 w-full max-w-2xl rounded-xl mt-4" />
+              <div className="pt-4">
+                <Shimmer className="h-10 w-40 rounded-xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'student-profile') {
+    return (
+      <div className="w-full font-sans max-w-5xl mx-auto space-y-8" dir={dir}>
+        {/* Back Button Placeholder */}
+        <Shimmer className="h-4 w-24 rounded" />
+
+        {/* Profile Header & Avatar Skeleton */}
+        <div className="bg-white dark:bg-[#18233C] border-2 border-slate-300 dark:border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-tr from-capsule-footer via-capsule-navy to-capsule-teal text-white py-12 px-8"></div>
+          <div className="px-8 pb-8">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-6 -mt-12">
+              <Shimmer className="w-24 h-24 rounded-2xl border-4 border-white dark:border-[#18233C] shadow-md shrink-0" />
+              <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                <div className="space-y-2">
+                  <Shimmer className="h-6 w-48 rounded-xl" />
+                  <Shimmer className="h-3.5 w-36 rounded" />
+                </div>
+                <Shimmer className="h-10 w-32 rounded-xl shrink-0" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Row Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="bg-white dark:bg-[#18233C] p-6 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-xl space-y-2">
+            <Shimmer className="h-3.5 w-32 rounded" />
+            <Shimmer className="h-8 w-16 rounded-xl" />
+          </div>
+          <div className="bg-white dark:bg-[#18233C] p-6 rounded-2xl border-2 border-slate-300 dark:border-slate-700/80 shadow-xl space-y-2">
+            <Shimmer className="h-3.5 w-32 rounded" />
+            <Shimmer className="h-8 w-16 rounded-xl" />
           </div>
         </div>
       </div>

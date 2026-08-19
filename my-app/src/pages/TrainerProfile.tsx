@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import TrainerNavbar from "../components/TrainerNavbar";
 import Footer from "../components/Footer";
 import LoadingIndicator from "../components/LoadingIndicator";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
@@ -201,8 +202,12 @@ const TrainerProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-capsule-bg">
-        <LoadingIndicator message={l.loading} />
+      <div className="min-h-screen bg-slate-200/80 dark:bg-[#030611] text-capsule-navy dark:text-slate-100 font-sans flex flex-col" dir={t.dir}>
+        <TrainerNavbar activePage="profile" />
+        <div className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+          <SkeletonLoader variant="trainer-profile" dir={t.dir} />
+        </div>
+        <Footer />
       </div>
     );
   }

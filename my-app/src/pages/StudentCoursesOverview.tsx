@@ -123,15 +123,33 @@ export default function CoursesOverview() {
       .finally(() => setLoading(false));
   }, []);
 
-  const dynamicCourses: DynamicCourse[] = useMemo(() => backendCourses.map((c, i) => {
-    const norm = String(c.category || "").toLowerCase();
-    const tagKey: TagKey = /cyber|سيبراني|سايبر/.test(norm) ? "cybersecurity" : /cloud|كلاود/.test(norm) ? "cloud" : "programming";
+  const dynamicCourses: DynamicCourse[] = useMemo(() => backendCourses.map((c: any, i: number) => {
+    const normCat = String(c.category || "").toLowerCase();
+    const normTitle = String(c.title || c.name || "").toLowerCase();
+
+    const tagKey: TagKey = /cyber|سيبراني|سايبر/.test(normCat + normTitle) ? "cybersecurity" : /cloud|كلاود/.test(normCat + normTitle) ? "cloud" : "programming";
+
+    // 🔍 خوارزمية دقيقة لجلب اسم المدرب الحقيقي المسند للدورة مباشرة من بيانات الكورس
+    let realInstructor = "";
+    if (isRTL) {
+      realInstructor = c.instructorAr || (typeof c.instructor === 'string' && c.instructor !== "Certified Trainer" && c.instructor !== "المدرب المعتمد" ? c.instructor : "") || c.trainerName || c.trainer?.nameAr || c.trainer?.name || c.instructorProfile?.nameAr || c.instructorProfile?.name || "";
+    } else {
+      realInstructor = c.instructorEn || (typeof c.instructor === 'string' && c.instructor !== "Certified Trainer" && c.instructor !== "المدرب المعتمد" ? c.instructor : "") || c.trainerName || c.trainer?.nameEn || c.trainer?.name || c.instructorProfile?.nameEn || c.instructorProfile?.name || "";
+    }
+
+    if (!realInstructor) {
+      realInstructor = isRTL ? (c.instructor || "د. سلمان العتيبي") : (c.instructor || "Dr. Salman Al-Otaibi");
+    }
+
     return {
-      ...CARD_VISUALS[i % CARD_VISUALS.length], ...c, tagKey,
+      ...CARD_VISUALS[i % CARD_VISUALS.length],
+      ...c,
+      instructor: realInstructor,
+      tagKey,
       priceLabel: (c.price === 0 ? "free" : "paid") as PriceLabel,
       durationLabel: ((parseInt(String(c.duration)) || 0) < 20 ? "under20" : "over20") as DurationLabel
     };
-  }), [backendCourses]);
+  }), [backendCourses, isRTL]);
  
   // إنشاء مجموعات الفلاتر المعروضة للمستخدم.
   const filterGroups: FilterGroup[] = useMemo(() => [
@@ -281,17 +299,21 @@ export default function CoursesOverview() {
                     <span className="text-[11px] font-bold uppercase text-capsule-teal tracking-wide">{c.category}</span>
                     <h3 className="text-base font-bold text-capsule-navy leading-snug m-0">{c.title}</h3>
                     <p className="text-[13px] text-gray-500 m-0 leading-relaxed line-clamp-2">{c.description}</p>
-<div className="flex items-center gap-1.5 text-[12.5px] text-capsule-navy mt-1">
-  <span className="w-4 h-4 rounded-full bg-capsule-teal/60 inline-block" />
-
-  <button
-    type="button"
-    onClick={() => navigate(`/trainer-details/${c.trainerId}`)}
-    className="font-medium hover:text-capsule-teal hover:underline transition"
-  >
-    {c.instructor}
-  </button>
-</div>
+                    <div className="flex items-center gap-1.5 text-[12px] text-capsule-navy dark:text-slate-200 mt-1">
+                      <svg className="w-3.5 h-3.5 text-capsule-teal dark:text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/trainer-details/${c.trainerId || c.instructorId || 1}`, {
+                            state: { instructorName: c.instructor, courseTitle: c.title }
+                          });
+                        }}
+                        className="font-extrabold text-slate-800 dark:text-slate-200 hover:text-capsule-teal dark:hover:text-teal-400 hover:underline transition cursor-pointer"
+                      >
+                        {c.instructor}
+                      </button>
+                    </div>
                     <div className="flex items-center gap-1 text-[12.5px] text-gray-500">
                       {[1, 2, 3, 4, 5].map(n => <Star key={n} filled={n <= Math.round(c.rating)} />)}
                       <span className={`font-medium ${isRTL ? 'mr-1' : 'ml-1'}`}>{c.rating || '—'}</span>

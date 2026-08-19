@@ -10,14 +10,20 @@ import LoadingIndicator from "../components/LoadingIndicator";
 import { useLanguage } from "../context/LanguageContext";
 
 // Centralized API functions
-import { getAdminCourses, approveAdminCourse, rejectAdminCourse } from "../services/api";
+import { 
+  getAdminCourses, 
+  approveAdminCourse, 
+  rejectAdminCourse,
+  approveAdminCourseDeletion,
+  rejectAdminCourseDeletion
+} from "../services/api";
 
 // Union type restricting system course approval states
-type CourseStatus = "pending" | "approved" | "rejected";
+type CourseStatus = "pending" | "approved" | "rejected" | "pending_deletion";
 
 // Interface enforcing types for course metrics and keys
 interface CourseItem {
-  id: number;
+  id: number | string;
   title: string;
   trainer: string;
   category: string;
@@ -31,7 +37,42 @@ interface CoursesApprovalProps {
 
 const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false }) => {
   const { t } = useLanguage();
-  const l = t.coursesApproval;
+  const isRtl = t.dir === "rtl";
+
+  const defaultCopy = {
+    hero: {
+      title: isRtl ? "اعتماد وتعديلات دورات المدربين" : "Courses & Bootcamp Approvals",
+      subtitle: isRtl ? "مراجعة واعتماد الدورات الجديدة أو طلبات الحذف المقدمة من المدربين" : "Review, approve new courses or process deletion requests submitted by trainers",
+    },
+    stats: {
+      total: isRtl ? "إجمالي الكورسات" : "Total Courses",
+      approved: isRtl ? "المعتمدة" : "Approved",
+      pending: isRtl ? "جديد (قيد الانتظار)" : "New Pending",
+      deletionRequests: isRtl ? "طلبات الحذف" : "Deletion Requests",
+    },
+    table: {
+      cardTitle: isRtl ? "جدول طلبات واعتمادات الدورات" : "Course Submissions & Deletion Requests",
+      colTitle: isRtl ? "اسم الدورة" : "Course Title",
+      colTrainer: isRtl ? "المدرب" : "Trainer",
+      colCategory: isRtl ? "التصنيف" : "Category",
+      colDuration: isRtl ? "المدة" : "Duration",
+      colStatus: isRtl ? "الحالة" : "Status",
+      colActions: isRtl ? "الإجراءات" : "Actions",
+      unitHours: isRtl ? " أسبوع" : " Wks",
+      actionApprove: isRtl ? "اعتماد" : "Approve",
+      actionReject: isRtl ? "رفض" : "Reject",
+      actionConfirmDelete: isRtl ? "تأكيد الحذف" : "Approve Deletion",
+      actionRejectDelete: isRtl ? "رفض الحذف" : "Reject Deletion",
+      statusApproved: isRtl ? "معتمد" : "Approved",
+      statusRejected: isRtl ? "مرفوض" : "Rejected",
+      statusPendingDeletion: isRtl ? "طلب حذف" : "Deletion Requested",
+      approvedText: isRtl ? "معتمد" : "Approved",
+      rejectedText: isRtl ? "مرفوض" : "Rejected",
+      pendingText: isRtl ? "قيد الانتظار" : "Pending",
+    }
+  };
+
+  const l = t.coursesApproval || defaultCopy;
 
   // React states to manage asynchronous UI lifecycle and dynamic list updates
   const [courses, setCourses] = useState<CourseItem[]>([]);
@@ -67,9 +108,9 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
   }, []);
 
   // Handler triggered by the administrator to approve a specific course pipeline
-  const approveCourse = async (id: number): Promise<void> => {
+  const approveCourse = async (id: number | string): Promise<void> => {
     try {
-      await approveAdminCourse(id);
+      await approveAdminCourse(Number(id) || (id as any));
 
       setCourses((prevCourses) =>
         prevCourses.map((course) =>
@@ -82,7 +123,7 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
   };
 
   // Handler triggered by the administrator to reject a specific course pipeline
-  const rejectCourse = async (id: number): Promise<void> => {
+  const rejectCourse = async (id: number | string): Promise<void> => {
     try {
       await rejectAdminCourse(id);
 
@@ -96,15 +137,38 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
     }
   };
 
+  // Handler triggered by administrator to confirm deletion request (permanently deletes course)
+  const handleApproveDeletion = async (id: number | string): Promise<void> => {
+    if (!window.confirm(isRtl ? 'هل أنت متأكد من الموافقة على حذف هذه الدورة نهائياً؟' : 'Approve deletion request and remove course permanently?')) return;
+    try {
+      await approveAdminCourseDeletion(id);
+      setCourses((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error('Error approving deletion request', err);
+    }
+  };
+
+  // Handler triggered by administrator to reject deletion request (restores course to approved)
+  const handleRejectDeletion = async (id: number | string): Promise<void> => {
+    try {
+      await rejectAdminCourseDeletion(id);
+      setCourses((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, status: "approved" } : c))
+      );
+    } catch (err) {
+      console.error('Error rejecting deletion request', err);
+    }
+  };
+
   // Dynamic localization mapper to keep rendering logic clean and independent
   const getStatusLabel = (status: CourseStatus): string => {
-    if (status === "approved") return l.data.approvedText;
-    if (status === "rejected") return l.data.rejectedText;
-    return l.data.pendingText;
+    if (status === "approved") return l.table.statusApproved || l.data?.approvedText || (isRtl ? "معتمد" : "Approved");
+    if (status === "rejected") return l.table.statusRejected || l.data?.rejectedText || (isRtl ? "مرفوض" : "Rejected");
+    if (status === "pending_deletion") return l.table.statusPendingDeletion || (isRtl ? "طلب حذف" : "Deletion Requested");
+    return l.table.pendingText || l.data?.pendingText || (isRtl ? "قيد الانتظار" : "Pending");
   };
 
   // Bidirectional layout utility flags
-  const isRtl = t.dir === "rtl";
   const heroDecorationAlign = isRtl ? "left-[-40px]" : "right-[-40px]";
   const heroBallAlign = isRtl ? "rotate-[-25deg] left-10" : "rotate-[25deg] right-10";
   const heroArcAlign = isRtl ? "rotate-[-25deg]" : "rotate-[25deg]";
@@ -141,21 +205,27 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
           <h2 className="text-sm font-black text-capsule-navy border-b pb-3 mb-4">{l.hero.title}</h2>
           <p className="text-xs text-gray-500 font-bold mb-4">{l.hero.subtitle}</p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="bg-slate-100/80 p-4 rounded-2xl border border-slate-200/80">
-              <p className="text-[10px] font-black text-gray-500 uppercase mb-1">{l.stats.total}</p>
-              <p className="text-xl font-black font-mono text-capsule-navy">{courses.length}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+            <div className="bg-slate-100/90 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 hover:-translate-y-1 dark:hover:bg-slate-700/90 dark:hover:border-sky-400/60 dark:hover:shadow-sky-500/10 transition-all duration-300 cursor-pointer">
+              <p className="text-[10px] font-black text-gray-600 dark:text-slate-300 uppercase mb-1">{l.stats?.total || (isRtl ? "إجمالي الكورسات" : "Total Courses")}</p>
+              <p className="text-xl font-black font-mono text-capsule-navy dark:text-white">{courses.length}</p>
             </div>
-            <div className="bg-slate-100/80 p-4 rounded-2xl border border-slate-200/80">
-              <p className="text-[10px] font-black text-gray-500 uppercase mb-1">{l.stats.approved}</p>
-              <p className="text-xl font-black font-mono text-emerald-600">
+            <div className="bg-slate-100/90 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 hover:-translate-y-1 dark:hover:bg-slate-700/90 dark:hover:border-emerald-400/60 dark:hover:shadow-emerald-500/10 transition-all duration-300 cursor-pointer">
+              <p className="text-[10px] font-black text-gray-600 dark:text-slate-300 uppercase mb-1">{l.stats?.approved || (isRtl ? "المعتمدة" : "Approved")}</p>
+              <p className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">
                 {courses.filter((c) => c.status === "approved").length}
               </p>
             </div>
-            <div className="bg-slate-100/80 p-4 rounded-2xl border border-slate-200/80">
-              <p className="text-[10px] font-black text-gray-500 uppercase mb-1">{l.stats.pending}</p>
-              <p className="text-xl font-black font-mono text-amber-500">
+            <div className="bg-slate-100/90 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 hover:-translate-y-1 dark:hover:bg-slate-700/90 dark:hover:border-amber-400/60 dark:hover:shadow-amber-500/10 transition-all duration-300 cursor-pointer">
+              <p className="text-[10px] font-black text-gray-600 dark:text-slate-300 uppercase mb-1">{l.stats?.pending || (isRtl ? "قيد الانتظار" : "Pending")}</p>
+              <p className="text-xl font-black font-mono text-amber-500 dark:text-amber-400">
                 {courses.filter((c) => c.status === "pending").length}
+              </p>
+            </div>
+            <div className="bg-rose-50/90 dark:bg-rose-950/60 p-4 rounded-2xl border border-rose-200 dark:border-rose-800 hover:-translate-y-1 dark:hover:bg-rose-900/80 dark:hover:border-rose-500 dark:hover:shadow-rose-500/20 transition-all duration-300 cursor-pointer">
+              <p className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase mb-1">{l.stats?.deletionRequests || (isRtl ? "طلبات الحذف" : "Deletion Requests")}</p>
+              <p className="text-xl font-black font-mono text-rose-600 dark:text-rose-400">
+                {courses.filter((c) => c.status === "pending_deletion").length}
               </p>
             </div>
           </div>
@@ -188,8 +258,14 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
                       </span>
                     </td>
                     <td className="p-3">
-                      <span className={`text-[10px] font-black ${
-                        course.status === "approved" ? "text-emerald-600" : course.status === "rejected" ? "text-rose-600" : "text-amber-500"
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                        course.status === "approved"
+                          ? "text-emerald-600 bg-emerald-50"
+                          : course.status === "rejected"
+                          ? "text-rose-600 bg-rose-50"
+                          : course.status === "pending_deletion"
+                          ? "text-rose-700 bg-rose-100 border border-rose-300 font-extrabold animate-pulse"
+                          : "text-amber-600 bg-amber-50"
                       }`}>
                         {getStatusLabel(course.status)}
                       </span>
@@ -202,6 +278,15 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
                           </button>
                           <button onClick={() => rejectCourse(course.id)} className="px-2.5 py-1 text-[10px] font-black text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition cursor-pointer">
                             {l.table.actionReject}
+                          </button>
+                        </div>
+                      ) : course.status === "pending_deletion" ? (
+                        <div className="flex gap-2 justify-center">
+                          <button onClick={() => handleApproveDeletion(course.id)} className="px-2.5 py-1 text-[10px] font-black text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition cursor-pointer shadow-sm">
+                            {l.table?.actionConfirmDelete || (isRtl ? "قبول طلب الحذف" : "Approve Deletion")}
+                          </button>
+                          <button onClick={() => handleRejectDeletion(course.id)} className="px-2.5 py-1 text-[10px] font-black text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg transition cursor-pointer">
+                            {l.table?.actionRejectDelete || (isRtl ? "رفض طلب الحذف" : "Reject Deletion")}
                           </button>
                         </div>
                       ) : course.status === "approved" ? (
@@ -252,21 +337,27 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
         <div className="max-w-7xl mx-auto px-6 py-12">
           
           {/* Top KPI Metrics Row to display real-time counters dynamically computed from state */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-10">
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.total}</p>
+              <p className="text-xs font-bold text-gray-500 mb-1">{l.stats?.total || (isRtl ? "إجمالي الكورسات" : "Total Courses")}</p>
               <p className="text-2xl font-black text-[#0D4C54]">{courses.length}</p>
             </div>
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.approved}</p>
+              <p className="text-xs font-bold text-gray-500 mb-1">{l.stats?.approved || (isRtl ? "المعتمدة" : "Approved")}</p>
               <p className="text-2xl font-black text-emerald-600">
                 {courses.filter((c) => c.status === "approved").length}
               </p>
             </div>
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.pending}</p>
+              <p className="text-xs font-bold text-gray-500 mb-1">{l.stats?.pending || (isRtl ? "قيد الانتظار" : "Pending")}</p>
               <p className="text-2xl font-black text-[#EAB308]">
                 {courses.filter((c) => c.status === "pending").length}
+              </p>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs">
+              <p className="text-xs font-bold text-rose-600 mb-1">{l.stats?.deletionRequests || (isRtl ? "طلبات الحذف" : "Deletion Requests")}</p>
+              <p className="text-2xl font-black text-rose-600">
+                {courses.filter((c) => c.status === "pending_deletion").length}
               </p>
             </div>
           </div>
@@ -301,12 +392,14 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
                       </td>
                       <td className="p-4">
                         <span
-                          className={`text-xs font-bold ${
+                          className={`text-xs font-bold px-2 py-1 rounded-lg ${
                             course.status === "approved"
-                              ? "text-emerald-600"
+                              ? "text-emerald-600 bg-emerald-50"
                               : course.status === "rejected"
-                              ? "text-red-600"
-                              : "text-[#EAB308]"
+                              ? "text-red-600 bg-red-50"
+                              : course.status === "pending_deletion"
+                              ? "text-rose-700 bg-rose-100 border border-rose-300 font-extrabold animate-pulse"
+                              : "text-[#EAB308] bg-amber-50"
                           }`}
                         >
                           {getStatusLabel(course.status)}
@@ -325,6 +418,23 @@ const CoursesApproval: React.FC<CoursesApprovalProps> = ({ isEmbedded = false })
                               className="px-5 py-2.5 text-sm font-bold bg-red-500 hover:bg-red-600 text-white rounded-xl transition duration-150 active:scale-[0.98] shadow-xs cursor-pointer"
                             >
                               {l.table.actionReject}
+                            </button>
+                          </div>
+                        ) : course.status === "pending_deletion" ? (
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              type="button"
+                              onClick={() => handleApproveDeletion(course.id)}
+                              className="px-4 py-2 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition duration-150 active:scale-[0.98] shadow-xs cursor-pointer"
+                            >
+                              {l.table?.actionConfirmDelete || (isRtl ? "قبول طلب الحذف" : "Approve Deletion")}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRejectDeletion(course.id)}
+                              className="px-4 py-2 text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl transition duration-150 active:scale-[0.98] cursor-pointer"
+                            >
+                              {l.table?.actionRejectDelete || (isRtl ? "رفض طلب الحذف" : "Reject Deletion")}
                             </button>
                           </div>
                         ) : course.status === "approved" ? (

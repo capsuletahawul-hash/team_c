@@ -52,18 +52,34 @@ const AdminDashboard: React.FC = () => {
       setLoading(false);
     }).catch(() => setLoading(false));
 
-    const [, usersRes, coursesRes, ordersRes, enrollmentsRes] = await Promise.allSettled([
+    const [, usersRes, coursesRes, ordersRes, enrollmentsRes, approvalRes] = await Promise.allSettled([
       statsPromise,
       fetch(`${API_BASE}/admin/users`, { headers }),
       fetch(`${API_BASE}/admin/courses/crud`, { headers }),
       fetch(`${API_BASE}/admin/orders`, { headers }),
       fetch(`${API_BASE}/admin/enrollments`, { headers }),
+      fetch(`${API_BASE}/admin/courses`, { headers }),
     ]);
+    const initialNotifs: NotificationItem[] = [];
     if (usersRes.status === 'fulfilled' && (usersRes.value as Response).ok) {
       const u = await (usersRes.value as Response).json().then((j: any) => Array.isArray(j) ? j : (j.data?.users || j.data || j.users || []));
       setUsersList(u.map((x: any) => ({ id: x.id || '', name: x.name || 'User', email: x.email || '', role: x.role || 'STUDENT', status: x.status || 'active', _count: x._count || { enrollments: 0 } })));
-      setNotificationsList([{ id: '1', textAr: `تم جلب ${u.length} مستخدم من قاعدة البيانات`, textEn: `Loaded ${u.length} users` }, { id: '2', textAr: 'النظام متصل وقاعدة البيانات تعمل بنجاح', textEn: 'Database connected successfully' }]);
+      initialNotifs.push({ id: '1', textAr: `تم جلب ${u.length} مستخدم من قاعدة البيانات`, textEn: `Loaded ${u.length} users` });
     }
+    if (approvalRes.status === 'fulfilled' && (approvalRes.value as Response).ok) {
+      const appData = await (approvalRes.value as Response).json().then((j: any) => j.data?.courses || []);
+      const delReqs = appData.filter((x: any) => x.status === 'pending_deletion');
+      if (delReqs.length > 0) {
+        initialNotifs.unshift({
+          id: 'del-req-alert',
+          textAr: `🚨 يوجد (${delReqs.length}) طلب حذف دورة من المدرب بحاجة لمراجعتك`,
+          textEn: `🚨 (${delReqs.length}) course deletion request(s) from trainer pending review`,
+        });
+      }
+    }
+    initialNotifs.push({ id: '2', textAr: 'النظام متصل وقاعدة البيانات تعمل بنجاح', textEn: 'Database connected successfully' });
+    setNotificationsList(initialNotifs);
+
     if (coursesRes.status === 'fulfilled' && (coursesRes.value as Response).ok) {
       const c = await (coursesRes.value as Response).json().then((j: any) => Array.isArray(j) ? j : (j.data?.courses || j.data || j.courses || []));
       setCoursesList(c.map((x: any, i: number) => ({ ...x, status: x.status || 'coming_soon', category: x.category || (i % 2 === 0 ? (isRtl ? 'الأمن السيبراني' : 'Cybersecurity') : (isRtl ? 'هندسة البرمجيات' : 'Software Engineering')) })));
@@ -181,29 +197,29 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#C9D6DF] dark:bg-[#0A0F1D] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col relative overflow-hidden transition-colors duration-300" dir={t.dir}>
+    <div className="min-h-screen bg-[#C9D6DF] dark:bg-[#0A0F1D] text-capsule-navy dark:text-slate-100 font-sans antialiased flex flex-col relative overflow-x-clip transition-colors duration-300" dir={t.dir}>
       {/* Ambient Seamless Radial Glass Glows (NO hard edge cuts) */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-[5%] left-[20%] w-[500px] h-[500px] bg-capsule-teal/15 dark:bg-sky-500/10 rounded-full blur-[140px]" />
         <div className="absolute bottom-[10%] right-[20%] w-[500px] h-[500px] bg-capsule-gold/15 dark:bg-indigo-500/10 rounded-full blur-[140px]" />
       </div>
 
-      <div className="relative z-40 bg-white/40 dark:bg-[#0F172A]/85 backdrop-blur-xl border-b border-white/50 dark:border-slate-800/80 shadow-xs">
+      <div className="sticky top-0 z-50 bg-white/85 dark:bg-[#0A0F1D]/90 backdrop-blur-xl border-b border-white/50 dark:border-slate-800/80 shadow-md transition-all">
         <Navbar activePage="home" />
-        <div className="max-w-7xl mx-auto px-6 py-2.5 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between border-t border-white/30 dark:border-slate-800/50">
           <span className="text-[10px] font-black tracking-widest text-capsule-teal uppercase bg-capsule-teal/10 dark:bg-capsule-teal/20 px-3 py-1 rounded-full border border-capsule-teal/20 dark:border-capsule-teal/40 dark:text-white">{isRtl ? 'لوحة تحكم المشرف الرئيسي' : 'SUPER ADMIN PANEL'}</span>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/90 rounded-xl border border-white shadow-2xs hover:bg-white transition flex items-center gap-2 text-xs font-bold cursor-pointer">
+              <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/90 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700 rounded-xl border border-white shadow-2xs hover:bg-white dark:hover:bg-slate-700 transition flex items-center gap-2 text-xs font-bold cursor-pointer">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 <span>{isRtl ? 'الإشعارات' : 'Notifications'}</span>
                 <span className="bg-rose-500 text-white text-[10px] font-black font-mono px-1.5 py-0.2 rounded-full">{notificationsList.length}</span>
               </button>
               {showNotifications && (
-                <div className={`absolute mt-2 w-72 bg-white/95 backdrop-blur-xl rounded-2xl border border-white shadow-xl p-3 space-y-2 text-xs text-start z-50 ${t.dir === 'rtl' ? 'left-0' : 'right-0'}`}>
-                  <p className="font-black text-capsule-navy border-b pb-1.5">{isRtl ? 'التنبيهات الواردة' : 'Inbound Tickets'}</p>
+                <div className={`absolute mt-2 w-80 bg-white dark:bg-[#1E293B] backdrop-blur-2xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-3.5 space-y-2 text-xs text-start z-50 ${t.dir === 'rtl' ? 'left-0' : 'right-0'}`}>
+                  <p className="font-black text-capsule-navy dark:text-white border-b border-slate-200 dark:border-slate-700 pb-1.5">{isRtl ? 'التنبيهات الواردة' : 'Inbound Tickets'}</p>
                   {notificationsList.map(n => (
-                    <div key={n.id} className="p-2.5 bg-slate-50 rounded-xl text-gray-700 border border-slate-200/60 flex gap-2 text-[11px] font-bold">
+                    <div key={n.id} className="p-2.5 bg-slate-50 dark:bg-slate-800/90 rounded-xl text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 flex gap-2 text-[11px] font-bold shadow-xs">
                       <svg className="w-4 h-4 text-capsule-teal shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       <span>{isRtl ? n.textAr : n.textEn}</span>
                     </div>
@@ -216,10 +232,10 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       <main className="flex-grow max-w-7xl mx-auto px-6 py-8 w-full grid grid-cols-1 lg:grid-cols-4 gap-6 relative z-10">
-        <div className="lg:col-span-1 bg-white/90 backdrop-blur-xl border border-white p-4 rounded-3xl shadow-md space-y-1.5 h-fit sticky top-6">
-          <div className="p-3 border-b border-slate-200/80 mb-2">
+        <div className="lg:col-span-1 bg-white/70 dark:bg-[#162035]/70 backdrop-blur-xl border border-white/60 dark:border-white/10 p-4 rounded-3xl shadow-xl backdrop-saturate-150 space-y-1.5 h-fit sticky top-6">
+          <div className="p-3 border-b border-slate-200/80 dark:border-slate-800 mb-2">
             <p className="text-[10px] font-black text-capsule-teal uppercase tracking-widest">{isRtl ? 'لوحة تحكم المشرف' : 'CONTROL CENTER'}</p>
-            <h4 className="text-xs font-black text-capsule-navy mt-0.5">{isRtl ? 'إدارة المنظومة' : 'Management Hub'}</h4>
+            <h4 className="text-xs font-black text-capsule-navy dark:text-white mt-0.5">{isRtl ? 'إدارة المنظومة' : 'Management Hub'}</h4>
           </div>
           {([
             { id: 'overview', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', labelAr: 'نظرة عامة ومؤشرات النظام', labelEn: 'System Overview' },
@@ -229,17 +245,17 @@ const AdminDashboard: React.FC = () => {
             { id: 'enrollments', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z', labelAr: 'إدارة تراخيص الاشتراكات', labelEn: 'Enrollments Access UI' },
             { id: 'complaints', icon: 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4', labelAr: 'صندوق الشكاوى والتواصل', labelEn: 'Complaints Box' }
           ] as const).map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 cursor-pointer ${activeTab === tab.id ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-600 hover:bg-slate-100/80'}`}>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 cursor-pointer ${activeTab === tab.id ? 'bg-gradient-to-r from-capsule-navy to-capsule-teal dark:from-sky-700 dark:to-teal-600 text-white shadow-md font-black' : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60 font-bold backdrop-blur-md'}`}>
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={tab.icon} /></svg>
               <span>{isRtl ? tab.labelAr : tab.labelEn}</span>
             </button>
           ))}
-          <div className="pt-2 border-t border-slate-200/80 space-y-1 mt-2">
-            <button onClick={() => setActiveTab('contracts-approval')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 cursor-pointer ${activeTab === 'contracts-approval' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-600 hover:bg-slate-100/80'}`}>
+          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 space-y-1 mt-2">
+            <button onClick={() => setActiveTab('contracts-approval')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 cursor-pointer ${activeTab === 'contracts-approval' ? 'bg-gradient-to-r from-capsule-navy to-capsule-teal dark:from-sky-700 dark:to-teal-600 text-white shadow-md font-black' : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60 font-bold backdrop-blur-md'}`}>
               <svg className="w-4 h-4 text-capsule-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0a2 2 0 100 4m0-4a2 2 0 100-4" /></svg>
               <span>{isRtl ? 'اعتماد عقود الشركات (B2B)' : 'Corporate Approvals'}</span>
             </button>
-            <button onClick={() => setActiveTab('courses-approval')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 cursor-pointer ${activeTab === 'courses-approval' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-600 hover:bg-slate-100/80'}`}>
+            <button onClick={() => setActiveTab('courses-approval')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 cursor-pointer ${activeTab === 'courses-approval' ? 'bg-gradient-to-r from-capsule-navy to-capsule-teal dark:from-sky-700 dark:to-teal-600 text-white shadow-md font-black' : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60 font-bold backdrop-blur-md'}`}>
               <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               <span>{isRtl ? 'اعتماد الدورات الفعلية' : 'Live Course Approval'}</span>
             </button>
@@ -273,9 +289,9 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {activeTab === 'courses' && (
-            <div className="bg-white/90 border border-white rounded-3xl shadow-sm overflow-hidden p-6">
-              <div className="flex justify-between items-center border-b pb-3 mb-4">
-                <h3 className="text-sm font-black text-capsule-navy">{isRtl ? 'إدارة واعتماد الدورات التدريبية' : 'Course Approval Terminal'}</h3>
+            <div className="bg-white/70 dark:bg-[#162035]/70 backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-3xl shadow-xl overflow-hidden p-6 backdrop-saturate-150">
+              <div className="flex justify-between items-center border-b border-white/40 dark:border-slate-800 pb-3 mb-4">
+                <h3 className="text-sm font-black text-capsule-navy dark:text-white">{isRtl ? 'إدارة واعتماد الدورات التدريبية' : 'Course Approval Terminal'}</h3>
                 <button onClick={() => { setEditCourseId(null); setCourseForm({ title: '', description: '', category: 'Software Engineering', level: 'beginner', price: '', durationWeeks: '', maxStudents: '', trainerId: '' }); setShowCourseModal(true); }} className="px-3.5 py-1.5 bg-capsule-teal hover:bg-teal-700 text-white rounded-xl text-xs font-black shadow-2xs transition flex items-center gap-1 cursor-pointer">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" /></svg>
                   <span>{isRtl ? 'إضافة دورة جديدة' : 'Add New Course'}</span>

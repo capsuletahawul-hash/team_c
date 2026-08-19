@@ -151,8 +151,20 @@ export async function approveAdminCourse(id: number) {
   });
 }
 
-export async function rejectAdminCourse(id: number) {
+export async function rejectAdminCourse(id: number | string) {
   return apiFetch(`/admin/courses/${id}/reject`, {
+    method: "PUT",
+  });
+}
+
+export async function approveAdminCourseDeletion(id: number | string) {
+  return apiFetch(`/admin/courses/${id}/approve-deletion`, {
+    method: "PUT",
+  });
+}
+
+export async function rejectAdminCourseDeletion(id: number | string) {
+  return apiFetch(`/admin/courses/${id}/reject-deletion`, {
     method: "PUT",
   });
 }

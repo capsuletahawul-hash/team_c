@@ -6,8 +6,8 @@ import Footer from "../components/Footer";
 import Button from "../components/Button";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuth } from "../context/AuthContext";
+import { BASE_URL } from "../services/api";
 import logo from "../assets/light_trans_logo.png";
-
 
 interface Filters {
   category: string[];
@@ -38,8 +38,6 @@ const CATEGORY_LABELS = {
   cloud: { ar: "كلاود", en: "Cloud Computing" },
 };
 
-
-
 interface StarProps {
   filled: boolean;
 }
@@ -49,7 +47,6 @@ const Star = ({ filled }: StarProps) => (
     <polygon points="12,2 15,9 22,9.5 16.5,14.5 18,22 12,18 6,22 7.5,14.5 2,9.5 9,9" />
   </svg>
 );
-
 
 interface Course {
   id: number;
@@ -69,7 +66,6 @@ interface Course {
   priceLabel?: string;
   durationLabel?: string;
 }
-
 
 // المكون الرئيسي المسؤول عن عرض الدورات والبحث والفلترة والترتيب.
 export default function CoursesOverview() {
@@ -92,7 +88,7 @@ export default function CoursesOverview() {
 
   // جلب الكورسات الحقيقية المعتمدة من الباك اند فقط (بدون أي بيانات غير معتمدة)
   useEffect(() => {
-    fetch("http://localhost:5000/api/courses/public")
+    fetch(`${BASE_URL}/courses/public`)
       .then((res) => res.json())
       .then((data) => {
         const raw = data.success ? (data.courses ?? []) : [];

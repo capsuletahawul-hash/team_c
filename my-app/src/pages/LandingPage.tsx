@@ -206,8 +206,13 @@ function LandingPage({
         else setError(l.errorPlatform);
 
         if (coursesRes.success) {
-          setAllCourses(coursesRes.data.courses);
-          setCourses(coursesRes.data.courses);
+          const raw = coursesRes.data.courses || [];
+          const activeOnly = raw.filter((c: any) => {
+            const s = String(c.status || '').toLowerCase();
+            return s === 'published' || s === 'available' || s === 'approved' || s === 'active' || !c.status;
+          });
+          setAllCourses(activeOnly);
+          setCourses(activeOnly);
         }
 
         setLoading(false);

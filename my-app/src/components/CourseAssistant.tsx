@@ -33,7 +33,7 @@ export default function CourseAssistant() {
       id: 'welcome',
       sender: 'ai',
       text: isRTL
-        ? "أهلاً بك! أنا مساعد كابسولة التحول الذكي 🤖. كيف يمكنني مساعدتك اليوم في استكشاف المسارات التعليمية والمعسكرات والدورات؟"
+        ? "أهلاً بك! أنا مساعد كبسولة التحول الذكي 🤖. كيف يمكنني مساعدتك اليوم في استكشاف المسارات التعليمية والمعسكرات والدورات؟"
         : "Welcome! I am Capsule AI Assistant 🤖. How can I help you explore our bootcamps and learning tracks today?",
       timestamp: new Date().toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' }),
     }
@@ -166,7 +166,7 @@ export default function CourseAssistant() {
         id: 'welcome',
         sender: 'ai',
         text: isRTL
-          ? "أهلاً بك مجدداً! أنا مساعد كابسولة الذكي 🤖. كيف يمكنني مساعدتك؟"
+          ? "أهلاً بك مجدداً! أنا مساعد كبسولة الذكي 🤖. كيف يمكنني مساعدتك؟"
           : "Welcome back! I am Capsule AI Assistant 🤖. How can I help you?",
         timestamp: new Date().toLocaleTimeString(isRTL ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' }),
       }
@@ -190,7 +190,7 @@ export default function CourseAssistant() {
             </div>
             <div>
               <h2 className="text-sm md:text-base font-black tracking-tight flex items-center gap-2">
-                <span>{isRTL ? 'مساعد كابسولة الذكي' : 'Capsule AI Assistant'}</span>
+                <span>{isRTL ? 'مساعد كبسولة الذكي' : 'Capsule AI Assistant'}</span>
                 <span className="text-[9.5px] font-extrabold bg-[#00A499]/20 text-[#26FFE6] px-2 py-0.5 rounded-full border border-teal-500/30 uppercase tracking-wider">
                   AI 2.0 Streaming
                 </span>

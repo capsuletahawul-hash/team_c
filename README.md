@@ -1,7 +1,7 @@
 <div align="center" style="background-color: #0A0F1D; padding: 40px 20px; border-radius: 16px;">
   <img src="my-app/src/assets/light_trans_logo.png" width="180" alt="Capsule Tahawul Logo" />
   
-  <h1 style="color: #ffffff; margin-top: 15px;">كابسولة تحول | Capsule Tahawul</h1>
+  <h1 style="color: #ffffff; margin-top: 15px;">كبسولة تحول | Capsule Tahawul</h1>
   
   <p style="color: #94A3B8; font-weight: 500;">
     منصة تدريبية إلكترونية متكاملة ثنائية اللغة تجمع بين الطلاب، المدربين، والشركات<br />

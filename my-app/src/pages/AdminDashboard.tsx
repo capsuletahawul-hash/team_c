@@ -226,33 +226,29 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       <main className="flex-grow max-w-7xl mx-auto px-6 py-8 w-full grid grid-cols-1 lg:grid-cols-4 gap-6 relative z-10">
-        <div className="lg:col-span-1 bg-white/70 dark:bg-[#162035]/70 backdrop-blur-xl border border-white/60 dark:border-white/10 p-4 rounded-3xl shadow-xl backdrop-saturate-150 space-y-1.5 h-fit sticky top-6">
-          <div className="p-3 border-b border-slate-200/80 dark:border-slate-800 mb-2">
+        <div className="lg:col-span-1 bg-white/70 dark:bg-[#162035]/70 backdrop-blur-xl border border-white/60 dark:border-white/10 p-4 rounded-3xl shadow-xl backdrop-saturate-150 h-fit relative lg:sticky lg:top-28 z-20 overflow-hidden">
+          <div className="p-2.5 border-b border-slate-200/80 dark:border-slate-800 mb-2.5">
             <p className="text-[10px] font-black text-capsule-teal uppercase tracking-widest">{isRtl ? 'لوحة تحكم المشرف' : 'CONTROL CENTER'}</p>
             <h4 className="text-xs font-black text-capsule-navy dark:text-white mt-0.5">{isRtl ? 'إدارة المنظومة' : 'Management Hub'}</h4>
           </div>
-          {([
-            { id: 'overview', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', labelAr: 'نظرة عامة ومؤشرات النظام', labelEn: 'System Overview' },
-            { id: 'users', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', labelAr: 'إدارة الهويات والصلاحيات', labelEn: 'Identity & IAM Control' },
-            { id: 'courses', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', labelAr: 'إدارة الكورسات (CRUD)', labelEn: 'Courses Manager (CRUD)' },
-            { id: 'orders', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', labelAr: 'إدارة الطلبات والمبيعات', labelEn: 'Orders UI & Ledger' },
-            { id: 'enrollments', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z', labelAr: 'إدارة تراخيص الاشتراكات', labelEn: 'Enrollments Access UI' },
-            { id: 'complaints', icon: 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4', labelAr: 'صندوق الشكاوى والتواصل', labelEn: 'Complaints Box' }
-          ] as const).map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 cursor-pointer ${activeTab === tab.id ? 'bg-gradient-to-r from-capsule-navy to-capsule-teal dark:from-sky-700 dark:to-teal-600 text-white shadow-md font-black' : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60 font-bold backdrop-blur-md'}`}>
-              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={tab.icon} /></svg>
-              <span>{isRtl ? tab.labelAr : tab.labelEn}</span>
-            </button>
-          ))}
-          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 space-y-1 mt-2">
-            <button onClick={() => setActiveTab('contracts-approval')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 cursor-pointer ${activeTab === 'contracts-approval' ? 'bg-gradient-to-r from-capsule-navy to-capsule-teal dark:from-sky-700 dark:to-teal-600 text-white shadow-md font-black' : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60 font-bold backdrop-blur-md'}`}>
-              <svg className="w-4 h-4 text-capsule-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0a2 2 0 100 4m0-4a2 2 0 100-4" /></svg>
-              <span>{isRtl ? 'اعتماد عقود الشركات (B2B)' : 'Corporate Approvals'}</span>
-            </button>
-            <button onClick={() => setActiveTab('courses-approval')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 cursor-pointer ${activeTab === 'courses-approval' ? 'bg-gradient-to-r from-capsule-navy to-capsule-teal dark:from-sky-700 dark:to-teal-600 text-white shadow-md font-black' : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60 font-bold backdrop-blur-md'}`}>
-              <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span>{isRtl ? 'اعتماد الدورات الفعلية' : 'Live Course Approval'}</span>
-            </button>
+
+          {/* 📱 Mobile: Horizontal Scrollable Tabs | 💻 Desktop: Vertical Stack */}
+          <div className="flex lg:flex-col overflow-x-auto lg:overflow-visible gap-2 pb-2 lg:pb-0 scrollbar-none">
+            {([
+              { id: 'overview', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', labelAr: 'نظرة عامة', labelEn: 'Overview' },
+              { id: 'users', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', labelAr: 'إدارة الهويات', labelEn: 'Identity & IAM' },
+              { id: 'courses', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', labelAr: 'إدارة الكورسات (CRUD)', labelEn: 'Courses Manager' },
+              { id: 'orders', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', labelAr: 'الطلبات والمبيعات', labelEn: 'Orders & Sales' },
+              { id: 'enrollments', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z', labelAr: 'الاشتراكات', labelEn: 'Enrollments' },
+              { id: 'complaints', icon: 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4', labelAr: 'صندوق الشكاوى', labelEn: 'Complaints' },
+              { id: 'contracts-approval', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0a2 2 0 100 4m0-4a2 2 0 100-4', labelAr: 'اعتماد B2B', labelEn: 'B2B Contracts' },
+              { id: 'courses-approval', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', labelAr: 'اعتماد الكورسات', labelEn: 'Course Approvals' }
+            ] as const).map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`shrink-0 lg:w-full text-start p-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer whitespace-nowrap ${activeTab === tab.id ? 'bg-gradient-to-r from-capsule-navy to-capsule-teal dark:from-sky-700 dark:to-teal-600 text-white shadow-md font-black' : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60 font-bold backdrop-blur-md'}`}>
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={tab.icon} /></svg>
+                <span>{isRtl ? tab.labelAr : tab.labelEn}</span>
+              </button>
+            ))}
           </div>
         </div>
 

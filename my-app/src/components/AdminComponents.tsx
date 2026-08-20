@@ -185,7 +185,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top 4 Stat Cards with Glassmorphism & Dark Mode Hover Effects */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-start">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-start">
         {[
           { title: isRtl ? 'إجمالي المستخدمين' : 'Total Users', value: statsData.totalUsers || 14, color: 'text-capsule-navy dark:text-white', hoverBorder: 'dark:hover:border-sky-400/60 dark:hover:shadow-sky-500/10' },
           { title: isRtl ? 'الكورسات الحالية' : 'Total Platform Courses', value: coursesCount || 6, color: 'text-capsule-teal dark:text-teal-400', hoverBorder: 'dark:hover:border-teal-400/60 dark:hover:shadow-teal-500/10' },

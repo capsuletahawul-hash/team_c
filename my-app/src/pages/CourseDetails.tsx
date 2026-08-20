@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon, CalendarDaysIcon, ChartBarIcon, LanguageIcon, UsersIcon, CheckCircleIcon, SparklesIcon, CheckIcon } from '@heroicons/react/24/solid';
 import { getCourseDetails } from "../mocks/mockApi";
+import { BASE_URL } from "../services/api";
 
 // ==========================================
 // 🛠️ الأنواع والـ Interfaces لضمان كتابة كود TypeScript سليم وآمن (No Any)
@@ -79,7 +80,7 @@ export default function CourseDetails() {
       setStatus('loading');
       try {
         // 🛰️ نحاول أول شي نجيب الكورس من الباك اند الحقيقي (كورسات التراينر المعتمدة)
-        const backendResponse = await fetch(`http://localhost:5000/api/courses/public/${id}`);
+        const backendResponse = await fetch(`${BASE_URL}/courses/public/${id}`);
         if (backendResponse.ok) {
           const backendData = await backendResponse.json();
           if (isMounted && backendData?.success) {

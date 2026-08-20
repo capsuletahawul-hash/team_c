@@ -7,6 +7,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import { AdminOverview, AdminOrdersTab, AdminUsersTab, CourseModal } from '../components/AdminComponents';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { BASE_URL } from '../services/api';
 import ContractsApproval from './ContractsApproval';
 import CoursesApproval from './CoursesApproval';
 
@@ -37,7 +38,7 @@ const AdminDashboard: React.FC = () => {
   const [editCourseId, setEditCourseId] = useState<string | null>(null);
   const [courseForm, setCourseForm] = useState({ title: '', description: '', category: 'Software Engineering', level: 'beginner', price: '', durationWeeks: '', maxStudents: '', trainerId: '' });
 
-  const API_BASE = 'http://localhost:5000/api';
+  const API_BASE = BASE_URL;
   const isRtl = lang === 'ar';
   const getToken = () => {
     const raw = localStorage.getItem('auth_user') || localStorage.getItem('user');

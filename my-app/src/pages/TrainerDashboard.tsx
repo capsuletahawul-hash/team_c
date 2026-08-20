@@ -103,13 +103,18 @@ export default function TrainerDashboard() {
     } catch (err) { console.error(err); }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     setMessage(''); setError('');
 
     if (formData.requirementsNotes.trim().length < 20) return setError(l.messages.valErrorLength);
 
     try {
+      setIsSubmitting(true);
       const res = await fetch(`${BASE_URL}/trainer/courses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -146,6 +151,8 @@ export default function TrainerDashboard() {
       );
 
       setFormData({ title: '', price: '', durationWeeks: '', maxStudents: '', videoDurationMinutes: '', level: 'beginner', category: 'Cybersecurity', description: '', requirementsNotes: '' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -410,7 +417,7 @@ export default function TrainerDashboard() {
                 <textarea name="requirementsNotes" value={formData.requirementsNotes} onChange={handleInputChange} required rows={2} className="w-full p-2.5 bg-white/60 dark:bg-[#0F172A] border border-white/40 dark:border-slate-700 rounded-xl text-xs font-bold text-capsule-navy dark:text-slate-100 resize-none outline-none focus:border-capsule-teal" placeholder={l.form.placeholders.requirements}></textarea>
               </div>
 
-              <Button type="submit" variant="primary">{l.form.submitBtn}</Button>
+              <Button type="submit" variant="primary" disabled={isSubmitting}>{isSubmitting ? (lang === 'ar' ? 'جاري الرفع...' : 'Submitting...') : l.form.submitBtn}</Button>
             </form>
           </div>
 

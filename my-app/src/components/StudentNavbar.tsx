@@ -129,6 +129,7 @@ function StudentNavbar({
 
         {/* Mobile Hamburger Button + User Profile Menu */}
         <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle size="12px" />
           {/* Mobile Shortcut to Cart */}
           <Link to="/cart" className="p-2 text-lg" title={lang === "ar" ? "السلة" : "Cart"}>🛒</Link>
 
@@ -151,13 +152,19 @@ function StudentNavbar({
             </div>
           )}
 
-          {/* Language Toggle (Mobile) */}
-          <button 
-            onClick={toggleLanguage}
-            className="self-start mb-2 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 text-gray-800 dark:text-slate-100 font-extrabold text-xs px-4 py-2 rounded-full transition-all duration-200 cursor-pointer"
-          >
-            {lang === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
-          </button>
+          {/* Mobile Controls: Language & Theme */}
+          <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-slate-800">
+            <button 
+              onClick={toggleLanguage}
+              className="bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 text-gray-800 dark:text-slate-100 font-extrabold text-xs px-4 py-2 rounded-full transition-all duration-200 cursor-pointer"
+            >
+              {lang === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
+            </button>
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
+              <span>{lang === 'ar' ? 'المظهر:' : 'Theme:'}</span>
+              <ThemeToggle size="14px" />
+            </div>
+          </div>
 
           {navLinks.map(link => (
             <Link

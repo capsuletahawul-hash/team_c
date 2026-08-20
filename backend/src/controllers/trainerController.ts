@@ -242,6 +242,23 @@ async getTrainerById(req: Request, res: Response) {
 
       const authUser = (req as AuthenticatedRequest).user!;
       const user = await userRepository.findById(authUser.userId);
+
+      // 🛡️ منع التكرار: إذا تم رفع نفس الدورة بنفس العنوان خلال آخر 10 ثوانٍ، يرجع الدورة الموجودة
+      const existingCourses = await trainerRepository.listCoursesByTrainer(authUser.userId);
+      const duplicate = existingCourses.find(
+        (c) =>
+          c.title.trim().toLowerCase() === validation.data.title.trim().toLowerCase() &&
+          Math.abs(new Date().getTime() - new Date(c.createdAt).getTime()) < 10000
+      );
+
+      if (duplicate) {
+        return res.status(200).json({
+          success: true,
+          ticketId: duplicate.id,
+          course: toCourseItem(duplicate, user?.name || ""),
+        });
+      }
+
       const course = await trainerRepository.createCourse(authUser.userId, validation.data);
 
       return res.status(201).json({

@@ -30,9 +30,15 @@ export const courseRepository = {
 
   async findAll(page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
+    const where = {
+      status: {
+        notIn: ['archived', 'deleted', 'rejected']
+      }
+    };
 
     const [courses, total] = await Promise.all([
       prisma.course.findMany({
+        where,
         skip,
         take: limit,
         orderBy: {
@@ -49,7 +55,7 @@ export const courseRepository = {
           },
         },
       }),
-      prisma.course.count(),
+      prisma.course.count({ where }),
     ]);
 
     return {

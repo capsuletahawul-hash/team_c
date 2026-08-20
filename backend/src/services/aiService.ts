@@ -98,7 +98,7 @@ function buildCourseContext(context: CourseContext[]): string {
 
   const payload = {
     totalAvailableCoursesAndTracks: mergedContext.length,
-    summaryAr: `تضم منصة كابسولة التحول حالياً عدد ${mergedContext.length} مسارات وكورسات تعليمية وتدريبية شاملة في مجالات الذكاء الاصطناعي وعلم البيانات والأمن السيبراني.`,
+    summaryAr: `تضم منصة كبسولة التحول حالياً عدد ${mergedContext.length} مسارات وكورسات تعليمية وتدريبية شاملة في مجالات الذكاء الاصطناعي وعلم البيانات والأمن السيبراني.`,
     summaryEn: `Capsule Tahawul platform currently offers ${mergedContext.length} comprehensive learning tracks and courses in AI, Data Science, and Cybersecurity.`,
     availableCategories: Array.from(new Set(mergedContext.map(c => c.category))),
     availableTrainers: Array.from(new Set(mergedContext.map(c => c.trainerName))),

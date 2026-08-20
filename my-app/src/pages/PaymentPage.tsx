@@ -7,7 +7,7 @@ import TrainerNavbar from '../components/TrainerNavbar';
 import Footer from '../components/Footer';
 import { BanknotesIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon, SparklesIcon } from '@heroicons/react/24/solid';
-import { startCheckout } from "../services/api";
+import { startCheckout, BASE_URL } from "../services/api";
 
 // @ts-ignore
 import applePayLogo from '../assets/ApplePay.png';
@@ -154,7 +154,7 @@ export default function Payment() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/payment/return?id=${paymentId}&orderId=${order.orderId}`,
+        `${BASE_URL}/payment/return?id=${paymentId}&orderId=${order.orderId}`,
         {
           method: 'GET',
         }

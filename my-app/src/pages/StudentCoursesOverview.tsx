@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import Button from "../components/Button";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuth } from "../context/AuthContext";
+import { BASE_URL } from "../services/api";
 import logo from "../assets/light_trans_logo.png";
  
 // ---------- Types ----------
@@ -107,7 +108,7 @@ export default function CoursesOverview() {
 
   // جلب الكورسات الحقيقية المعتمدة من الباك اند فقط (بدون أي بيانات غير معتمدة)
   useEffect(() => {
-    fetch("http://localhost:5000/api/courses/public")
+    fetch(`${BASE_URL}/courses/public`)
       .then((res) => res.json())
       .then((data) => {
         const raw = data.success ? (data.courses ?? []) : [];

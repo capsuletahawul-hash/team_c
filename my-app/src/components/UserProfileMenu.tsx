@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, Role } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { BASE_URL } from '../services/api';
 import {
   UserIcon, ChevronDownIcon, ArrowLeftStartOnRectangleIcon,
   Square2StackIcon, BookOpenIcon, Cog6ToothIcon, ShieldCheckIcon,
@@ -30,7 +31,7 @@ export default function UserProfileMenu({ customRole, customName, customEmail }:
   useEffect(() => {
     const token = sessionStorage.getItem('user_token');
     if (token) {
-      fetch('http://localhost:5000/api/auth/me', {
+      fetch(`${BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())

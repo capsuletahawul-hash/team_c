@@ -3,8 +3,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext'; // 🔄 استيراد سياق اللغة بدون ملحقات الملفات لضمان توافق TS
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-
-const API_URL = "http://localhost:5000";
+import { BASE_URL } from '../services/api';
 import {
   PaperAirplaneIcon, UserIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon,
   PhoneIcon, BriefcaseIcon, StarIcon as OutlineStar, ChatBubbleLeftRightIcon

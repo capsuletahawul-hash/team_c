@@ -120,14 +120,9 @@ npm test
 
 ## فريق العمل | Team Members
 
-- **Reem AbuAziz**
-- **Ali Al-Taleb**
-- **Mohammed Al-Qaffas**
-- **Lana Al-Qahtani**
-- **Youmna Abu-Deeb**
+- [**Reem AbuAziz**](https://github.com/reemabuaziz)
+- [**Ali Al-Taleb**](https://github.com/kimiiine)
+- [**Mohammed Al-Qaffas**](https://github.com/Ma16q)
+- [**Lana Al-Qahtani**](https://github.com/lana2std)
+- [**Youmna Abu-Deeb**](https://github.com/yomna-cs)
 
----
-
-<div align="center">
-  <sub>Capsule Tahawul Platform © 2026. Built by Team C.</sub>
-</div>
